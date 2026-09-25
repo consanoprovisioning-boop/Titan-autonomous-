@@ -1,1 +1,5 @@
 .playwright-mcp/
+bin/
+obj/
+*.user
+.dotnet/
