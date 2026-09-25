@@ -4,7 +4,7 @@ Glenn-approved signed-install copy only. **NO launch. NO live Eleads.**
 
 This is the source runbook for the framework-dependent `win-x64` Release publish of `Titan.ChiefOfStaff` (`net8.0`). The Alienware host must already have the .NET 8 runtime (or .NET 8 desktop runtime) installed.
 
-The checked-in drop lives in `deploy/alienware-install-fd/`. Playwright browser drivers and `*.ps1` files are omitted on purpose. It is not a PowerShell self-extractor. Do not set execution policy to bypass. Do not create Desktop or Start Menu shortcuts.
+The finished publish is `dist/titan-chief-win-x64/`. Install with `deploy/alienware-local-program/INSTALL.cmd`. An earlier incomplete signed folder is archived at `deploy/archive/incomplete-signed-drop/`. Do not use PowerShell self-extractors. Do not set execution policy to bypass. Do not create Desktop or Start Menu shortcuts.
 
 ## Destinations
 

@@ -1,3 +1,5 @@
+# Archived — superseded by `dist/titan-chief-win-x64/`
+
 # Receipt — 2026-09-24 8:08 PM ET
 
 Partial drop received by the cloud agent. **No launch. No Eleads. No password typed.**

@@ -89,6 +89,22 @@ public sealed class HostStore : IDisposable
         cmd.ExecuteNonQuery();
     }
 
+    public IReadOnlyList<string> RecentLogs(int take)
+    {
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = "SELECT at_et, queue, action, result, customer_key FROM work_log ORDER BY id DESC LIMIT $take";
+        cmd.Parameters.AddWithValue("$take", take);
+        using var reader = cmd.ExecuteReader();
+        var lines = new List<string>();
+        while (reader.Read())
+        {
+            var customer = reader.IsDBNull(4) ? "" : reader.GetString(4);
+            lines.Add($"{reader.GetString(0)} {reader.GetString(1)} {reader.GetString(2)} {reader.GetString(3)} {customer}".Trim());
+        }
+
+        return lines;
+    }
+
     public void Dispose() => _connection.Dispose();
 }
 

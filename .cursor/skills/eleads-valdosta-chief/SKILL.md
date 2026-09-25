@@ -13,8 +13,9 @@ Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acti
 
 - Rooftops: **28206** and **28546** only. Never **6220**.
 - Identity: **Bordine, Glenn** on every CRM action.
-- Cloud/Linux agent: do **not** open Eleads, do **not** start Titan.ChiefOfStaff, do **not** type the Eleads password, do **not** run PowerShell self-extractors or Bypass execution policy.
-- One live Eleads session: Alienware Titan host after Glenn Verify. Install-without-launch and `kill.switch=armed` are not Verify and not send authorization.
+- Cloud/Linux agent: do **not** open Eleads, do **not** type the Eleads password, do **not** run PowerShell self-extractors.
+- One live Eleads session: Alienware Chrome on CDP 9222 after `verify`. Leave Chrome open. `tick` attaches and must not kill Chrome.
+- `INSTALL.cmd` and `kill.switch=armed` are not Verify and not send authorization.
 - Titan never stores or types the password.
 
 If the host is not verified and sending: inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the blocker changes. Do not guess credentials.

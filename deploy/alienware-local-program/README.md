@@ -1,42 +1,34 @@
-# Alienware 18 — Titan.ChiefOfStaff local program
+# Titan Autonomous on Alienware 18
 
-This is the live local host for Glenn Bordine’s Eleads work at Valdosta Nissan (28206) and Valdosta Mitsubishi (28546). Never The TKO Autogroup (6220).
+Finished local suite. Chief of Staff is the host. Rooftops **28206** and **28546** only. Never **6220**.
 
-## Download on the Alienware
+## Need on the PC
 
-1. Open the `cursor/titan-chief-host-7954` branch on GitHub (or the pull request for that branch).
-2. Download the repo ZIP (**Code → Download ZIP**) or clone the branch.
-3. Copy `dist/titan-chief-win-x64/` onto the Alienware. That folder already contains `Titan.ChiefOfStaff.exe` and `INSTALL.cmd`.
+- [.NET 8 desktop runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Google Chrome
 
-This cloud environment cannot copy files onto the Alienware. There is no connected self-hosted worker. You download, then run `INSTALL.cmd` on that PC.
+This cloud agent cannot copy files onto the Alienware.
 
-## Install (cmd.exe)
+## Install
 
-Alienware needs the **.NET 8 desktop runtime** for a framework-dependent publish: https://dotnet.microsoft.com/download/dotnet/8.0  
-Google Chrome must already be installed.
+1. Download branch `cursor/titan-chief-host-7954` (PR #2) as a ZIP.
+2. In cmd.exe:
 
 ```bat
-cd /d %USERPROFILE%\Downloads\Titan-autonomous-\deploy\alienware-local-program
-INSTALL.cmd C:\path\to\dist\titan-chief-win-x64
+deploy\alienware-local-program\INSTALL.cmd C:\path\to\dist\titan-chief-win-x64
 ```
 
-`INSTALL.cmd` copies into `%LOCALAPPDATA%\TitanChief\app\` and writes `armed` to `%LOCALAPPDATA%\TitanChief\kill.switch`. It does **not** start Eleads and does **not** create shortcuts.
+That copies into `%LOCALAPPDATA%\TitanChief\app\`, arms `kill.switch`, and initializes the host store. It does not type a password.
 
 ## Run
 
 ```bat
-"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" status
-"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" verify
-"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" tick
+"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" status
+"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" verify
+"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" tick
+"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" report
 ```
 
-`verify` opens the persistent Chrome profile. **Glenn types the Eleads password in Chrome.** Titan never stores it and never types it.
+`verify` starts Chrome with CDP port 9222 if needed. **You** sign in as Bordine, Glenn. Leave Chrome open. `tick` attaches to that same Chrome and does not close it.
 
-`tick` runs only after verify succeeds on rooftop 28206 or 28546. SMS 9:00–7:00 PM ET; email any hour.
-
-## Build this publish (from a machine with .NET 8 SDK)
-
-```bat
-dotnet test Titan.ChiefOfStaff.sln -c Release
-dotnet publish src\Titan.ChiefOfStaff\Titan.ChiefOfStaff.csproj -c Release -r win-x64 --self-contained false -o dist\titan-chief-win-x64
-```
+`install` / `INSTALL.cmd` is not Verify and not send authorization.

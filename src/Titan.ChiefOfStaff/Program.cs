@@ -18,6 +18,7 @@ return verb switch
     "status" => Status(),
     "verify" => await VerifyAsync(),
     "tick" => await TickAsync(),
+    "report" => Report(),
     "stop" => Stop(),
     _ => Usage()
 };
@@ -76,7 +77,7 @@ async Task<int> VerifyAsync()
     string report;
     try
     {
-        report = await eleads.AttachOrOpenAsync(paths, allowNavigate: true);
+        report = await eleads.AttachAsync(paths, allowNavigate: true, startChromeIfNeeded: true);
     }
     catch (Exception ex)
     {
@@ -141,7 +142,7 @@ async Task<int> TickAsync()
     await using var eleads = new EleadsSession();
     try
     {
-        await eleads.AttachOrOpenAsync(paths, allowNavigate: false);
+        await eleads.AttachAsync(paths, allowNavigate: false, startChromeIfNeeded: false);
         await eleads.InspectAsync();
     }
     catch (Exception ex)
@@ -166,7 +167,7 @@ async Task<int> TickAsync()
     }
 
     var et = EasternClock.Now();
-    var result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, Policy.SmsOpen(et));
+    var result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
     store.WriteHeartbeat(new Heartbeat(
         HostState.VerifiedIdle.ToString(),
         eleads.DetectedRooftop,
@@ -176,6 +177,20 @@ async Task<int> TickAsync()
         Policy.SmsOpen(et)));
     WriteHeartbeatFile(paths, store.ReadHeartbeat());
     Console.WriteLine(result);
+    return 0;
+}
+
+int Report()
+{
+    paths.EnsureDataTree();
+    using var store = new HostStore(paths);
+    var beat = store.ReadHeartbeat();
+    Console.WriteLine($"state={beat.State} rooftop={beat.Rooftop ?? "-"} sms={Policy.SmsOpen(EasternClock.Now())}");
+    foreach (var line in store.RecentLogs(20))
+    {
+        Console.WriteLine(line);
+    }
+
     return 0;
 }
 
@@ -192,7 +207,7 @@ int Stop()
 int Usage()
 {
     Console.WriteLine("Titan.ChiefOfStaff — Alienware local host");
-    Console.WriteLine("verbs: install | status | verify | tick | stop");
+    Console.WriteLine("verbs: install | status | verify | tick | report | stop");
     Console.WriteLine("Rooftops 28206 and 28546 only. Never 6220.");
     Console.WriteLine("Titan never stores or types the Eleads password.");
     return 1;
@@ -213,8 +228,5 @@ static string? ReadOverride(string[] args, string name)
 
 static void WriteHeartbeatFile(HostPaths paths, Heartbeat beat)
 {
-    var json = $$"""
-        {"state":"{{beat.State}}","rooftop":"{{beat.Rooftop}}","verifiedAt":"{{beat.VerifiedAt}}","lastTickAt":"{{beat.LastTickAt}}","smsOpen":{{beat.SmsOpen.ToString().ToLowerInvariant()}}}
-        """;
-    File.WriteAllText(paths.Heartbeat, json);
+    File.WriteAllText(paths.Heartbeat, System.Text.Json.JsonSerializer.Serialize(beat));
 }

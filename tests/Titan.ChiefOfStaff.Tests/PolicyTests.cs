@@ -46,6 +46,8 @@ public class PolicyTests
         var now = new DateTimeOffset(2026, 9, 25, 12, 0, 0, TimeSpan.FromHours(-4));
         Assert.False(Policy.OtherConsultantEligible(now, now.AddHours(-10), titanTouched: false));
         Assert.False(Policy.OtherConsultantEligible(now, null, titanTouched: false));
+        Assert.False(Policy.OtherConsultantEligible(now, null, titanTouched: false, leadOpenedAt: now.AddHours(-10)));
+        Assert.True(Policy.OtherConsultantEligible(now, null, titanTouched: false, leadOpenedAt: now.AddHours(-97)));
         Assert.True(Policy.OtherConsultantEligible(now, now.AddHours(-97), titanTouched: false));
         Assert.True(Policy.OtherConsultantEligible(now, now.AddHours(-1), titanTouched: true));
     }
@@ -96,5 +98,26 @@ public class PolicyTests
         }
 
         Directory.Delete(root, recursive: true);
+    }
+
+    [Fact]
+    public void Consent_and_copy_gates()
+    {
+        Assert.NotNull(Consent.BlockReason(null));
+        Assert.Contains("consent", Consent.BlockReason("Customer replied STOP") ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Funding", Consent.BlockReason("unable to obtain funding") ?? "");
+        Assert.Null(Consent.BlockReason("Called yesterday. Interested in a Sentra."));
+        Assert.True(Consent.PromisesForbiddenTerms("I can get you $299/mo at 1.9 APR"));
+        Assert.False(Consent.PromisesForbiddenTerms("Come see us for all possible qualifying incentives, rebates, and special manufacturer APR programs. Wednesday at 10?"));
+    }
+
+    [Fact]
+    public void Work_order_holds_other_consultants()
+    {
+        var now = new DateTimeOffset(2026, 9, 25, 12, 0, 0, TimeSpan.FromHours(-4));
+        var other = new OrganizerRow("Pat", "Smith, Pat", WorkQueue.NewLeads, now.AddHours(-2), now.AddHours(-3), false, "note yesterday");
+        Assert.Contains("72h", WorkOrder.HoldReason(other, now) ?? "");
+        var glenn = new OrganizerRow("Pat", "Bordine, Glenn", WorkQueue.NewLeads, now.AddHours(-2), now, false, "note yesterday");
+        Assert.Null(WorkOrder.HoldReason(glenn, now));
     }
 }

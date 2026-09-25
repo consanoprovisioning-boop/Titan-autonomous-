@@ -9,8 +9,9 @@ dotnet publish src/Titan.ChiefOfStaff/Titan.ChiefOfStaff.csproj -c Release -r wi
 rm -rf "$ROOT/dist/titan-chief-win-x64/.playwright"
 rm -f "$ROOT/dist/titan-chief-win-x64/"*.ps1
 cp -f "$ROOT/deploy/alienware-local-program/INSTALL.cmd" "$ROOT/dist/titan-chief-win-x64/INSTALL.cmd"
+cp -f "$ROOT/deploy/alienware-local-program/Titan.cmd" "$ROOT/dist/titan-chief-win-x64/Titan.cmd"
 (
   cd "$ROOT/dist/titan-chief-win-x64"
-  sha256sum Titan.ChiefOfStaff.exe Titan.ChiefOfStaff.dll Titan.ChiefOfStaff.deps.json Titan.ChiefOfStaff.runtimeconfig.json > SHA256SUMS.txt
+  sha256sum Titan.ChiefOfStaff.exe Titan.ChiefOfStaff.dll Titan.ChiefOfStaff.deps.json Titan.ChiefOfStaff.runtimeconfig.json e_sqlite3.dll > SHA256SUMS.txt
 )
 echo "Published $ROOT/dist/titan-chief-win-x64"

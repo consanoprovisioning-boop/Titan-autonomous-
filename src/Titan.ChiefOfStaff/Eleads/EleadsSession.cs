@@ -5,27 +5,41 @@ namespace Titan.ChiefOfStaff.Eleads;
 public sealed class EleadsSession : IAsyncDisposable
 {
     private IPlaywright? _playwright;
-    private IBrowserContext? _context;
+    private IBrowser? _browser;
     private IPage? _page;
 
     public IPage? Page => _page;
     public string? DetectedRooftop { get; private set; }
     public string? IdentityHint { get; private set; }
     public bool LoggedIn { get; private set; }
+    public bool IdentityConfirmed { get; private set; }
 
-    public async Task<string> AttachOrOpenAsync(HostPaths paths, bool allowNavigate)
+    public async Task<string> AttachAsync(HostPaths paths, bool allowNavigate, bool startChromeIfNeeded)
     {
-        Directory.CreateDirectory(paths.BrowserProfile);
-        _playwright = await Playwright.CreateAsync();
-        _context = await _playwright.Chromium.LaunchPersistentContextAsync(paths.BrowserProfile, new BrowserTypeLaunchPersistentContextOptions
+        if (!await ChromeAttach.CdpReadyAsync())
         {
-            Channel = "chrome",
-            Headless = false,
-            ViewportSize = new ViewportSize { Width = 1400, Height = 900 },
-            IgnoreDefaultArgs = ["--disable-extensions"]
-        });
+            if (!startChromeIfNeeded)
+            {
+                throw new InvalidOperationException("Chrome CDP 9222 is not running. Run verify first and leave Chrome open.");
+            }
 
-        _page = _context.Pages.FirstOrDefault() ?? await _context.NewPageAsync();
+            ChromeAttach.StartChrome(paths);
+            for (var i = 0; i < 20 && !await ChromeAttach.CdpReadyAsync(); i++)
+            {
+                await Task.Delay(250);
+            }
+
+            if (!await ChromeAttach.CdpReadyAsync())
+            {
+                throw new InvalidOperationException("Chrome started but CDP 9222 did not come up.");
+            }
+        }
+
+        var attached = await ChromeAttach.ConnectAsync();
+        _playwright = attached.Playwright;
+        _browser = attached.Browser;
+        _page = attached.Page;
+
         if (allowNavigate && !IsEleadsUrl(_page.Url))
         {
             await _page.GotoAsync("https://www.eleadcrm.com/evo2/fresh/login.asp", new PageGotoOptions
@@ -61,14 +75,19 @@ public sealed class EleadsSession : IAsyncDisposable
         {
             DetectedRooftop = Policy.ForbiddenTkoId;
             LoggedIn = false;
+            IdentityConfirmed = false;
             return;
         }
 
         DetectedRooftop = DetectRooftop(body, _page.Url);
-        IdentityHint = body.Contains("Bordine", StringComparison.OrdinalIgnoreCase) ? Policy.Identity : null;
+        IdentityHint = body.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
+                       || body.Contains("Glenn", StringComparison.OrdinalIgnoreCase)
+            ? Policy.Identity
+            : null;
+        IdentityConfirmed = IdentityHint is not null;
         var loginVisible = body.Contains("Username", StringComparison.OrdinalIgnoreCase)
             && body.Contains("Password", StringComparison.OrdinalIgnoreCase);
-        LoggedIn = !loginVisible && Policy.IsAllowedRooftop(DetectedRooftop);
+        LoggedIn = !loginVisible && Policy.IsAllowedRooftop(DetectedRooftop) && IdentityConfirmed;
     }
 
     public static string? DetectRooftop(string text, string url)
@@ -107,17 +126,17 @@ public sealed class EleadsSession : IAsyncDisposable
 
         if (!LoggedIn)
         {
-            return "Eleads is not verified. Glenn must sign in in the Chrome window. Titan will not type the password.";
+            return "Eleads is not verified. Sign in as Bordine, Glenn on 28206 or 28546. Titan will not type the password. Leave Chrome open.";
         }
 
-        return $"Verified rooftop {DetectedRooftop} as {IdentityHint ?? Policy.Identity}.";
+        return $"Verified rooftop {DetectedRooftop} as {IdentityHint}.";
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_context is not null)
+        if (_browser is not null)
         {
-            await _context.CloseAsync();
+            await _browser.CloseAsync();
         }
 
         _playwright?.Dispose();

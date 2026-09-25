@@ -22,12 +22,12 @@ mkdir "%APP%" 2>nul
 mkdir "%ROOT%" 2>nul
 xcopy /E /I /Y "%SRC%\*" "%APP%\"
 echo armed>"%ROOT%\kill.switch"
+"%APP%\Titan.ChiefOfStaff.exe" install
 type "%ROOT%\kill.switch"
 certutil -hashfile "%APP%\Titan.ChiefOfStaff.exe" SHA256
 echo.
 echo Installed to %APP%
 echo kill.switch is armed. This is not Glenn Verify and not send authorization.
-echo Next: install .NET 8 desktop runtime if this publish is framework-dependent,
-echo then run: "%APP%\Titan.ChiefOfStaff.exe" status
-echo Glenn signs into Eleads in Chrome, then: "%APP%\Titan.ChiefOfStaff.exe" verify
+echo Next: "%APP%\Titan.cmd" status
+echo Sign into Eleads in Chrome as Bordine, Glenn on 28206 or 28546, then: "%APP%\Titan.cmd" verify
 endlocal

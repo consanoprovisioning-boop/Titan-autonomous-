@@ -64,20 +64,28 @@ public static class Policy
         };
     }
 
-    public static bool OtherConsultantEligible(DateTimeOffset now, DateTimeOffset? lastContactByAnyone, bool titanTouched)
+    public static bool OtherConsultantEligible(
+        DateTimeOffset now,
+        DateTimeOffset? lastContactByAnyone,
+        bool titanTouched,
+        DateTimeOffset? leadOpenedAt = null)
     {
         if (titanTouched)
         {
             return true;
         }
 
-        if (lastContactByAnyone is null)
+        if (OtherConsultantHeldByRecentContact(now, lastContactByAnyone))
         {
             return false;
         }
 
-        var silent = now - lastContactByAnyone.Value;
-        return silent >= TimeSpan.FromHours(96);
+        if (lastContactByAnyone is null)
+        {
+            return leadOpenedAt is not null && now - leadOpenedAt.Value >= TimeSpan.FromHours(96);
+        }
+
+        return now - lastContactByAnyone.Value >= TimeSpan.FromHours(96);
     }
 
     public static bool OtherConsultantHeldByRecentContact(DateTimeOffset now, DateTimeOffset? lastQualifyingContact)
