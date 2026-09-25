@@ -1,0 +1,15 @@
+Titan Autonomous Chief of Staff — Alienware 18
+
+Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+
+1. Unzip this folder.
+2. Double-click INSTALL.cmd once.
+3. Double-click CHECKIN.cmd.
+4. If it says Chrome is already open, close every Chrome window and the tray icon, then double-click CHECKIN.cmd again.
+5. Sign into Eleads in that Chrome window as Bordine, Glenn on store 28206 or 28546.
+6. Double-click CHECKIN.cmd again. Leave Chrome open.
+7. Double-click TICK.cmd in this same folder.
+   Do not type Titan.cmd from C:\Windows\system32. That name is a different program.
+
+Needs the .NET 8 desktop runtime and Google Chrome.
+INSTALL.cmd is not send authorization. Titan never types the password.
