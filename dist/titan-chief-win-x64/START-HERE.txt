@@ -1,0 +1,13 @@
+Titan Autonomous Chief of Staff — Alienware 18 download
+Valdosta Nissan 28206 and Valdosta Mitsubishi 28546 only. Never TKO 6220.
+
+1. Unzip this folder.
+2. Open cmd.exe in the unzipped folder.
+3. Run: INSTALL.cmd
+4. Then: Titan.cmd status
+5. Sign into Eleads in Chrome yourself as Bordine, Glenn. Titan never types the password.
+6. Then: Titan.cmd verify
+7. Then: Titan.cmd tick
+
+Needs .NET 8 desktop runtime and Google Chrome.
+INSTALL.cmd is not Verify and not send authorization.

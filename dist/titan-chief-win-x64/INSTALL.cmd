@@ -3,13 +3,8 @@ setlocal
 REM Alienware 18 local install. cmd.exe only. No PowerShell. No execution-policy Bypass.
 REM Does not start Eleads. Does not type a password.
 
-if "%~1"=="" (
-  echo Usage: INSTALL.cmd [path-to-publish-folder]
-  echo Example: INSTALL.cmd C:\Users\Glenn\Downloads\titan-chief-win-x64
-  exit /b 1
-)
-
-set SRC=%~1
+set "SRC=%~1"
+if "%SRC%"=="" set "SRC=%~dp0"
 set APP=%LOCALAPPDATA%\TitanChief\app
 set ROOT=%LOCALAPPDATA%\TitanChief
 
