@@ -74,4 +74,4 @@ This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `e
 
 ## Local program (this repo)
 
-The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, use `deploy/alienware-local-program/INSTALL.cmd` (cmd.exe only). Then Glenn signs into Eleads in Chrome and runs `verify`. Titan never types the password.
+The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, double-click `INSTALL.cmd` once, then double-click `CHECKIN.cmd`. Do not type `verify` by itself — Command Prompt owns that word. Glenn signs into Eleads in that Chrome window. Titan never types the password.

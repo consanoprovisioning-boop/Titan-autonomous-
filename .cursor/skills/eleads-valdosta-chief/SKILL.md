@@ -14,7 +14,7 @@ Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acti
 - Rooftops: **28206** and **28546** only. Never **6220**.
 - Identity: **Bordine, Glenn** on every CRM action.
 - Cloud/Linux agent: do **not** open Eleads, do **not** type the Eleads password, do **not** run PowerShell self-extractors.
-- One live Eleads session: Alienware Chrome on CDP 9222 after `verify`. Leave Chrome open. `tick` attaches and must not kill Chrome.
+- One live Eleads session: Alienware Chrome on CDP 9222 after Glenn double-clicks `CHECKIN.cmd`. Do not tell him to type `verify` — Command Prompt owns that word. Leave Chrome open. `tick` attaches and must not kill Chrome.
 - `INSTALL.cmd` and `kill.switch=armed` are not Verify and not send authorization.
 - Titan never stores or types the password.
 

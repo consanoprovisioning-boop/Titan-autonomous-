@@ -9,7 +9,7 @@ Titan never stores or types the Eleads password.
 Download the suite ZIP: `dist/Titan-ChiefOfStaff-Alienware18.zip`  
 Direct file: https://github.com/consanoprovisioning-boop/Titan-autonomous-/raw/cursor/titan-chief-host-7954/dist/Titan-ChiefOfStaff-Alienware18.zip
 
-Unzip, then in cmd.exe run `titan-chief-win-x64\INSTALL.cmd`.
+Unzip, double-click `INSTALL.cmd` once, then double-click `CHECKIN.cmd`. Do not type `verify` by itself — Command Prompt owns that word.
 
 `deploy/alienware-local-program/README.md`  
 Publish folder: `dist/titan-chief-win-x64/` (`Titan.cmd`, `Titan.ChiefOfStaff.exe`)
