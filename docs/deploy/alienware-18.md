@@ -71,3 +71,7 @@ Expected exe SHA-256: `82c2a986af7473244fdb57be971e7448b2ae14a8f010b04a74402ed96
 ## Cloud / Linux agents
 
 This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `eleadcrm.com` from a cloud agent to “stand in” for Titan. One live Eleads session belongs to the Alienware Titan host after Glenn Verify, not to Cursor Playwright.
+
+## Local program (this repo)
+
+The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, use `deploy/alienware-local-program/INSTALL.cmd` (cmd.exe only). Then Glenn signs into Eleads in Chrome and runs `verify`. Titan never types the password.

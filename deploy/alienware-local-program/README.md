@@ -4,9 +4,9 @@ This is the live local host for Glenn Bordine’s Eleads work at Valdosta Nissan
 
 ## Download on the Alienware
 
-1. Open https://github.com/consanoprovisioning-boop/Titan-autonomous-/tree/cursor/titan-chief-host-7954
+1. Open the `cursor/titan-chief-host-7954` branch on GitHub (or the pull request for that branch).
 2. Download the repo ZIP (**Code → Download ZIP**) or clone the branch.
-3. Use the publish folder `dist/titan-chief-win-x64/` after you build, or copy that folder if it is already in the tree.
+3. Copy `dist/titan-chief-win-x64/` onto the Alienware. That folder already contains `Titan.ChiefOfStaff.exe` and `INSTALL.cmd`.
 
 This cloud environment cannot copy files onto the Alienware. There is no connected self-hosted worker. You download, then run `INSTALL.cmd` on that PC.
 
