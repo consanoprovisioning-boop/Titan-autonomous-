@@ -23,6 +23,6 @@ certutil -hashfile "%APP%\Titan.ChiefOfStaff.exe" SHA256
 echo.
 echo Installed to %APP%
 echo kill.switch is armed. This is not Glenn Verify and not send authorization.
-echo Next: "%APP%\Titan.cmd" status
-echo Sign into Eleads in Chrome as Bordine, Glenn on 28206 or 28546, then: "%APP%\Titan.cmd" verify
+echo Next: double-click CHECKIN.cmd in this folder.
+echo Do not type verify by itself. Command Prompt owns that word.
 endlocal

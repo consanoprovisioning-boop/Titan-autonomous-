@@ -20,19 +20,10 @@ public sealed class EleadsSession : IAsyncDisposable
         {
             if (!startChromeIfNeeded)
             {
-                throw new InvalidOperationException("Chrome CDP 9222 is not running. Run verify first and leave Chrome open.");
+                throw new InvalidOperationException("Chrome port 9222 is not running. Run CHECKIN.cmd first and leave that Chrome window open.");
             }
 
-            ChromeAttach.StartChrome(paths);
-            for (var i = 0; i < 20 && !await ChromeAttach.CdpReadyAsync(); i++)
-            {
-                await Task.Delay(250);
-            }
-
-            if (!await ChromeAttach.CdpReadyAsync())
-            {
-                throw new InvalidOperationException("Chrome started but CDP 9222 did not come up.");
-            }
+            await ChromeAttach.EnsureCdpAsync(paths);
         }
 
         var attached = await ChromeAttach.ConnectAsync();

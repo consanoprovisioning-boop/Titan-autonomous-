@@ -35,6 +35,37 @@ public static class ChromeAttach
         }
     }
 
+    public static int ChromeProcessCount()
+        => Process.GetProcessesByName("chrome").Length;
+
+    public static async Task EnsureCdpAsync(HostPaths paths)
+    {
+        if (await CdpReadyAsync())
+        {
+            return;
+        }
+
+        var alreadyOpen = ChromeProcessCount();
+        StartChrome(paths);
+        for (var i = 0; i < 20 && !await CdpReadyAsync(); i++)
+        {
+            await Task.Delay(250);
+        }
+
+        if (await CdpReadyAsync())
+        {
+            return;
+        }
+
+        if (alreadyOpen > 0)
+        {
+            throw new InvalidOperationException(
+                "Chrome is already open, so Windows ignored port 9222. Close every Chrome window, including the system tray icon, then run CHECKIN.cmd again.");
+        }
+
+        throw new InvalidOperationException("Chrome did not open debugging port 9222. Install Google Chrome, then run CHECKIN.cmd.");
+    }
+
     public static void StartChrome(HostPaths paths)
     {
         var chrome = FindChrome() ?? throw new InvalidOperationException("Google Chrome is not installed on this PC.");

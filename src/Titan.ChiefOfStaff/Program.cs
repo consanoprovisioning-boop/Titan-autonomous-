@@ -16,7 +16,7 @@ return verb switch
 {
     "install" => Install(),
     "status" => Status(),
-    "verify" => await VerifyAsync(),
+    "verify" or "checkin" => await VerifyAsync(),
     "tick" => await TickAsync(),
     "report" => Report(),
     "stop" => Stop(),
@@ -35,7 +35,7 @@ int Install()
     Console.WriteLine($"Installed data root: {paths.DataRoot}");
     Console.WriteLine("kill.switch=armed");
     Console.WriteLine("This is not Glenn Verify and not send authorization.");
-    Console.WriteLine("Next: Glenn signs into Eleads in Chrome, then run verify.");
+    Console.WriteLine("Next: double-click CHECKIN.cmd. Do not type verify by itself — Command Prompt owns that word.");
     return 0;
 }
 
@@ -129,7 +129,7 @@ async Task<int> TickAsync()
     if (state is not HostState.VerifiedIdle and not HostState.TickNewLeads and not HostState.TickPlanner
         and not HostState.TickOverdue and not HostState.TickDatabase)
     {
-        Console.Error.WriteLine($"Cannot tick from {state}. Run verify after Glenn signs in.");
+        Console.Error.WriteLine($"Cannot tick from {state}. Run CHECKIN.cmd after you sign in. Do not type verify by itself.");
         return 6;
     }
 
@@ -207,7 +207,8 @@ int Stop()
 int Usage()
 {
     Console.WriteLine("Titan.ChiefOfStaff — Alienware local host");
-    Console.WriteLine("verbs: install | status | verify | tick | report | stop");
+    Console.WriteLine("verbs: install | status | checkin | tick | report | stop");
+    Console.WriteLine("In Command Prompt, do not type verify by itself. Run CHECKIN.cmd");
     Console.WriteLine("Rooftops 28206 and 28546 only. Never 6220.");
     Console.WriteLine("Titan never stores or types the Eleads password.");
     return 1;
