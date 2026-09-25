@@ -28,12 +28,14 @@ After install, close every Chrome window and the tray icon, then double-click `C
 
 Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546. Leave Chrome open. Double-click `CHECKIN.cmd` again.
 
-Then:
+Do not type `Titan.cmd` from `C:\Windows\system32`. Another program on this PC uses that name.
+
+After check-in succeeds, double-click `TICK.cmd` in `%LOCALAPPDATA%\TitanChief\app\`.
 
 ```bat
-"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" status
-"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" tick
-"%LOCALAPPDATA%\TitanChief\app\Titan.cmd" report
+"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" status
+"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" tick
+"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" report
 ```
 
 `tick` attaches to that same Chrome and does not close it.
