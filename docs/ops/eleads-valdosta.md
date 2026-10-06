@@ -2,7 +2,7 @@
 
 This is the live customer-contact system for **Bordine, Glenn** at **Valdosta Nissan (28206)** and **Valdosta Mitsubishi (28546)**. It is not a pilot, MVP, or prototype. Do not write mock customers, mock rooftops, mock sends, or placeholder appointments.
 
-Source packet: Customer Traffic and Appointment Growth (Aug 6, 2026) plus the standing loop orders for this run. This law does not override dealership policy, customer consent, applicable law, or an Eleads system restriction.
+Source packet: Customer Traffic and Appointment Growth (Aug 6, 2026), saved as `docs/ops/eleads-instructions.md`. Run each tick with `docs/ops/eleads-parallel-loop.md`. This law does not override dealership policy, customer consent, applicable law, or an Eleads system restriction.
 
 ## Identity and rooftops
 
@@ -75,7 +75,7 @@ Glenn-owned profiles: prepare follow-up only after the latest email/SMS timing a
 | SMS | Valid SMS-permitted phone; no DNT / Stop. **9:00 AM–7:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
 | Phone | Valid callable number; no DNC. Autonomous calls require telephony integration. | Actual call outcome. Never mark a call completed if no call occurred. |
 
-Standing Qualified send is authorized for this run. A draft, preview, or processing screen is not delivery. CRM history under Bordine, Glenn is the evidence. Click Send once. Recheck history before any retry. Do not resend automatically when the result is uncertain.
+Glenn approves one exact batch before Send. Each row names the recipient, the channel, and the message. A prior batch does not cover a different customer or revised wording. A draft, preview, or processing screen is not delivery. CRM history under Bordine, Glenn is the evidence. Click Send once. Recheck history before any retry. Do not resend automatically when the result is uncertain.
 
 If Eleads warns a same-type task already exists, cancel the duplicate unless Glenn approves a justified second task.
 
@@ -115,7 +115,7 @@ Space routine follow-up tasks at least five minutes apart when practical. Older 
 ## Safe-send sequence
 
 1. Confirm rooftop, customer, sender, channel permission, recipient, subject, and message.
-2. Standing Qualified send, or Glenn’s exact-draft approval when the standing rule does not cover the message.
+2. Use only a row from this tick’s approval batch.
 3. Preview and confirm the final send control.
 4. Click Send once.
 5. Refresh activity history before any retry.
@@ -123,7 +123,7 @@ Space routine follow-up tasks at least five minutes apart when practical. Older 
 
 ## Daily cycle
 
-Verify session / rooftop / identity → triage (replies, new leads, overdue, appointments, missed, equity, recent inquiries) → inspect full profile → draft → send per standing Qualified / approval → verify history and separate tasks → convert day-and-time commitments → close unused customer tabs.
+Verify session / rooftop / identity → triage → fan out inspect and draft → one approval batch → serial send → fan out proof judgment → convert day-and-time commitments after their own approval → close unused customer tabs. See `docs/ops/eleads-parallel-loop.md`.
 
 ## Management report (CRM-confirmed counts only)
 
