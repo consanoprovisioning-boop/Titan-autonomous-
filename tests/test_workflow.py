@@ -9,6 +9,7 @@ from titan.agents.appointments import AppointmentAgent, AppointmentError
 from titan.agents.approvals import ApprovalError, ApprovalService
 from titan.agents.reporting import Reporter
 from titan.crm.base import CrmTask
+from titan.crm.mock import MockProfileSession
 from titan.models import (
     Activity,
     ActivityKind,
@@ -270,6 +271,36 @@ class TestAppointments:
         with pytest.raises(AppointmentError):
             AppointmentAgent(ctx).propose(rooftop_id=NISSAN, customer_id="C1", opportunity_id="O", customer_name="x",
                                           starts_at=at(2026, 10, 18, 11, 0), purpose="p", arrival_notes="")
+
+    def test_progress_failure_does_not_book_a_second_appointment(self, ctx, crm, clock, orch, monkeypatch):
+        rec = crm.add(profile())
+        agent = AppointmentAgent(ctx)
+        proposal = agent.propose(
+            rooftop_id=NISSAN, customer_id="C1", opportunity_id="OC1", customer_name="Dana",
+            starts_at=at(2026, 10, 17, 11, 0), purpose="complimentary appraisal", arrival_notes="Trade",
+        )
+        agent.approve(proposal.id, "Glenn Bordine")
+        original = MockProfileSession.progress
+        calls = {"n": 0}
+
+        def flaky(self):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return "Open"
+            return original(self)
+
+        monkeypatch.setattr(MockProfileSession, "progress", flaky)
+        with pytest.raises(AppointmentError, match="Appointment Set"):
+            orch.run_once()
+        assert len(rec.appointments) == 1
+        stored = ctx.store.get_appointment(proposal.id)
+        assert stored.status is AppointmentStatus.APPROVED
+        assert stored.crm_appointment_id
+
+        orch.run_once()
+        assert len(rec.appointments) == 1
+        assert ctx.store.get_appointment(proposal.id).status is AppointmentStatus.SAVED
+        assert rec.printed == 1
 
     def test_same_day_confirmation_before_arrival(self, ctx):
         a = AppointmentAgent(ctx).propose(rooftop_id=NISSAN, customer_id="C1", opportunity_id="O",
