@@ -1,0 +1,78 @@
+# Copy to %APPDATA%\Titan\config.toml (or pass --config) and adjust.
+# Every value has a default in src/titan/config.py; only override what you need.
+
+[identity]
+salesperson_name = "Bordine, Glenn"
+# Rooftops the agent may operate in. Anything else is refused.
+allowed_rooftops = { "28206" = "Valdosta Nissan", "28546" = "Valdosta Mitsubishi" }
+# Explicitly forbidden even if someone adds it above.
+blocked_rooftops = ["6220"]
+# Store-wide (other-consultant) opportunities are only worked when management authorizes it.
+storewide_authorized = false
+approver_name = "Glenn Bordine"
+
+[time]
+timezone = "America/New_York"
+# Live-send window (RTF section 7). Intersected with dealership hours and SMS quiet hours.
+send_window_start = "09:00"
+send_window_end = "19:00"
+# SMS legally/policy permitted window (PDF section 3).
+sms_window_start = "07:00"
+sms_window_end = "21:59"
+
+[time.dealership_hours]
+# weekday number (0 = Monday) -> [open, close]; missing day = closed.
+0 = ["09:00", "19:00"]
+1 = ["09:00", "19:00"]
+2 = ["09:00", "19:00"]
+3 = ["09:00", "19:00"]
+4 = ["09:00", "19:00"]
+5 = ["09:00", "18:00"]
+
+[approval]
+# "every_send" (default) or "batch". There is intentionally no unattended mode.
+mode = "every_send"
+
+[sla]
+# Draft-ready target after a new lead is detected.
+new_lead_draft_seconds = 60
+# Overall operating target (detection -> CRM-verified send), PDF section 6.
+new_lead_total_seconds = 240
+
+[cadence]
+past_purchase_min_months = 14
+reengagement_interval_hours = 48
+own_customer_min_interval_hours = 12
+other_consultant_hold_hours = 72
+task_spacing_minutes = 5
+inactive_followup_working_days = 4
+confirmation_lead_hours = 24
+recent_inquiry_days = 30
+new_lead_lookback_hours = 24
+
+[messaging]
+email_max_words = 120
+sms_max_chars = 320
+
+[resources]
+max_open_profiles = 2
+ram_soft_limit_mb = 600
+ram_hard_limit_mb = 900
+poll_interval_seconds = 20
+history_scan_batch_size = 25
+
+[storage]
+# Defaults to %APPDATA%\Titan\titan.db on Windows, ~/.titan/titan.db elsewhere.
+# db_path = "C:/Titan/titan.db"
+
+[crm]
+# "mock" for dry runs / training, "playwright" for the live Eleads browser adapter.
+adapter = "mock"
+base_url = "https://www.eleadcrm.com"
+headless = true
+# Selector map that must be calibrated against the live Eleads UI.
+selectors_file = "selectors.eleads.toml"
+# Write the customer summary / next-best strategy back to Eleads as an internal note.
+write_strategy_notes = true
+# Windows Credential Manager service name holding the Eleads login.
+credential_service = "titan-eleads"
