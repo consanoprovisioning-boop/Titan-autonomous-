@@ -251,6 +251,12 @@ class Store:
         return next((a for a in self.appointments() if a.id == appointment_id), None)
 
     # --- lead tracking / cursors ------------------------------------------
+    def has_seen_lead(self, rooftop_id: str, opportunity_id: str) -> bool:
+        return bool(self._query(
+            "SELECT 1 FROM seen_leads WHERE rooftop_id = ? AND opportunity_id = ?",
+            (rooftop_id, opportunity_id),
+        ))
+
     def mark_lead_seen(self, rooftop_id: str, opportunity_id: str, at: datetime) -> bool:
         """Returns True only the first time a lead is seen (idempotent across restarts)."""
         with self.tx() as c:

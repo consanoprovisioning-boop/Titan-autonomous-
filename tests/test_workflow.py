@@ -88,6 +88,26 @@ class TestNewLead:
         orch.run_once()
         assert ctx.store.messages() == []
 
+    def test_failed_handle_does_not_consume_the_lead(self, ctx, crm, clock, orch):
+        new_lead(crm, clock)
+        worker = orch.workers[NISSAN]
+        real = worker.new_leads._handle
+
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("profile timeout")
+
+        worker.new_leads._handle = fail
+        with pytest.raises(RuntimeError, match="profile timeout"):
+            orch.run_once()
+        assert ctx.store.messages() == []
+        assert not ctx.store.has_seen_lead(NISSAN, "OC1")
+
+        worker.new_leads._handle = real
+        orch.run_once()
+        assert len(ctx.store.messages(MessageStatus.PENDING_APPROVAL)) == 2
+        assert ctx.store.has_seen_lead(NISSAN, "OC1")
+        orch.run_once()
+        assert len(ctx.store.messages()) == 2
 
 class TestSendSafety:
     def test_after_hours_queues_until_9am(self, ctx, crm, clock, orch):
