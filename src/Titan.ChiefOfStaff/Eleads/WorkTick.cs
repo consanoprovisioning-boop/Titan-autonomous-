@@ -66,12 +66,12 @@ public sealed class WorkTick
             }
 
             rows.Add(new OrganizerRow(
-                CustomerKey: raw,
-                AssignedTo: raw,
+                CustomerKey: raw.Length <= 80 ? raw : raw[..80],
+                AssignedTo: raw.Contains("Bordine", StringComparison.OrdinalIgnoreCase) ? "Bordine, Glenn" : "unknown",
                 Queue: queue,
                 LastContact: null,
                 OpenedAt: null,
-                TitanTouched: raw.Contains("Titan", StringComparison.OrdinalIgnoreCase),
+                TitanTouched: false,
                 HistoryText: raw));
         }
 

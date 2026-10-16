@@ -11,6 +11,21 @@ public sealed class HostStore : IDisposable
         paths.EnsureDataTree();
         _connection = new SqliteConnection($"Data Source={paths.Database}");
         _connection.Open();
+        using (var pragma = _connection.CreateCommand())
+        {
+            pragma.CommandText = "PRAGMA busy_timeout=5000;";
+            pragma.ExecuteNonQuery();
+            try
+            {
+                pragma.CommandText = "PRAGMA journal_mode=WAL;";
+                pragma.ExecuteNonQuery();
+            }
+            catch (SqliteException)
+            {
+                // busy_timeout still covers a status read overlapping a tick.
+            }
+        }
+
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
             CREATE TABLE IF NOT EXISTS heartbeat (

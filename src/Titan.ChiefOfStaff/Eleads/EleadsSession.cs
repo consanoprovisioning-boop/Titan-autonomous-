@@ -71,10 +71,7 @@ public sealed class EleadsSession : IAsyncDisposable
         }
 
         DetectedRooftop = DetectRooftop(body, _page.Url);
-        IdentityHint = body.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
-                       || body.Contains("Glenn", StringComparison.OrdinalIgnoreCase)
-            ? Policy.Identity
-            : null;
+        IdentityHint = Policy.IsBordineIdentity(body) ? Policy.Identity : null;
         IdentityConfirmed = IdentityHint is not null;
         var loginVisible = body.Contains("Username", StringComparison.OrdinalIgnoreCase)
             && body.Contains("Password", StringComparison.OrdinalIgnoreCase);
@@ -125,11 +122,12 @@ public sealed class EleadsSession : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (_browser is not null)
-        {
-            await _browser.CloseAsync();
-        }
-
+        // ConnectOverCDP: Browser.CloseAsync sends Browser.close and kills the CHECKIN Chrome.
+        // Drop the client only so the next tick can attach to the same window.
+        _page = null;
+        _browser = null;
         _playwright?.Dispose();
+        _playwright = null;
+        await ValueTask.CompletedTask;
     }
 }

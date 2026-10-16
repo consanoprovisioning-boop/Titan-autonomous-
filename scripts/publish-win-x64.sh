@@ -10,6 +10,7 @@ rm -f "$ROOT/dist/titan-chief-win-x64/"*.ps1
 cp -f "$ROOT/deploy/alienware-local-program/INSTALL.cmd" "$ROOT/dist/titan-chief-win-x64/INSTALL.cmd"
 cp -f "$ROOT/deploy/alienware-local-program/Titan.cmd" "$ROOT/dist/titan-chief-win-x64/Titan.cmd"
 cp -f "$ROOT/deploy/alienware-local-program/CHECKIN.cmd" "$ROOT/dist/titan-chief-win-x64/CHECKIN.cmd"
+cp -f "$ROOT/deploy/alienware-local-program/TICK.cmd" "$ROOT/dist/titan-chief-win-x64/TICK.cmd"
 cp -f "$ROOT/deploy/alienware-local-program/START-HERE.txt" "$ROOT/dist/titan-chief-win-x64/START-HERE.txt"
 (
   cd "$ROOT/dist/titan-chief-win-x64"

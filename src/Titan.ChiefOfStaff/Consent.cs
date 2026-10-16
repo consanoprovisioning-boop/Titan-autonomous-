@@ -10,7 +10,8 @@ public static class Consent
         }
 
         var text = historyText;
-        if (Contains(text, "unable to obtain funding"))
+        if (Contains(text, "unable to obtain funding")
+            && !Contains(text, "inquiry", "internet lead", "new lead"))
         {
             return "Funding bypass — no later inquiry on file in this text.";
         }
@@ -19,11 +20,6 @@ public static class Consent
             || System.Text.RegularExpressions.Regex.IsMatch(text, @"\bstop\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
         {
             return "SMS/email consent block (DNT, Stop, opt-out, or bounce).";
-        }
-
-        if (Contains(text, "do not call", "dnc"))
-        {
-            return "Do-not-call. Phone is closed. Email/SMS still require their own permission.";
         }
 
         if (Contains(text, "bought elsewhere", "not in the market", "no further contact", "do not contact"))

@@ -18,18 +18,23 @@ public class PolicyTests
     public void Tko_text_is_forbidden()
     {
         Assert.True(Policy.IsForbiddenRooftop("The TKO Autogroup (6220)"));
+        Assert.True(Policy.IsForbiddenRooftop("store 6220"));
         Assert.False(Policy.IsForbiddenRooftop("Valdosta Nissan 28206"));
+        Assert.False(Policy.IsForbiddenRooftop("call 229-555-6220"));
+        Assert.True(Policy.IsBordineIdentity("signed in as Bordine, Glenn"));
+        Assert.False(Policy.IsBordineIdentity("customer Glenn Smith"));
     }
 
     [Fact]
-    public void Sms_window_is_9_to_7_et_and_never_sunday()
+    public void Sms_window_is_9_to_7_et_including_sunday()
     {
         var fridayOpen = new DateTimeOffset(2026, 9, 25, 10, 0, 0, TimeSpan.FromHours(-4));
         var fridayClosed = new DateTimeOffset(2026, 9, 25, 19, 0, 0, TimeSpan.FromHours(-4));
         var sunday = new DateTimeOffset(2026, 9, 27, 10, 0, 0, TimeSpan.FromHours(-4));
         Assert.True(Policy.SmsOpen(fridayOpen));
         Assert.False(Policy.SmsOpen(fridayClosed));
-        Assert.False(Policy.SmsOpen(sunday));
+        Assert.True(Policy.SmsOpen(sunday));
+        Assert.False(Policy.AppointmentWindowOpen(sunday, customerRequestedTuesday: false));
     }
 
     [Fact]
@@ -106,6 +111,8 @@ public class PolicyTests
         Assert.NotNull(Consent.BlockReason(null));
         Assert.Contains("consent", Consent.BlockReason("Customer replied STOP") ?? "", StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Funding", Consent.BlockReason("unable to obtain funding") ?? "");
+        Assert.Null(Consent.BlockReason("unable to obtain funding. New inquiry today about a Sentra."));
+        Assert.Null(Consent.BlockReason("DNC on the cell. Called yesterday. Interested in a Sentra."));
         Assert.Null(Consent.BlockReason("Called yesterday. Interested in a Sentra."));
         Assert.True(Consent.PromisesForbiddenTerms("I can get you $299/mo at 1.9 APR"));
         Assert.False(Consent.PromisesForbiddenTerms("Come see us for all possible qualifying incentives, rebates, and special manufacturer APR programs. Wednesday at 10?"));
@@ -119,5 +126,22 @@ public class PolicyTests
         Assert.Contains("72h", WorkOrder.HoldReason(other, now) ?? "");
         var glenn = new OrganizerRow("Pat", "Bordine, Glenn", WorkQueue.NewLeads, now.AddHours(-2), now, false, "note yesterday");
         Assert.Null(WorkOrder.HoldReason(glenn, now));
+        var unknown = new OrganizerRow("Pat", "unknown", WorkQueue.NewLeads, null, null, false, "note yesterday");
+        Assert.Contains("assignment", WorkOrder.HoldReason(unknown, now) ?? "");
+    }
+
+    [Fact]
+    public void Scraped_row_does_not_treat_titan_or_a_phone_as_authorization()
+    {
+        var rows = WorkTick.ParseVisibleRows("new lead Glenn asked about Titan 229-555-6220", WorkQueue.NewLeads);
+        Assert.Single(rows);
+        Assert.False(rows[0].TitanTouched);
+        Assert.Equal("unknown", rows[0].AssignedTo);
+        var now = new DateTimeOffset(2026, 9, 25, 12, 0, 0, TimeSpan.FromHours(-4));
+        Assert.Contains("assignment", WorkOrder.HoldReason(rows[0], now) ?? "");
+
+        var glenn = WorkTick.ParseVisibleRows("new lead Bordine, Glenn internet", WorkQueue.NewLeads);
+        Assert.Equal("Bordine, Glenn", glenn[0].AssignedTo);
+        Assert.Null(WorkOrder.HoldReason(glenn[0], now));
     }
 }

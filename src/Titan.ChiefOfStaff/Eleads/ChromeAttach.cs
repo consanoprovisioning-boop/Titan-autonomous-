@@ -6,6 +6,7 @@ namespace Titan.ChiefOfStaff.Eleads;
 public static class ChromeAttach
 {
     public const string Cdp = "http://127.0.0.1:9222";
+    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(2) };
 
     public static string? FindChrome()
     {
@@ -25,8 +26,7 @@ public static class ChromeAttach
     {
         try
         {
-            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(1) };
-            using var response = await client.GetAsync(Cdp + "/json/version");
+            using var response = await Http.GetAsync(Cdp + "/json/version");
             return response.IsSuccessStatusCode;
         }
         catch

@@ -8,7 +8,7 @@ Source packet: Customer Traffic and Appointment Growth (Aug 6, 2026) plus the st
 
 - Attribute every CRM action to **Bordine, Glenn**.
 - Work only **28206** and **28546**.
-- Never open or act in **The TKO Autogroup (6220)**.
+- Never open or act in **The TKO Autogroup (6220)**. A phone or stock number that contains those digits is not that rooftop. The block is the rooftop name or a standalone `6220` store id.
 - Verify rooftop and user identity before any CRM action.
 
 ## Host boundary
@@ -72,7 +72,7 @@ Glenn-owned profiles: prepare follow-up only after the latest email/SMS timing a
 | Channel | When | Proof |
 | --- | --- | --- |
 | Email | Valid permitted email; no opt-out / hard bounce. Any hour. | Sent activity + separate completed email task/note: `Manual email completed via system.` |
-| SMS | Valid SMS-permitted phone; no DNT / Stop. **9:00 AM–7:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
+| SMS | Valid SMS-permitted phone; no DNT / Stop. **9:00 AM–7:00 PM America/New_York only, including Sunday.** Sunday closes appointments, not SMS. Do-not-call closes phone only. | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
 | Phone | Valid callable number; no DNC. Autonomous calls require telephony integration. | Actual call outcome. Never mark a call completed if no call occurred. |
 
 Standing Qualified send is authorized for this run. A draft, preview, or processing screen is not delivery. CRM history under Bordine, Glenn is the evidence. Click Send once. Recheck history before any retry. Do not resend automatically when the result is uncertain.
