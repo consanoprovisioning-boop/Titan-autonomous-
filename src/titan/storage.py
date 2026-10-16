@@ -266,6 +266,23 @@ class Store:
             )
             return cur.rowcount == 1
 
+    def latest_audit_detail(self, event: str, *, rooftop_id: str, customer_id: str,
+                             opportunity_id: str | None = None) -> dict[str, Any] | None:
+        """Most recent audit payload for this customer. Optional opportunity keeps two leads apart."""
+        if opportunity_id is None:
+            rows = self._query(
+                "SELECT detail FROM audit WHERE event = ? AND rooftop_id = ? AND customer_id = ? "
+                "ORDER BY id DESC LIMIT 1",
+                (event, rooftop_id, customer_id),
+            )
+        else:
+            rows = self._query(
+                "SELECT detail FROM audit WHERE event = ? AND rooftop_id = ? AND customer_id = ? "
+                "AND json_extract(detail, '$.opportunity_id') = ? ORDER BY id DESC LIMIT 1",
+                (event, rooftop_id, customer_id, opportunity_id),
+            )
+        return json.loads(rows[0]["detail"]) if rows else None
+
     def get_cursor(self, name: str) -> str | None:
         rows = self._query("SELECT value FROM cursors WHERE name = ?", (name,))
         return rows[0]["value"] if rows else None

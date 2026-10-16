@@ -110,6 +110,45 @@ class TestNewLead:
         orch.run_once()
         assert len(ctx.store.messages()) == 2
 
+    def test_hold_does_not_consume_the_lead(self, ctx, crm, clock, orch):
+        rec = new_lead(crm, clock)
+        rec.profile.activities.append(
+            Activity(ActivityKind.EMAIL_OUT, clock.now() - timedelta(hours=1), ME, "auto response")
+        )
+        orch.run_once()
+        assert ctx.store.messages() == []
+        assert not ctx.store.has_seen_lead(NISSAN, "OC1")
+        assert len(ctx.notifier.sent) == 1
+
+        orch.run_once()
+        assert len(ctx.notifier.sent) == 1
+
+        clock.advance(hours=13)
+        orch.run_once()
+        assert len(ctx.store.messages(MessageStatus.PENDING_APPROVAL)) == 2
+        assert ctx.store.has_seen_lead(NISSAN, "OC1")
+
+    def test_unloaded_history_does_not_consume_the_lead(self, ctx, crm, clock, orch):
+        new_lead(crm, clock, history_loaded=False)
+        orch.run_once()
+        assert ctx.store.messages() == []
+        assert not ctx.store.has_seen_lead(NISSAN, "OC1")
+
+        crm.record(NISSAN, "C1").profile.history_loaded = True
+        orch.run_once()
+        assert len(ctx.store.messages(MessageStatus.PENDING_APPROVAL)) == 2
+        assert ctx.store.has_seen_lead(NISSAN, "OC1")
+
+    def test_excluded_lead_is_consumed(self, ctx, crm, clock, orch):
+        rec = new_lead(crm, clock)
+        rec.profile.not_in_market = True
+        orch.run_once()
+        assert ctx.store.messages() == []
+        assert ctx.store.has_seen_lead(NISSAN, "OC1")
+        orch.run_once()
+        assert len(ctx.notifier.sent) == 1
+
+
 class TestSendSafety:
     def test_after_hours_queues_until_9am(self, ctx, crm, clock, orch):
         clock.set(at(2026, 10, 15, 21, 30))

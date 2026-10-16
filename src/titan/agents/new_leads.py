@@ -7,8 +7,11 @@ from titan.agents.context import AgentContext
 from titan.agents.drafting import prepare_outreach
 from titan.agents.planner import DailyPlanner
 from titan.crm.base import EleadsAdapter
-from titan.models import MessageSource, OutboundMessage
+from titan.models import Disposition, EligibilityDecision, MessageSource, OutboundMessage
 from titan.resources import ProfileSessionManager
+
+# A hold or an unread history can clear on a later poll. Excluded and qualified cannot.
+_TERMINAL = frozenset({Disposition.QUALIFIED, Disposition.EXCLUDED})
 
 
 class NewLeadAgent:
@@ -30,13 +33,17 @@ class NewLeadAgent:
                 continue
             if self.ctx.store.has_seen_lead(rooftop_id, lead.opportunity_id):
                 continue
-            drafted.extend(self._handle(lead.rooftop_id, lead.customer_id, lead.opportunity_id))
-            # Only after a successful handle. A timeout before this must leave the lead unseen
-            # so the next poll retries it; mark-before-handle dropped the lead forever.
-            self.ctx.store.mark_lead_seen(rooftop_id, lead.opportunity_id, now)
+            messages, decision = self._handle(lead.rooftop_id, lead.customer_id, lead.opportunity_id)
+            drafted.extend(messages)
+            # A timeout must leave the lead unseen so the next poll retries it.
+            # Held and unloaded-history results are not finished either: marking them seen
+            # dropped the lead after the 12h spacing window or after a single slow profile read.
+            if decision.disposition in _TERMINAL:
+                self.ctx.store.mark_lead_seen(rooftop_id, lead.opportunity_id, now)
         return drafted
 
-    def _handle(self, rooftop_id: str, customer_id: str, opportunity_id: str) -> list[OutboundMessage]:
+    def _handle(self, rooftop_id: str, customer_id: str, opportunity_id: str
+                ) -> tuple[list[OutboundMessage], EligibilityDecision]:
         detected = self.ctx.clock.now()
         started = time.monotonic()
         with self.sessions.profile(rooftop_id, customer_id, opportunity_id) as session:
@@ -47,20 +54,25 @@ class NewLeadAgent:
             self.planner.schedule_after_contact(profile, decision.channels, active=True)
         draft_seconds = time.monotonic() - started
         sla = self.ctx.settings.sla.new_lead_draft_seconds
+        prior = self.ctx.store.latest_audit_detail(
+            "new_lead_processed", rooftop_id=rooftop_id, customer_id=customer_id, opportunity_id=opportunity_id,
+        )
+        disposition_changed = prior is None or prior.get("disposition") != decision.disposition.value
         self.ctx.audit("new_lead_processed", rooftop_id=rooftop_id, customer_id=customer_id,
-                       disposition=decision.disposition.value, reasons=list(decision.reasons),
-                       drafts=[m.id for m in messages], draft_seconds=round(draft_seconds, 2),
-                       draft_sla_met=draft_seconds <= sla)
-        name = profile.full_name
-        if messages:
-            self.ctx.notifier.notify(
-                "New lead - approval needed",
-                f"{name} ({self.ctx.guard.rooftop_name(rooftop_id)}): {len(messages)} draft(s) ready. "
-                f"Run: titan approvals",
-            )
-        else:
-            self.ctx.notifier.notify(
-                "New lead - review needed",
-                f"{name}: {decision.disposition.value} - {'; '.join(decision.reasons)}",
-            )
-        return messages
+                       opportunity_id=opportunity_id, disposition=decision.disposition.value,
+                       reasons=list(decision.reasons), drafts=[m.id for m in messages],
+                       draft_seconds=round(draft_seconds, 2), draft_sla_met=draft_seconds <= sla)
+        if disposition_changed:
+            name = profile.full_name
+            if messages:
+                self.ctx.notifier.notify(
+                    "New lead - approval needed",
+                    f"{name} ({self.ctx.guard.rooftop_name(rooftop_id)}): {len(messages)} draft(s) ready. "
+                    f"Run: titan approvals",
+                )
+            else:
+                self.ctx.notifier.notify(
+                    "New lead - review needed",
+                    f"{name}: {decision.disposition.value} - {'; '.join(decision.reasons)}",
+                )
+        return messages, decision
