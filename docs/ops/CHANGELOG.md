@@ -1,5 +1,11 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-16 — CHECKIN reads every CDP page and frame
+
+CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.
+
+CHECKIN now enumerates every CDP page on port 9222, prefers an `eleadcrm.com` page, and reads every frame. Logged in still requires an Eleads URL, no Username+Password form, rooftop 28206 or 28546, and Bordine or Glenn. An open 6220 page is still rejected. The login URL is opened only when no Eleads page exists. Success writes `%LOCALAPPDATA%\TitanChief\verify.json` (`glennVerified`, `VerifiedIdle`, `Bordine, Glenn`, rooftop). The cloud launcher still refuses to open Eleads. Glenn must run the new CHECKIN on the Alienware before Verify is claimed.
+
 ## 2026-10-16 — Launch path for the Alienware host and cloud attach
 
 The Cursor COS loop is launchable once Alienware-18 is online and Glenn has completed `CHECKIN.cmd` and Verify.

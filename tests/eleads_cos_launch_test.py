@@ -134,6 +134,30 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertNotIn(".exe install", install.lower())
         self.assertNotIn(".exe checkin", install.lower())
 
+    def test_verify_receipt_matches_local_marker(self) -> None:
+        self.assertTrue(launch.verify_receipt_ok({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "verifiedAt": "2026-10-16T12:00:00-04:00",
+            "loginClaim": False,
+        }))
+        self.assertTrue(launch.verify_receipt_ok({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28546",
+            "loginClaim": False,
+        }))
+        self.assertFalse(launch.verify_receipt_ok({
+            "glennVerified": False,
+            "state": "AwaitingVerify",
+            "identity": None,
+            "rooftop": "28206",
+            "loginClaim": False,
+        }))
+
     def test_login_claim_is_not_verify(self) -> None:
         self.assertFalse(launch.verify_receipt_ok({
             "loginClaim": True,

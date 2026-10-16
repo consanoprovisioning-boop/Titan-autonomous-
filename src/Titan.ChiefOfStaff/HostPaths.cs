@@ -8,6 +8,7 @@ public sealed class HostPaths
     public string BrowserProfile { get; }
     public string Database { get; }
     public string Heartbeat { get; }
+    public string VerifyMarker { get; }
     public string SessionLock { get; }
 
     public HostPaths(string? dataRoot = null)
@@ -24,6 +25,7 @@ public sealed class HostPaths
         BrowserProfile = Path.Combine(DataRoot, "browser");
         Database = Path.Combine(DataRoot, "host.sqlite");
         Heartbeat = Path.Combine(DataRoot, "heartbeat.json");
+        VerifyMarker = Path.Combine(DataRoot, "verify.json");
         SessionLock = Path.Combine(DataRoot, "session.lock");
     }
 

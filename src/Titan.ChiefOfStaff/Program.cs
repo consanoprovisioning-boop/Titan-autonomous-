@@ -96,6 +96,7 @@ async Task<int> VerifyAsync()
 {
     if (!kill.IsArmed())
     {
+        VerifyMarker.Write(paths, HostState.KillTripped.ToString(), null, null, null, false);
         Console.Error.WriteLine("kill.switch is not armed. Run install first.");
         return 3;
     }
@@ -116,8 +117,11 @@ async Task<int> VerifyAsync()
     catch (Exception ex)
     {
         using var storeErr = new HostStore(paths);
-        storeErr.WriteHeartbeat(new Heartbeat(HostState.AwaitingVerify.ToString(), null, null, null, ex.Message, Policy.SmsOpen(EasternClock.Now())));
+        var failed = new Heartbeat(HostState.AwaitingVerify.ToString(), null, null, null, ex.Message, Policy.SmsOpen(EasternClock.Now()));
+        storeErr.WriteHeartbeat(failed);
         storeErr.Log("host", "verify", "browser attach failed: " + ex.Message);
+        WriteHeartbeatFile(paths, failed);
+        VerifyMarker.Write(paths, failed.State, null, null, null, false);
         Console.Error.WriteLine("Chrome attach failed. Install Google Chrome on Alienware. Titan did not type a password.");
         Console.Error.WriteLine(ex.Message);
         return 5;
@@ -128,18 +132,21 @@ async Task<int> VerifyAsync()
     var next = eleads.LoggedIn && eleads.DetectedRooftop is not null
         ? HostStateMachine.AfterVerify(eleads.DetectedRooftop)
         : HostState.AwaitingVerify;
+    var verified = next == HostState.VerifiedIdle;
     var error = next == HostState.BlockedForbiddenRooftop ? "TKO 6220 blocked" : eleads.LoggedIn ? null : report;
-    store.WriteHeartbeat(new Heartbeat(
+    var beat = new Heartbeat(
         next.ToString(),
         eleads.DetectedRooftop,
-        next == HostState.VerifiedIdle ? et.ToString("o") : null,
+        verified ? et.ToString("o") : null,
         store.ReadHeartbeat().LastTickAt,
         error,
-        Policy.SmsOpen(et)));
+        Policy.SmsOpen(et));
+    store.WriteHeartbeat(beat);
     store.Log("host", "verify", report, eleads.DetectedRooftop);
-    WriteHeartbeatFile(paths, store.ReadHeartbeat());
+    WriteHeartbeatFile(paths, beat);
+    VerifyMarker.Write(paths, beat.State, beat.Rooftop, verified ? Policy.Identity : null, verified ? beat.VerifiedAt : null, verified);
     Console.WriteLine(report);
-    return next == HostState.VerifiedIdle ? 0 : 6;
+    return verified ? 0 : 6;
 }
 
 async Task<int> TickAsync()

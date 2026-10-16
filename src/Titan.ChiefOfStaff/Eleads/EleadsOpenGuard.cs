@@ -11,10 +11,21 @@ public static class EleadsOpenGuard
            && url.Contains("eleadcrm.com", StringComparison.OrdinalIgnoreCase);
 
     public static string? NavigationTarget(bool isCloudLinux, bool allowNavigate, string? currentUrl)
+        => NavigationTarget(isCloudLinux, allowNavigate, new[] { currentUrl });
+
+    public static string? NavigationTarget(bool isCloudLinux, bool allowNavigate, IReadOnlyList<string?> urls)
     {
-        if (isCloudLinux || !allowNavigate || IsEleadsUrl(currentUrl))
+        if (isCloudLinux || !allowNavigate)
         {
             return null;
+        }
+
+        foreach (var url in urls)
+        {
+            if (IsEleadsUrl(url))
+            {
+                return null;
+            }
         }
 
         return LoginUrl;
