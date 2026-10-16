@@ -82,7 +82,7 @@ The host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan
 
 Alienware-18, Glenn:
 
-1. Leave `cursor worker start` running. Worker id `2bd89263-dc03-4936-9b04-6bc709799f66`.
+1. Leave `agent worker start --verbose` running. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Do not pass `--name`. The Windows `cursor` command does not start this worker.
 2. If the app is not installed, double-click `INSTALL.cmd` once (from `dist\titan-chief-win-x64\`, or `deploy\alienware-local-program\INSTALL.cmd` with that folder as the argument).
 3. Close every Chrome window and the tray icon.
 4. Double-click `CHECKIN.cmd`.

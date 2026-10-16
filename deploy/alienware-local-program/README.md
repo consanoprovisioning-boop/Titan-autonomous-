@@ -6,7 +6,7 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 
 - .NET 8 desktop runtime
 - Google Chrome
-- Cursor worker: `cursor worker start` (id `2bd89263-dc03-4936-9b04-6bc709799f66`)
+- Cursor worker: `agent worker start --verbose` (id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`)
 
 This cloud agent cannot copy files onto the Alienware.
 
