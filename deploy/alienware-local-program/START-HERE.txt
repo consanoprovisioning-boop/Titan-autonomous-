@@ -1,0 +1,16 @@
+Titan Chief of Staff — Alienware 18
+
+Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+
+1. Open a new Command Prompt. Do not type in the Cursor worker window (C:\Windows\system32).
+2. Double-click INSTALL.cmd once if TitanChief is not installed yet.
+   INSTALL.cmd does not start the program and does not open Eleads.
+3. Close every Chrome window and the tray icon.
+4. Double-click CHECKIN.cmd.
+5. Sign into Eleads in that Chrome window as Bordine, Glenn on store 28206 or 28546.
+6. Double-click CHECKIN.cmd again. That second run is Verify. Leave Chrome open.
+7. The cloud COS loop attaches after Verify. Do not type Titan.cmd from C:\Windows\system32.
+
+Needs the .NET 8 desktop runtime and Google Chrome.
+INSTALL.cmd is not send authorization. Titan never types the password.
+
