@@ -28,9 +28,12 @@ class NewLeadAgent:
         for lead in self.adapter.new_leads(rooftop_id, self.ctx.me, since):
             if not self.ctx.guard.is_own(lead.assigned_to):
                 continue
-            if not self.ctx.store.mark_lead_seen(rooftop_id, lead.opportunity_id, now):
+            if self.ctx.store.has_seen_lead(rooftop_id, lead.opportunity_id):
                 continue
             drafted.extend(self._handle(lead.rooftop_id, lead.customer_id, lead.opportunity_id))
+            # Only after a successful handle. A timeout before this must leave the lead unseen
+            # so the next poll retries it; mark-before-handle dropped the lead forever.
+            self.ctx.store.mark_lead_seen(rooftop_id, lead.opportunity_id, now)
         return drafted
 
     def _handle(self, rooftop_id: str, customer_id: str, opportunity_id: str) -> list[OutboundMessage]:
