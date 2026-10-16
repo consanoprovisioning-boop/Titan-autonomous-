@@ -28,8 +28,11 @@ public static class WorkOrder
     ];
 
     public static bool IsGlennAssigned(string assignedTo)
-        => assignedTo.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
-           || assignedTo.Contains("Glenn", StringComparison.OrdinalIgnoreCase);
+        => assignedTo.Contains("Bordine", StringComparison.OrdinalIgnoreCase);
+
+    public static bool AssignmentKnown(string assignedTo)
+        => !string.IsNullOrWhiteSpace(assignedTo)
+           && !assignedTo.Equals("unknown", StringComparison.OrdinalIgnoreCase);
 
     public static string? HoldReason(OrganizerRow row, DateTimeOffset nowEt)
     {
@@ -37,6 +40,11 @@ public static class WorkOrder
         if (consent is not null)
         {
             return consent;
+        }
+
+        if (!AssignmentKnown(row.AssignedTo))
+        {
+            return "Manual verification required — salesperson assignment not visible.";
         }
 
         if (IsGlennAssigned(row.AssignedTo))

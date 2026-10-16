@@ -167,7 +167,25 @@ async Task<int> TickAsync()
     }
 
     var et = EasternClock.Now();
-    var result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
+    string result;
+    try
+    {
+        result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
+    }
+    catch (Exception ex)
+    {
+        store.Log("host", "tick", "tick failed: " + ex.Message, eleads.DetectedRooftop);
+        store.WriteHeartbeat(beat with
+        {
+            State = HostState.VerifiedIdle.ToString(),
+            LastTickAt = et.ToString("o"),
+            LastError = ex.Message
+        });
+        WriteHeartbeatFile(paths, store.ReadHeartbeat());
+        Console.Error.WriteLine("Tick failed. Session left verified. No send was made. " + ex.Message);
+        return 8;
+    }
+
     store.WriteHeartbeat(new Heartbeat(
         HostState.VerifiedIdle.ToString(),
         eleads.DetectedRooftop,

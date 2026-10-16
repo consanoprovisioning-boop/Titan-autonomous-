@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Titan.ChiefOfStaff;
 
 public static class Policy
@@ -32,17 +34,22 @@ public static class Policy
             return false;
         }
 
-        return text.Contains(ForbiddenTkoId, StringComparison.Ordinal)
-            || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
+        if (text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("The TKO", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // A phone or stock number that merely contains 6220 is not the TKO rooftop.
+        return Regex.IsMatch(text, @"(?<![\d-])6220(?![\d-])");
     }
+
+    public static bool IsBordineIdentity(string? text)
+        => !string.IsNullOrWhiteSpace(text)
+           && text.Contains("Bordine", StringComparison.OrdinalIgnoreCase);
 
     public static bool SmsOpen(DateTimeOffset nowEt)
     {
-        if (nowEt.DayOfWeek == DayOfWeek.Sunday)
-        {
-            return false;
-        }
-
         var tod = nowEt.TimeOfDay;
         return tod >= TimeSpan.FromHours(9) && tod < TimeSpan.FromHours(19);
     }
