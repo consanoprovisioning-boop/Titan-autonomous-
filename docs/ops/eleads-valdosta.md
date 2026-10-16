@@ -54,6 +54,13 @@ If Alienware-18 is offline or not Glenn-verified: do not claim CRM work, backgro
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 
+Cloud attach, from the Cursor agent on Linux:
+
+1. Refresh `/cursor/stores/self/worker-snapshot.json` from cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`.
+2. Run `scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json`.
+
+That script refuses to open Eleads and writes `/cursor/stores/self/eleads-valdosta-state.json`. Exit 3 is blocked. Exit 0 is a Glenn-verified Alienware session. It does not create a numbered timer tick.
+
 ## Success
 
 Customer outcomes:
