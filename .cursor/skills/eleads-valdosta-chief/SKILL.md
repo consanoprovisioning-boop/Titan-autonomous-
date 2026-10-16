@@ -30,6 +30,8 @@ Exact-draft is **not** a hard stop under V1.1. The original PDF/RTF/source packe
 
 If Alienware-18 is offline or not Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
 
+Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It checks the worker snapshot, refuses to open Eleads, and records ready or blocked.
+
 ## Work order (while session live)
 
 0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.

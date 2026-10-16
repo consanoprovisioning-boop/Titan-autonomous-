@@ -42,6 +42,32 @@ A login claim is not Verify. Before any CRM work, call cursor-cloud `list-self-h
 
 If the host blocker is unchanged and the operator is outside Slack, do not Slack. Slack only when that blocker changes or a Bordine lead is actually worked. Do not invent a numbered timer tick unless a timer fired. A capability note is not a tick.
 
+## Launch
+
+One sequence. The cloud command refuses to open Eleads and records ready or blocked in `/cursor/stores/self/eleads-valdosta-state.json`.
+
+On Alienware-18, Glenn:
+
+1. Leave a terminal open on `cursor worker start`. Worker id `2bd89263-dc03-4936-9b04-6bc709799f66`.
+2. If `%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe` is missing, double-click `dist\titan-chief-win-x64\INSTALL.cmd` once. That copies files and arms `kill.switch`. It does not start the host and it does not open Eleads.
+3. Close every Chrome window, including the tray icon.
+4. Double-click `CHECKIN.cmd` beside the host executable.
+5. Sign in as Bordine, Glenn on 28206 or 28546. The host does not type the password.
+6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify`.
+7. Leave that Chrome window open on CDP 9222.
+
+On this cloud Linux agent, after that session exists (and on every attach while it does not):
+
+1. Call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`.
+2. Write that JSON to `/cursor/stores/self/worker-snapshot.json`. A login claim is not Verify.
+3. Run:
+
+```bash
+scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
+```
+
+Exit 0 means the worker is online and a Verify receipt is present. Exit 3 means blocked. Exit 2 means a navigation attempt was refused. The script does not create a numbered timer tick. Core writes the state file and prepends `/cursor/stores/self/TICKLOG.md` only when the blocker changes.
+
 ## One Core, seven specialists
 
 51 roles are a logical catalog under one Core. Do not spawn 51 agents, 51 model calls, or a swarm. Deploy only this set, and only onto a verified Alienware session:

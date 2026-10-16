@@ -4,7 +4,7 @@ Glenn-approved signed-install copy only. **NO launch. NO live Eleads.**
 
 This is the source runbook for the framework-dependent `win-x64` Release publish of `Titan.ChiefOfStaff` (`net8.0`). The Alienware host must already have the .NET 8 runtime (or .NET 8 desktop runtime) installed.
 
-The finished publish is `dist/titan-chief-win-x64/`. Install with `deploy/alienware-local-program/INSTALL.cmd`. An earlier incomplete signed folder is archived at `deploy/archive/incomplete-signed-drop/`. Do not use PowerShell self-extractors. Do not set execution policy to bypass. Do not create Desktop or Start Menu shortcuts.
+The launch publish is `dist/titan-chief-win-x64/`, produced by `scripts/publish-win-x64.sh` on a build machine or `scripts/publish-win-x64.cmd` on the Alienware. Install with `deploy/alienware-local-program/INSTALL.cmd` (also copied into the publish folder). `INSTALL.cmd` does not start `Titan.ChiefOfStaff.exe` and does not open Eleads. An earlier incomplete signed folder is archived at `deploy/archive/incomplete-signed-drop/`. Do not use PowerShell self-extractors. Do not set execution policy to bypass. Do not create Desktop or Start Menu shortcuts.
 
 ## Destinations
 
@@ -21,7 +21,7 @@ Do not use `ProgramData`. Do not read or write any prior agent data tree under `
 
 Do this in `cmd.exe`. Do not use a script that launches the host.
 
-1. Review `deploy/alienware-install-fd/` and `SHA256SUMS.txt` on a trusted machine.
+1. Review `dist/titan-chief-win-x64/` and `SHA256SUMS.txt` on a trusted machine. The incomplete archive under `deploy/archive/incomplete-signed-drop/` is not the launch build. Its old exe hash `82c2a986af7473244fdb57be971e7448b2ae14a8f010b04a74402ed96332ee82` is history only.
 2. Create the app directory:
 
 ```bat
@@ -31,7 +31,7 @@ mkdir "%LOCALAPPDATA%\TitanChief\app"
 3. Copy every file from the complete publish folder into the app directory (adjust the source path to the folder you received):
 
 ```bat
-xcopy /E /I /Y "Z:\path\to\alienware-install-fd\*" "%LOCALAPPDATA%\TitanChief\app\"
+xcopy /E /I /Y "Z:\path\to\dist\titan-chief-win-x64\*" "%LOCALAPPDATA%\TitanChief\app\"
 ```
 
 4. Arm the kill switch with exactly the payload `armed` (creates the data root if needed):
@@ -55,7 +55,9 @@ Expected: a line that is `armed`.
 certutil -hashfile "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" SHA256
 ```
 
-Expected exe SHA-256: `82c2a986af7473244fdb57be971e7448b2ae14a8f010b04a74402ed96332ee82`
+Expected launch exe SHA-256: `84ce4d54d1419f9ccaf0342e0360316eeb7dfea8788c9cee29f0f35ec37280cb`
+
+That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt`. Do not compare the launch exe to the archived incomplete-drop hash.
 
 ## STOP
 
@@ -74,4 +76,24 @@ This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `e
 
 ## Local program (this repo)
 
-The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, double-click `INSTALL.cmd` once, then double-click `CHECKIN.cmd`. Do not type `verify` by itself — Command Prompt owns that word. Glenn signs into Eleads in that Chrome window. Titan never types the password.
+The host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`.
+
+## Launch sequence
+
+Alienware-18, Glenn:
+
+1. Leave `cursor worker start` running. Worker id `2bd89263-dc03-4936-9b04-6bc709799f66`.
+2. If the app is not installed, double-click `INSTALL.cmd` once (from `dist\titan-chief-win-x64\`, or `deploy\alienware-local-program\INSTALL.cmd` with that folder as the argument).
+3. Close every Chrome window and the tray icon.
+4. Double-click `CHECKIN.cmd`.
+5. Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546. Titan never types the password.
+6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify` by itself — Command Prompt owns that word.
+7. Leave Chrome open on CDP 9222.
+
+Cloud Cursor agent:
+
+```bash
+scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
+```
+
+Refresh `worker-snapshot.json` from `list-self-hosted-workers` `scope=all` `status=all` immediately before that command. The script does not open Eleads. Exit 3 records a blocked cycle. Exit 0 means the worker is online and Verify is on file.

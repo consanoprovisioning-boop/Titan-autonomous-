@@ -1,5 +1,21 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-16 — CHECKIN reads every CDP page and frame
+
+CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.
+
+CHECKIN now enumerates every CDP page on port 9222, prefers an `eleadcrm.com` page, and reads every frame. Logged in still requires an Eleads URL, no Username+Password form, rooftop 28206 or 28546, and Bordine or Glenn. An open 6220 page is still rejected. The login URL is opened only when no Eleads page exists. Success writes `%LOCALAPPDATA%\TitanChief\verify.json` (`glennVerified`, `VerifiedIdle`, `Bordine, Glenn`, rooftop). The cloud launcher still refuses to open Eleads. Glenn must run the new CHECKIN on the Alienware before Verify is claimed.
+
+## 2026-10-16 — Launch path for the Alienware host and cloud attach
+
+The Cursor COS loop is launchable once Alienware-18 is online and Glenn has completed `CHECKIN.cmd` and Verify.
+
+- Host source: `src/Titan.ChiefOfStaff/`. Win-x64 publish: `scripts/publish-win-x64.sh` (cmd equivalent: `scripts/publish-win-x64.cmd`). `INSTALL.cmd` copies files and arms `kill.switch`. It does not start the host and does not open Eleads.
+- Cloud attach: `scripts/launch-eleads-cos-loop.sh`. It reads the worker snapshot, refuses to open Eleads, and records ready or blocked in `/cursor/stores/self/eleads-valdosta-state.json`. It does not invent a numbered timer tick. A login claim is not Verify.
+- Live checks covered by `tests/eleads_cos_launch_test.py` and `tests/Titan.ChiefOfStaff.Tests/LaunchGuardTests.cs`: rooftop 6220 rejected, ownership screen 180 days, SMS 9:00–19:00 America/New_York, Appointment Set requires a day and a time, cloud host refuses to open Eleads.
+
+This entry does not change consent, rooftop, identity, or the filed source packet.
+
 The original Customer Traffic and Appointment Growth packet remains filed at `docs/ops/sources/` (`Eleads-operating-instructions.md`, `Eleads_Project_Goal.pdf`, `Eleads_project_Instructions_Goal.txt`). `Eleads.rtf` was not in this repository at the V1.1 start. Do not rewrite those source files to match later authorization.
 
 Governing skill and live operating law: `.cursor/skills/eleads-valdosta-chief/SKILL.md` and `docs/ops/eleads-valdosta.md`. Continual loop for a Cursor agent with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.

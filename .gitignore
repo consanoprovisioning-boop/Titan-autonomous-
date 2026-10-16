@@ -1,0 +1,7 @@
+.playwright-mcp/
+bin/
+obj/
+*.user
+.dotnet/
+__pycache__/
+*.pyc
