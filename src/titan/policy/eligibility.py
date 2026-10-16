@@ -71,7 +71,9 @@ def _funding_bypass(profile: CustomerProfile) -> bool:
     later_inbound = profile.last_activity(*INBOUND_KINDS)
     if profile.recent_inquiry_at and (latest_funding is None or profile.recent_inquiry_at > latest_funding):
         return False
-    if later_inbound and latest_funding and later_inbound.at > latest_funding:
+    # An undated note has no timestamp. Any inbound message means we cannot claim
+    # there was no later contact, so the customer stays eligible (spec §6.4).
+    if later_inbound and (latest_funding is None or later_inbound.at > latest_funding):
         return False
     return True
 

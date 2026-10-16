@@ -155,6 +155,12 @@ class TestEligibility:
         later = profile(otype=OpportunityType.DORMANT_LEAD, activities=[note],
                         recent_inquiry_at=NOW - timedelta(days=1))
         assert engine.evaluate(later, NOW).qualified
+        inbound = Activity(ActivityKind.EMAIL_IN, NOW - timedelta(days=1), "customer", "Ready to look again")
+        undated = profile(otype=OpportunityType.DORMANT_LEAD, notes=["Unable to obtain funding"],
+                          activities=[inbound])
+        assert engine.evaluate(undated, NOW).qualified
+        still_out = profile(otype=OpportunityType.DORMANT_LEAD, notes=["Unable to obtain funding"])
+        assert engine.evaluate(still_out, NOW).disposition is Disposition.EXCLUDED
 
     def test_reengagement_48h_cycle(self, engine):
         s = Settings()
