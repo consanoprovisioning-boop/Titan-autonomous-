@@ -14,7 +14,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-ALIENWARE_WORKER_ID = "2bd89263-dc03-4936-9b04-6bc709799f66"
+ALIENWARE_WORKER_ID = "1a1f1f15-72c4-4334-ad8b-f87d54efe73a"
+RETIRED_ALIENWARE_WORKER_IDS = frozenset({"2bd89263-dc03-4936-9b04-6bc709799f66"})
 OWNERSHIP_SCREEN_DAYS = 180
 NY = ZoneInfo("America/New_York")
 IDENTITY = "Bordine, Glenn"
@@ -96,14 +97,37 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
-def worker_is_online(snapshot: dict) -> bool:
+def alienware_worker(snapshot: dict) -> dict | None:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
-        return False
+        return None
     for row in workers:
-        if isinstance(row, dict) and row.get("workerId") == ALIENWARE_WORKER_ID:
-            return True
-    return False
+        if not isinstance(row, dict):
+            continue
+        worker_id = str(row.get("workerId") or "")
+        if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
+            return row
+        labels = " ".join(
+            str(row.get(key) or "")
+            for key in ("machineDisplayName", "displayName", "hostname")
+        )
+        if labels.startswith("Alienware-18") or "Alienware-18" in labels:
+            return row
+    return None
+
+
+def worker_is_online(snapshot: dict) -> bool:
+    return alienware_worker(snapshot) is not None
+
+
+def worker_directory_is_system32(row: dict | None) -> bool:
+    if not isinstance(row, dict):
+        return False
+    blob = " ".join(
+        str(row.get(key) or "")
+        for key in ("displayName", "directory", "workspacePath", "machineDisplayName")
+    ).casefold()
+    return "system32" in blob
 
 
 def verify_receipt_ok(receipt: dict | None) -> bool:
@@ -141,8 +165,11 @@ def specialist_results() -> list[dict]:
 
 
 def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
-    online = worker_is_online(snapshot)
-    verified = online and verify_receipt_ok(receipt)
+    row = alienware_worker(snapshot)
+    online = row is not None
+    seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
+    system32 = worker_directory_is_system32(row)
+    verified = online and verify_receipt_ok(receipt) and not system32
     workers = snapshot.get("workers") or []
     worker_count = len(workers) if isinstance(workers, list) else 0
     if verified:
@@ -150,6 +177,17 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         host = "alienware-verified"
         mode = "v1.1-execute"
         session = "alienware-cdp-9222"
+    elif online and system32:
+        blockers = [
+            f"Alienware-18 worker {seen_id} is online in C:\\Windows\\system32. "
+            "No agent will be placed there. Verify is not complete. "
+            "Glenn must run CHECKIN.cmd from %LOCALAPPDATA%\\TitanChief\\app, "
+            "sign in as Bordine, Glenn, run CHECKIN.cmd again, and leave Chrome open. "
+            "This cloud host will not open Eleads."
+        ]
+        host = "cloud-linux"
+        mode = "draft-blocked-local"
+        session = ELEADS_SESSION_NONE
     elif online:
         blockers = [
             "Alienware-18 worker is online. Verify is not complete. "
@@ -164,7 +202,7 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         shown = "workers=[]" if worker_count == 0 else f"workers={worker_count}"
         blockers = [
             f"Alienware-18 worker {ALIENWARE_WORKER_ID} is offline ({shown}). "
-            "Start it on the Alienware with cursor worker start. "
+            "Start it on the Alienware with agent worker start --verbose and leave that window open. "
             "This cloud host will not open Eleads."
         ]
         host = "cloud-linux"
@@ -195,7 +233,7 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "persistedBy": "core",
         "ownershipScreenDays": OWNERSHIP_SCREEN_DAYS,
         "eleadsSession": session,
-        "workerId": ALIENWARE_WORKER_ID,
+        "workerId": seen_id,
         "workerOnline": online,
         "timerTick": None,
         "openedFromThisProcess": False,

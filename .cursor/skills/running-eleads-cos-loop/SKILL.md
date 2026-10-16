@@ -31,7 +31,7 @@ Do not type or store the Eleads password. Do not start `Titan.ChiefOfStaff.exe`.
 
 ## Where you run
 
-A login claim is not Verify. Before any CRM work, call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. Alienware-18 worker id: `2bd89263-dc03-4936-9b04-6bc709799f66`.
+A login claim is not Verify. Before any CRM work, call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. Alienware-18 worker id: `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
 
 | What you can observe | What you do |
 | --- | --- |
@@ -48,7 +48,7 @@ One sequence. The cloud command refuses to open Eleads and records ready or bloc
 
 On Alienware-18, Glenn:
 
-1. Leave a terminal open on `cursor worker start`. Worker id `2bd89263-dc03-4936-9b04-6bc709799f66`.
+1. Leave a terminal open on `agent worker start --verbose`. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`.
 2. If `%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe` is missing, double-click `dist\titan-chief-win-x64\INSTALL.cmd` once. That copies files and arms `kill.switch`. It does not start the host and it does not open Eleads.
 3. Close every Chrome window, including the tray icon.
 4. Double-click `CHECKIN.cmd` beside the host executable.
