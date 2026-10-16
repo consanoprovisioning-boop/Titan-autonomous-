@@ -1,5 +1,12 @@
 # Titan-autonomous-
-Autonomous CRM Chief of Staff
+
+Eleads chief of staff for Bordine, Glenn at Valdosta Nissan (28206) and Valdosta Mitsubishi (28546).
+
+Launch steps: `docs/deploy/alienware-18.md`. Cloud attach: `scripts/launch-eleads-cos-loop.sh`. Host build: `scripts/publish-win-x64.sh`.
+
+## Python agent (`titan` package)
+
+This package follows the filed project goal packet (approval before every send, 14-month ownership screen). It has not yet been aligned with the Version 1.1 live operating law in `docs/ops/eleads-valdosta.md`.
 
 Titan handles Glenn Bordine's Eleads customer-contact workflow at Valdosta Nissan (28206) and Valdosta Mitsubishi (28546). It runs in the background on Windows 10/11 and:
 
