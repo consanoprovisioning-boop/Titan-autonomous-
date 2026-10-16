@@ -6,6 +6,10 @@ Source packet (preserved as filed, not rewritten): Customer Traffic and Appointm
 
 **Authorization version:** 1.1 (Glenn Oct 5, 2026). See `docs/ops/CHANGELOG.md`.
 
+**Ownership screen (live):** 180 days (Glenn 2026-10-16). A recent inquiry overrides. Model year never proves duration.
+
+**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. This file is the long law.
+
 ## Version 1.1 standing authorization
 
 Glenn’s Oct 5, 2026 written direction “include autonomous workflow no approvals required” is Version 1.1. It replaces per-message / per-batch / per-task / per-appointment exact-draft pauses in this live law.
@@ -104,7 +108,7 @@ Open the customer and opportunity. Wait for the full activity feed.
 
 Review: completed activities and notes; inbound/outbound SMS; calls and outcomes; email sends/opens/replies/failures; last follow-up and last-modified; appointments (active, missed, rescheduled, confirmed); recent inquiry and stated timing; sold/service/ownership; relationships; Lifetime Value and Equity; vehicle of interest; owned vehicle and purchase timing; trade, mileage, payoff, appraisal; financing / co-signer / documents; stock facts without inventing availability; valid phone/email; DNC/DNT; email opt-out, unsubscribe, hard bounce, Stop; explicit no-interest; correct salesperson and rooftop.
 
-**Ownership screen (V1.1):** 14 months past-purchase guideline. A recent inquiry overrides the last-purchase timing screen and is reviewed on its own current intent. Model year alone never proves ownership duration or eligibility. The source packet still files 12 months; V1.1 governing law uses 14.
+**Ownership screen (live, Glenn 2026-10-16):** 180 days past-purchase. A recent inquiry overrides the last-purchase timing screen and is reviewed on its own current intent. Model year alone never proves ownership duration or eligibility. Do not apply a 12-month or 14-month screen. The Oct 5 Version 1.1 figure of 14 months is superseded for live work. The source packet still says 12 months as filed history and is not rewritten; that filed line is not the live screen.
 
 **Past-customer review:** 48 hours.
 

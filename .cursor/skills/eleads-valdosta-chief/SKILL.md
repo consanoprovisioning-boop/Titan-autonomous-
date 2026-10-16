@@ -7,7 +7,7 @@ description: Live Eleads chief-of-staff loop for Glenn Bordine at Valdosta Nissa
 
 This is a live rooftop system. Ban the words pilot, MVP, and prototype in this work. Do not invent customers, stock, payments, APRs, or appointment times.
 
-Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. ChatGPT / Operator overlay ticks: use `running-eleads-overlay-loop` (self-contained; do not flatten this V1.1 skill).
+Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md` (Cursor agent; do not flatten this V1.1 skill).
 
 ## Authorization (Version 1.1)
 
@@ -43,7 +43,7 @@ Others’ live-countdown / unassigned: leave them until **96h zero contact by an
 
 Never reassign to Bordine until a **day+time** commitment exists in correspondence. Then set Glenn as primary and save the appointment under V1.1 (no extra Glenn approval pause).
 
-**Ownership screen (V1.1):** 14 months past-purchase guideline. A recent inquiry overrides. Model year alone never proves ownership duration. **Past-customer review:** 48 hours.
+**Ownership screen (live, Glenn 2026-10-16):** 180 days past-purchase. A recent inquiry overrides. Model year alone never proves ownership duration. Do not apply a 12-month or 14-month screen. The filed source packet is unchanged. **Past-customer review:** 48 hours.
 
 Cadence: prefer the verified customer-requested next action or existing dealership cadence first; otherwise next-day for active opportunities; four working days for older inactive without recent inquiry.
 
