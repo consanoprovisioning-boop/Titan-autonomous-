@@ -2,7 +2,20 @@
 
 The original Customer Traffic and Appointment Growth packet remains filed at `docs/ops/sources/` (`Eleads-operating-instructions.md`, `Eleads_Project_Goal.pdf`, `Eleads_project_Instructions_Goal.txt`). `Eleads.rtf` was not in this repository at the V1.1 start. Do not rewrite those source files to match later authorization.
 
-Governing skill and live operating law: `.cursor/skills/eleads-valdosta-chief/SKILL.md` and `docs/ops/eleads-valdosta.md`.
+Governing skill and live operating law: `.cursor/skills/eleads-valdosta-chief/SKILL.md` and `docs/ops/eleads-valdosta.md`. ChatGPT-portable overlay skill: `.cursor/skills/running-eleads-overlay-loop/SKILL.md`.
+
+## 2026-10-16 — ChatGPT-portable overlay skill
+
+**Decision:** File a self-contained ChatGPT / Operator / Custom GPT skill for Glenn Bordine’s continual Eleads overlay loop so a Project upload does not need the repo.
+
+**Added:**
+
+- `.cursor/skills/running-eleads-overlay-loop/SKILL.md` — host gate, V1.1 execute-after-Verify, work order 0–5, 14-month ownership (12-month packet SUPERSEDED), SMS 9:00–19:00 ET, Appointment Set only after day+time, Preview is not a send, VOI never “sold,” Titan 51 as one-chief logical catalog
+- `.cursor/skills/running-eleads-overlay-loop/references/chatgpt-setup.md` — Project / Custom GPT / Operator load; trigger phrase `Run the next Eleads overlay tick.`
+- `docs/chatgpt/running-eleads-overlay-loop.md` — paste-identical upload copy
+- `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` — extract only; Draft/Blocked on Titan SDK connectors does not ban live overlay after Verify
+
+**Unchanged:** source packet under `docs/ops/sources/` (PDF/RTF/operating-instructions). Authority stack is not flattened: V1.1 live law remains first; packet remains filed; Titan 51 remains a logical catalog.
 
 ## 2026-10-05 — Version 1.1 standing authorization
 
