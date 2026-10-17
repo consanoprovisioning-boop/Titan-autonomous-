@@ -130,7 +130,7 @@ Dealership knowledge uses only facts fresh on this rooftop in this session. If r
 
 While the Alienware session is verified:
 
-0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
+0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 8:00–21:00 ET. Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
 1. Daily Organizer status Open, contact type All (planner, overdue, Glenn-assigned first).
 2. Appraisal, trade, lease maturity, missed appointment, recent inquiry.
 3. Qualified dormant new/used.
@@ -145,7 +145,7 @@ Past-customer review: 48 hours.
 
 ## Windows (America/New_York)
 
-- SMS: 9:00–19:00 only. 8:00 PM is closed.
+- SMS: 8:00–21:00 only. 9:00 PM is closed.
 - Email: any hour after Verify.
 - Customer appointments: Mon/Wed/Thu/Fri 9:00–6:30; Sat 9:00–5:30; never Sunday; Tuesday only if the customer asks.
 - Follow-up task scheduling: Mon–Fri 9:00 AM–7:00 PM; Sat 9:00 AM–6:00 PM.
@@ -203,7 +203,7 @@ Stop. Do not ship the action. Correct the cycle.
 | Open Eleads from this cloud Linux agent | Close nothing in CRM because you never opened it. Record the blocker. Empty arrays. |
 | TKO, 6220, later rooftop, store-wide volume | Drop it. 28206 and 28546 only. |
 | 12-month or 14-month ownership screen | Live screen is 180 days. Recent inquiry overrides. Leave the source packet as filed. |
-| SMS at 8:00 PM or “until 8” | SMS ends 19:00 ET. |
+| SMS at 9:00 PM or “until 9” as open | SMS ends 21:00 ET. |
 | Exact-draft pause after Verify on an eligible send | V1.1 does not pause. Preserved checks still apply. |
 | 51-agent swarm or 51 model calls | Logical catalog only. Seven specialists max. Core persists. |
 | Maybe-Saturday, or Saturday without a clock time, saved as Appointment Set | Follow-up only. Need day and time in correspondence. |

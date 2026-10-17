@@ -42,7 +42,7 @@ public static class Policy
     public static bool SmsOpen(DateTimeOffset nowEt)
     {
         var tod = nowEt.TimeOfDay;
-        return tod >= TimeSpan.FromHours(9) && tod < TimeSpan.FromHours(19);
+        return tod >= TimeSpan.FromHours(8) && tod < TimeSpan.FromHours(21);
     }
 
     public static bool SmsOpenEastern(DateTimeOffset instant)
