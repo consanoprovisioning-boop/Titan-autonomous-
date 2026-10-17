@@ -1,5 +1,9 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-17 — CHECKIN identity requires Bordine
+
+CHECKIN treated the word Glenn anywhere on an Eleads page as the signed-in user. A customer named Glenn, or a Glennville address, verified the session and wrote a Bordine receipt. Identity now requires the surname Bordine. Glenn alone does not verify.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

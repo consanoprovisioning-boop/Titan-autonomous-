@@ -84,8 +84,8 @@ public static class EleadsInspection
         }
 
         var rooftop = EleadsSession.DetectRooftop(text, urls);
-        var identityConfirmed = text.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("Glenn", StringComparison.OrdinalIgnoreCase);
+        // Surname only. "Glenn" alone matches a customer or a Glennville address and must not verify.
+        var identityConfirmed = Policy.IsBordineIdentity(text);
         var loggedIn = TouchesEleads(page)
             && !loginVisible
             && Policy.IsAllowedRooftop(rooftop)
