@@ -59,6 +59,15 @@ Expected launch exe SHA-256: `84ce4d54d1419f9ccaf0342e0360316eeb7dfea8788c9cee29
 
 That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt`. Do not compare the launch exe to the archived incomplete-drop hash.
 
+## One step to bring Alienware-18 online (Glenn)
+
+Double-click/run **`START-WORKER.cmd`** (in `deploy/alienware-local-program/`, also copied into `dist/titan-chief-win-x64/` on publish). That is the only worker step:
+
+1. Double-click/run `START-WORKER.cmd` and **leave that window open**.
+2. The window directory must show **`%USERPROFILE%`**, not `C:\Windows\system32`. The script does `cd /d %USERPROFILE%`, checks for `agent` (or `%LOCALAPPDATA%\cursor-agent\agent.cmd`), then runs `agent worker start --name "Alienware-18" --verbose`.
+3. Leave the verified Eleads Chrome window open.
+4. **Do not rerun `CHECKIN.cmd`** just to bring the worker online, and do not start `Titan.ChiefOfStaff.exe` from this script.
+
 ## STOP
 
 - Do **not** start `Titan.ChiefOfStaff.exe`.
@@ -82,7 +91,7 @@ The host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan
 
 Alienware-18, Glenn:
 
-1. Leave `agent worker start --verbose` running. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Do not pass `--name`. The Windows `cursor` command does not start this worker.
+1. Double-click/run `START-WORKER.cmd` and leave that worker window open (see "One step to bring Alienware-18 online" above). It registers as `Alienware-18` from `%USERPROFILE%`. Last known worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Do not rerun `CHECKIN.cmd` for this step.
 2. If the app is not installed, double-click `INSTALL.cmd` once (from `dist\titan-chief-win-x64\`, or `deploy\alienware-local-program\INSTALL.cmd` with that folder as the argument).
 3. Close every Chrome window and the tray icon.
 4. Double-click `CHECKIN.cmd`.
