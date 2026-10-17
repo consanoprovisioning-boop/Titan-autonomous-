@@ -39,6 +39,10 @@ public static class Policy
             || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool IsBordineIdentity(string? text)
+        => !string.IsNullOrWhiteSpace(text)
+           && text.Contains("Bordine", StringComparison.OrdinalIgnoreCase);
+
     public static bool SmsOpen(DateTimeOffset nowEt)
     {
         var tod = nowEt.TimeOfDay;

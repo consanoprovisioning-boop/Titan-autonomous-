@@ -127,10 +127,41 @@ public class CheckInVerifyTests
             [new FrameSnapshot("https://example.com/story", "The TKO Autogroup (6220)")]);
         var valdosta = new PageSnapshot(
             "https://www.eleadcrm.com/app",
-            [new FrameSnapshot("https://www.eleadcrm.com/app", "28206 Glenn")]);
+            [new FrameSnapshot("https://www.eleadcrm.com/app", "28206 Bordine, Glenn")]);
         var verdict = EleadsInspection.Choose([news, valdosta]);
         Assert.True(verdict.LoggedIn);
         Assert.Equal("28206", verdict.DetectedRooftop);
+    }
+
+    [Fact]
+    public void Customer_named_glenn_or_glennville_does_not_verify_the_session()
+    {
+        var customer = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\ncustomer Glenn Smith")]));
+        Assert.False(customer.LoggedIn);
+        Assert.False(customer.IdentityConfirmed);
+        Assert.Null(customer.IdentityHint);
+
+        var glennville = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\nGlennville, GA 30427")]));
+        Assert.False(glennville.LoggedIn);
+        Assert.False(Policy.IsBordineIdentity("customer Glenn Smith"));
+        Assert.False(Policy.IsBordineIdentity("Glennville, GA"));
+        Assert.True(Policy.IsBordineIdentity("Bordine, Glenn"));
+
+        var signedIn = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\nBordine, Glenn\ncustomer Glenn Smith")]));
+        Assert.True(signedIn.LoggedIn);
+        Assert.Equal(Policy.Identity, signedIn.IdentityHint);
     }
 
     [Fact]
