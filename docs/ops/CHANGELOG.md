@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-17 — SMS window 8:00 AM–9:00 PM ET (Glenn directive)
+
+**Decision (Glenn, Sat Oct 17 2026):** live SMS window is **8:00 AM–9:00 PM America/New_York (08:00–21:00)**, replacing 9:00 AM–7:00 PM ET for live work. Updated live rules in `.cursor/skills/eleads-valdosta-chief/SKILL.md`, `.cursor/skills/running-eleads-cos-loop/SKILL.md`, and `docs/ops/eleads-valdosta.md`. Dated historical entries below that record the old window are preserved as history and are not rewritten; the filed source packet at `docs/ops/sources/` is unchanged.
+
+**Confirmed live (no change):** emails require no approval — Version 1.1 standing authorization is live. Ownership screen is **180 days**.
+
+This is a docs sync only. It does not open Eleads, claim CRM work, or unblock the Alienware host (Alienware worker is offline).
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

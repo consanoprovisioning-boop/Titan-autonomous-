@@ -34,7 +34,7 @@ Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-co
 
 ## Work order (while session live)
 
-0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.
+0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 8:00–21:00 ET. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.
 1. Daily Organizer status **Open**, contact type **All** (planner / overdue / Glenn-assigned first).
 2. Appraisal / trade / lease maturity / missed appointment / recent inquiry.
 3. Qualified dormant new/used.
@@ -51,7 +51,7 @@ Cadence: prefer the verified customer-requested next action or existing dealersh
 
 ## Windows (America/New_York)
 
-- SMS: 9:00 AM–7:00 PM only (narrower than PDF).
+- SMS: 8:00 AM–9:00 PM America/New_York only.
 - Email: any hour after a live verified session.
 - Customer appointment offers: Mon/Wed/Thu/Fri 9:00–6:30; Sat 9:00–5:30; never Sunday; Tuesday only if the customer asks. Dealership closed Sunday.
 - Follow-up task scheduling hours: Mon–Fri 9:00 AM–7:00 PM; Sat 9:00 AM–6:00 PM.
