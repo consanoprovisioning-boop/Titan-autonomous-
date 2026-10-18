@@ -55,6 +55,26 @@ public sealed class WorkTick
         return $"Tick {rooftop}: {seen} visible rows, {ready} qualified, {held} held. Sends only after a live composer is filled from the profile and CRM history shows the completed activity. SMS {(smsOpen ? "open" : "closed")}.";
     }
 
+    /// <summary>
+    /// Appointment-commitment fast path (Glenn 2026-10-18): preempts the
+    /// mandatory queue order for this lead. Decision only here — the actual
+    /// same-channel reply, Eleads booking, Appointment Set status change, and
+    /// CRM note are executed on the Glenn-verified Alienware host session and
+    /// count only with CRM history proof under Bordine, Glenn.
+    /// </summary>
+    public static AppointmentCommitmentDecision HandleInboundReply(
+        HostStore store, string rooftop, string customerKey, AppointmentCommitmentRequest request)
+    {
+        var decision = AppointmentCommitment.Evaluate(request);
+        store.Log(
+            "appointment-commitment",
+            decision.Action.ToString(),
+            decision.CrmNote ?? decision.Reason,
+            rooftop,
+            customerKey);
+        return decision;
+    }
+
     public static IReadOnlyList<OrganizerRow> ParseVisibleRows(string organizerText, WorkQueue queue)
     {
         var rows = new List<OrganizerRow>();
