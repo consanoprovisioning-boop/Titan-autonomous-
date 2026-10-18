@@ -58,8 +58,12 @@ findstr /X /C:"DOWN" "%TEMP%\titan-cos-cdp.txt" >nul 2>&1
 if not errorlevel 1 set "CDP_STATE=down"
 del /q "%TEMP%\titan-cos-cdp.txt" >nul 2>&1
 
+call :EnsureOnePasswordExtension
 if not "%LIVE%"=="1" goto :DoCheckin
 if "%CDP_STATE%"=="down" goto :DoCheckin
+call :ClassifyEleadsPage
+if "%PAGE%"=="LOGIN" goto :DoCheckin
+if "%PAGE%"=="DROPPED" goto :DoCheckin
 echo Chief of Staff is already the live session. Leaving Chrome and the worker alone.
 timeout /t 3 /nobreak >nul
 endlocal & exit /b 0
@@ -71,6 +75,7 @@ if not exist "%APP%\CHECKIN.cmd" (
   endlocal & exit /b 1
 )
 set "TRIES=0"
+set "DIDFILL=0"
 
 :CheckinLoop
 call "%APP%\CHECKIN.cmd" nopause > "%TEMP%\titan-cos-checkin.txt" 2>&1
@@ -80,12 +85,16 @@ if not errorlevel 1 goto :Blocked
 if "%RC%"=="0" goto :ShowThenDone
 if "%RC%"=="4" goto :Busy
 if not "%RC%"=="6" goto :Failed
-if "%TRIES%"=="0" type "%TEMP%\titan-cos-checkin.txt"
-if "%TRIES%"=="0" call :OfferOnePassword
+if "%DIDFILL%"=="1" goto :WaitFill
+type "%TEMP%\titan-cos-checkin.txt"
+call :AutofillDroppedTab
+set "DIDFILL=1"
+if not "%OP_PRESENT%"=="1" goto :NeedYou
+:WaitFill
 set /a TRIES+=1
-if %TRIES% GEQ 12 goto :NeedYou
-echo Leave Chrome open. Approve the 1Password prompt, or fill the empty Eleads box yourself.
-timeout /t 10 /nobreak >nul
+if %TRIES% GEQ 4 goto :NeedYou
+echo Leave Chrome open. Waiting for the 1Password extension fill. No password is typed.
+timeout /t 8 /nobreak >nul
 goto :CheckinLoop
 
 :ShowThenDone
@@ -116,8 +125,8 @@ endlocal & exit /b %RC%
 
 :NeedYou
 del /q "%TEMP%\titan-cos-checkin.txt" >nul 2>&1
-echo Sign-in is still open. Leave Chrome open. Double-click COS again after the store page is up.
-echo Titan did not type the password.
+echo Eleads is not signed in. If 1Password is locked, the unlock box was left as it is.
+echo This is not a live session. Titan did not type the password.
 pause
 endlocal & exit /b 6
 
@@ -173,25 +182,50 @@ if defined CURSOR_CMD goto :eof
 if exist "%USERPROFILE%\.local\bin\agent.cmd" set "CURSOR_CMD=%USERPROFILE%\.local\bin\agent.cmd"
 goto :eof
 
-:OfferOnePassword
-REM Opens the 1Password app so Glenn can approve a fill. Never prints a secret.
+:EnsureOnePasswordExtension
 set "OP_APP="
 if exist "%LOCALAPPDATA%\1Password\app\8\1Password.exe" set "OP_APP=%LOCALAPPDATA%\1Password\app\8\1Password.exe"
 if not defined OP_APP if exist "%LOCALAPPDATA%\1Password\app\1Password.exe" set "OP_APP=%LOCALAPPDATA%\1Password\app\1Password.exe"
 if not defined OP_APP if exist "%ProgramFiles%\1Password\1Password.exe" set "OP_APP=%ProgramFiles%\1Password\1Password.exe"
-set "OP_CLI_FOUND=0"
+set "OP_PRESENT=0"
+if defined OP_APP set "OP_PRESENT=1"
 where op >nul 2>&1
-if not errorlevel 1 set "OP_CLI_FOUND=1"
-if not defined OP_APP if "%OP_CLI_FOUND%"=="0" (
-  echo 1Password is not installed. The Eleads password box stays empty for you to fill.
+if not errorlevel 1 set "OP_PRESENT=1"
+if exist "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Extensions\aeblfdkhhhdcdjpifhhbdiojplfjncoa" set "OP_PRESENT=1"
+if exist "%LOCALAPPDATA%\TitanChief\browser\Default\Extensions\aeblfdkhhhdcdjpifhhbdiojplfjncoa" set "OP_PRESENT=1"
+if not "%OP_PRESENT%"=="1" goto :eof
+REM Official 1Password Chrome extension. No secret. Applies on the next Chrome start, including the Titan profile.
+reg add "HKCU\Software\Policies\Google\Chrome\ExtensionInstallForcelist" /v titan-cos-1password /t REG_SZ /d "aeblfdkhhhdcdjpifhhbdiojplfjncoa;https://clients2.google.com/service/update2/crx" /f >nul 2>&1
+reg add "HKCU\Software\Google\Chrome\Extensions\aeblfdkhhhdcdjpifhhbdiojplfjncoa" /v update_url /t REG_SZ /d "https://clients2.google.com/service/update2/crx" /f >nul 2>&1
+goto :eof
+
+:ClassifyEleadsPage
+set "PAGE=UNKNOWN"
+del /q "%TEMP%\titan-cos-page.txt" >nul 2>&1
+powershell.exe -NoProfile -NonInteractive -Command "try { $pages = @(Invoke-RestMethod 'http://127.0.0.1:9222/json/list' -TimeoutSec 3); $eleads = @($pages | Where-Object { $_.type -eq 'page' -and $_.url -like '*eleadcrm.com*' }); $login = @($eleads | Where-Object { $_.url -like '*login.asp*' }); if ($eleads.Count -eq 0) { $s = 'DROPPED' } elseif ($login.Count -eq $eleads.Count) { $s = 'LOGIN' } else { $s = 'STORE' } } catch { $s = 'UNKNOWN' }; Set-Content -LiteralPath ($env:TEMP + '\titan-cos-page.txt') -Value $s -Encoding Ascii"
+findstr /X /C:"LOGIN" "%TEMP%\titan-cos-page.txt" >nul 2>&1
+if not errorlevel 1 set "PAGE=LOGIN"
+findstr /X /C:"DROPPED" "%TEMP%\titan-cos-page.txt" >nul 2>&1
+if not errorlevel 1 set "PAGE=DROPPED"
+findstr /X /C:"STORE" "%TEMP%\titan-cos-page.txt" >nul 2>&1
+if not errorlevel 1 set "PAGE=STORE"
+del /q "%TEMP%\titan-cos-page.txt" >nul 2>&1
+goto :eof
+
+:AutofillDroppedTab
+REM Dropped Eleads tab. Trigger once: 1Password Fill in Browser, Ctrl+Backslash, to Titan Chrome on port 9222.
+REM The Chrome extension aeblfdkhhhdcdjpifhhbdiojplfjncoa fills the login. If 1Password is locked, leave the unlock box.
+call :EnsureOnePasswordExtension
+if not "%OP_PRESENT%"=="1" (
+  echo 1Password is not installed. The Eleads password box stays empty.
   echo Titan will not type the password.
   goto :eof
 )
-echo 1Password will ask you to approve the Eleads fill. This window does not read the password.
-echo One-time: sign in to the 1Password app yourself. If you use op, run op signin in a window you open.
+echo Sending 1Password Fill in Browser to the Titan Chrome window.
+echo If 1Password is locked, the unlock box stays. This window does not read the password.
 if defined OP_APP start "" "%OP_APP%"
-if defined OP_APP start "" "onepassword://search/Eleads"
-if not defined OP_APP echo Open the 1Password app and approve the fill. The Eleads box stays empty until you do.
+REM EncodedCommand focuses Chrome on port 9222 and sends Ctrl+Backslash once. It does not print a secret.
+powershell.exe -NoProfile -NonInteractive -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQAgAD0AIAAnAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAJwAKAHQAcgB5ACAAewAgACQAcABhAGcAZQBzACAAPQAgAEAAKABJAG4AdgBvAGsAZQAtAFIAZQBzAHQATQBlAHQAaABvAGQAIAAnAGgAdAB0AHAAOgAvAC8AMQAyADcALgAwAC4AMAAuADEAOgA5ADIAMgAyAC8AagBzAG8AbgAvAGwAaQBzAHQAJwAgAC0AVABpAG0AZQBvAHUAdABTAGUAYwAgADMAKQAgAH0AIABjAGEAdABjAGgAIAB7ACAAZQB4AGkAdAAgADIAIAB9AAoAJABsAG8AZwBpAG4AIAA9ACAAJABwAGEAZwBlAHMAIAB8ACAAVwBoAGUAcgBlAC0ATwBiAGoAZQBjAHQAIAB7ACAAJABfAC4AdAB5AHAAZQAgAC0AZQBxACAAJwBwAGEAZwBlACcAIAAtAGEAbgBkACAAJABfAC4AdQByAGwAIAAtAGwAaQBrAGUAIAAnACoAZQBsAGUAYQBkAGMAcgBtAC4AYwBvAG0AKgAnACAALQBhAG4AZAAgACQAXwAuAHUAcgBsACAALQBsAGkAawBlACAAJwAqAGwAbwBnAGkAbgAuAGEAcwBwACoAJwAgAH0AIAB8ACAAUwBlAGwAZQBjAHQALQBPAGIAagBlAGMAdAAgAC0ARgBpAHIAcwB0ACAAMQAKACQAYQBuAHkAIAA9ACAAJABwAGEAZwBlAHMAIAB8ACAAVwBoAGUAcgBlAC0ATwBiAGoAZQBjAHQAIAB7ACAAJABfAC4AdAB5AHAAZQAgAC0AZQBxACAAJwBwAGEAZwBlACcAIAAtAGEAbgBkACAAJABfAC4AdQByAGwAIAAtAGwAaQBrAGUAIAAnACoAZQBsAGUAYQBkAGMAcgBtAC4AYwBvAG0AKgAnACAAfQAgAHwAIABTAGUAbABlAGMAdAAtAE8AYgBqAGUAYwB0ACAALQBGAGkAcgBzAHQAIAAxAAoAJABwAGEAZwBlACAAPQAgACQAcABhAGcAZQBzACAAfAAgAFcAaABlAHIAZQAtAE8AYgBqAGUAYwB0ACAAewAgACQAXwAuAHQAeQBwAGUAIAAtAGUAcQAgACcAcABhAGcAZQAnACAAfQAgAHwAIABTAGUAbABlAGMAdAAtAE8AYgBqAGUAYwB0ACAALQBGAGkAcgBzAHQAIAAxAAoAJAB0AGEAcgBnAGUAdAAgAD0AIAAkAHAAYQBnAGUACgBpAGYAIAAoACQAYQBuAHkAKQAgAHsAIAAkAHQAYQByAGcAZQB0ACAAPQAgACQAYQBuAHkAIAB9AAoAaQBmACAAKAAkAGwAbwBnAGkAbgApACAAewAgACQAdABhAHIAZwBlAHQAIAA9ACAAJABsAG8AZwBpAG4AIAB9AAoAaQBmACAAKAAtAG4AbwB0ACAAJAB0AGEAcgBnAGUAdAApACAAewAgAGUAeABpAHQAIAAzACAAfQAKAHQAcgB5ACAAewAgAEkAbgB2AG8AawBlAC0AUgBlAHMAdABNAGUAdABoAG8AZAAgACgAJwBoAHQAdABwADoALwAvADEAMgA3AC4AMAAuADAALgAxADoAOQAyADIAMgAvAGoAcwBvAG4ALwBhAGMAdABpAHYAYQB0AGUALwAnACAAKwAgACQAdABhAHIAZwBlAHQALgBpAGQAKQAgAC0AVABpAG0AZQBvAHUAdABTAGUAYwAgADMAIAB8ACAATwB1AHQALQBOAHUAbABsACAAfQAgAGMAYQB0AGMAaAAgAHsAfQAKAFMAdABhAHIAdAAtAFMAbABlAGUAcAAgAC0ATQBpAGwAbABpAHMAZQBjAG8AbgBkAHMAIAAyADAAMAAwAAoAJABiAHIAbwB3AHMAZQByACAAPQAgAEcAZQB0AC0AQwBpAG0ASQBuAHMAdABhAG4AYwBlACAAVwBpAG4AMwAyAF8AUAByAG8AYwBlAHMAcwAgAC0ARgBpAGwAdABlAHIAIAAiAE4AYQBtAGUAIAA9ACAAJwBjAGgAcgBvAG0AZQAuAGUAeABlACcAIgAgAHwAIABXAGgAZQByAGUALQBPAGIAagBlAGMAdAAgAHsAIAAkAF8ALgBDAG8AbQBtAGEAbgBkAEwAaQBuAGUAIAAtAGwAaQBrAGUAIAAnACoAcgBlAG0AbwB0AGUALQBkAGUAYgB1AGcAZwBpAG4AZwAtAHAAbwByAHQAPQA5ADIAMgAyACoAJwAgAH0AIAB8ACAAUwBlAGwAZQBjAHQALQBPAGIAagBlAGMAdAAgAC0ARgBpAHIAcwB0ACAAMQAKACQAaABhAG4AZABsAGUAcwAgAD0AIABAACgAKQAKAGkAZgAgACgAJABiAHIAbwB3AHMAZQByACkAIAB7AAoAIAAgACQAaABhAG4AZABsAGUAcwAgACsAPQAgACgARwBlAHQALQBQAHIAbwBjAGUAcwBzACAALQBJAGQAIAAkAGIAcgBvAHcAcwBlAHIALgBQAHIAbwBjAGUAcwBzAEkAZAAgAC0ARQByAHIAbwByAEEAYwB0AGkAbwBuACAAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQApAC4ATQBhAGkAbgBXAGkAbgBkAG8AdwBIAGEAbgBkAGwAZQAKACAAIABHAGUAdAAtAEMAaQBtAEkAbgBzAHQAYQBuAGMAZQAgAFcAaQBuADMAMgBfAFAAcgBvAGMAZQBzAHMAIAAtAEYAaQBsAHQAZQByACAAIgBOAGEAbQBlACAAPQAgACcAYwBoAHIAbwBtAGUALgBlAHgAZQAnACIAIAB8ACAAVwBoAGUAcgBlAC0ATwBiAGoAZQBjAHQAIAB7ACAAJABfAC4AUABhAHIAZQBuAHQAUAByAG8AYwBlAHMAcwBJAGQAIAAtAGUAcQAgACQAYgByAG8AdwBzAGUAcgAuAFAAcgBvAGMAZQBzAHMASQBkACAAfQAgAHwAIABGAG8AcgBFAGEAYwBoAC0ATwBiAGoAZQBjAHQAIAB7AAoAIAAgACAAIAAkAGgAYQBuAGQAbABlAHMAIAArAD0AIAAoAEcAZQB0AC0AUAByAG8AYwBlAHMAcwAgAC0ASQBkACAAJABfAC4AUAByAG8AYwBlAHMAcwBJAGQAIAAtAEUAcgByAG8AcgBBAGMAdABpAG8AbgAgAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAKQAuAE0AYQBpAG4AVwBpAG4AZABvAHcASABhAG4AZABsAGUACgAgACAAfQAKAH0ACgAkAGgAIAA9ACAAJABoAGEAbgBkAGwAZQBzACAAfAAgAFcAaABlAHIAZQAtAE8AYgBqAGUAYwB0ACAAewAgACQAXwAgAC0AbgBlACAAMAAgAH0AIAB8ACAAUwBlAGwAZQBjAHQALQBPAGIAagBlAGMAdAAgAC0ARgBpAHIAcwB0ACAAMQAKAGkAZgAgACgALQBuAG8AdAAgACQAaAApACAAewAgAGUAeABpAHQAIAA0ACAAfQAKACQAbgBhAHQAaQB2AGUAIAA9ACAAJwBbAEQAbABsAEkAbQBwAG8AcgB0ACgAIgB1AHMAZQByADMAMgAuAGQAbABsACIAKQBdACAAcAB1AGIAbABpAGMAIABzAHQAYQB0AGkAYwAgAGUAeAB0AGUAcgBuACAAYgBvAG8AbAAgAFMAZQB0AEYAbwByAGUAZwByAG8AdQBuAGQAVwBpAG4AZABvAHcAKABJAG4AdABQAHQAcgAgAGgAVwBuAGQAKQA7ACAAWwBEAGwAbABJAG0AcABvAHIAdAAoACIAdQBzAGUAcgAzADIALgBkAGwAbAAiACkAXQAgAHAAdQBiAGwAaQBjACAAcwB0AGEAdABpAGMAIABlAHgAdABlAHIAbgAgAGIAbwBvAGwAIABTAGgAbwB3AFcAaQBuAGQAbwB3ACgASQBuAHQAUAB0AHIAIABoAFcAbgBkACwAIABpAG4AdAAgAG4AQwBtAGQAUwBoAG8AdwApADsAJwAKAEEAZABkAC0AVAB5AHAAZQAgAC0ATgBhAG0AZQBzAHAAYQBjAGUAIABDAG8AcwBXAGkAbgAgAC0ATgBhAG0AZQAgAE4AYQB0AGkAdgBlACAALQBNAGUAbQBiAGUAcgBEAGUAZgBpAG4AaQB0AGkAbwBuACAAJABuAGEAdABpAHYAZQAKAFsAQwBvAHMAVwBpAG4ALgBOAGEAdABpAHYAZQBdADoAOgBTAGgAbwB3AFcAaQBuAGQAbwB3ACgAJABoACwAIAA5ACkAIAB8ACAATwB1AHQALQBOAHUAbABsAAoAaQBmACAAKAAtAG4AbwB0ACAAWwBDAG8AcwBXAGkAbgAuAE4AYQB0AGkAdgBlAF0AOgA6AFMAZQB0AEYAbwByAGUAZwByAG8AdQBuAGQAVwBpAG4AZABvAHcAKAAkAGgAKQApACAAewAgAGUAeABpAHQAIAA1ACAAfQAKAFMAdABhAHIAdAAtAFMAbABlAGUAcAAgAC0ATQBpAGwAbABpAHMAZQBjAG8AbgBkAHMAIAAzADAAMAAKAEEAZABkAC0AVAB5AHAAZQAgAC0AQQBzAHMAZQBtAGIAbAB5AE4AYQBtAGUAIABTAHkAcwB0AGUAbQAuAFcAaQBuAGQAbwB3AHMALgBGAG8AcgBtAHMACgAjACAAMQBQAGEAcwBzAHcAbwByAGQAIABGAGkAbABsACAAaQBuACAAQgByAG8AdwBzAGUAcgA6ACAAQwB0AHIAbAArAEIAYQBjAGsAcwBsAGEAcwBoAC4AIABFAHgAdABlAG4AcwBpAG8AbgAgAGYAaQBsAGwAcwAgAHQAaABlACAAZgBvAGMAdQBzAGUAZAAgAEMAaAByAG8AbQBlACAAdABhAGIALgAKAFsAUwB5AHMAdABlAG0ALgBXAGkAbgBkAG8AdwBzAC4ARgBvAHIAbQBzAC4AUwBlAG4AZABLAGUAeQBzAF0AOgA6AFMAZQBuAGQAVwBhAGkAdAAoACgAWwBzAHQAcgBpAG4AZwBdAFsAYwBoAGEAcgBdADkANAApACAAKwAgACgAWwBzAHQAcgBpAG4AZwBdAFsAYwBoAGEAcgBdADkAMgApACkACgBlAHgAaQB0ACAAMAAKAA==
 goto :eof
 
 :PinDesktop
