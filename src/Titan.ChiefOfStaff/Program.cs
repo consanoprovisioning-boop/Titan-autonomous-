@@ -11,6 +11,7 @@ if (args.Any(a => a.Contains("password", StringComparison.OrdinalIgnoreCase)
 var verb = args.Length > 0 ? args[0].Trim().ToLowerInvariant() : "status";
 var paths = new HostPaths(ReadOverride(args, "--data"));
 var kill = new KillSwitch(paths);
+var machine = SystemMachineStamp.Instance;
 
 return verb switch
 {
@@ -27,6 +28,7 @@ return verb switch
 int Install()
 {
     paths.EnsureDataTree();
+    var host = HostIdentity.Enroll(paths, machine);
     var state = HostStateMachine.AfterInstall(kill);
     using var store = new HostStore(paths);
     var et = EasternClock.Now();
@@ -34,8 +36,11 @@ int Install()
     store.Log("host", "install", "kill.switch armed — not Verify, not send authorization");
     WriteHeartbeatFile(paths, store.ReadHeartbeat());
     Console.WriteLine($"Installed data root: {paths.DataRoot}");
+    Console.WriteLine($"hostId={host.HostId}");
+    Console.WriteLine($"machine={host.MachineName}");
     Console.WriteLine("kill.switch=armed");
     Console.WriteLine("This is not Glenn Verify and not send authorization.");
+    Console.WriteLine("This PC is enrolled. Other PCs can install separately. Verify only one live Eleads session at a time.");
     Console.WriteLine("Next: double-click CHECKIN.cmd. Do not type verify by itself — Command Prompt owns that word.");
     return 0;
 }
@@ -56,6 +61,10 @@ int Status()
     Console.WriteLine($"sms_open={Policy.SmsOpen(et)}");
     Console.WriteLine($"allowed=28206,28546 forbidden=6220");
     Console.WriteLine($"data={paths.DataRoot}");
+    var enrolled = HostIdentity.TryLoad(paths);
+    Console.WriteLine($"hostId={enrolled?.HostId ?? "-"}");
+    Console.WriteLine($"machine={enrolled?.MachineName ?? "-"}");
+    Console.WriteLine("cdp=127.0.0.1:9222");
     return kill.IsArmed() ? 0 : 3;
 }
 
@@ -94,9 +103,20 @@ bool CloudRefused(out int code)
 
 async Task<int> VerifyAsync()
 {
+    HostIdentity host;
+    try
+    {
+        host = HostIdentity.RequireThisMachine(paths, machine);
+    }
+    catch (InvalidOperationException ex)
+    {
+        Console.Error.WriteLine(ex.Message);
+        return 3;
+    }
+
     if (!kill.IsArmed())
     {
-        VerifyMarker.Write(paths, HostState.KillTripped.ToString(), null, null, null, false);
+        VerifyMarker.Write(paths, HostState.KillTripped.ToString(), null, null, null, false, host);
         Console.Error.WriteLine("kill.switch is not armed. Run install first.");
         return 3;
     }
@@ -121,8 +141,8 @@ async Task<int> VerifyAsync()
         storeErr.WriteHeartbeat(failed);
         storeErr.Log("host", "verify", "browser attach failed: " + ex.Message);
         WriteHeartbeatFile(paths, failed);
-        VerifyMarker.Write(paths, failed.State, null, null, null, false);
-        Console.Error.WriteLine("Chrome attach failed. Install Google Chrome on Alienware. Titan did not type a password.");
+        VerifyMarker.Write(paths, failed.State, null, null, null, false, host);
+        Console.Error.WriteLine("Chrome attach failed. Install Google Chrome on this PC. Titan did not type a password.");
         Console.Error.WriteLine(ex.Message);
         return 5;
     }
@@ -144,8 +164,12 @@ async Task<int> VerifyAsync()
     store.WriteHeartbeat(beat);
     store.Log("host", "verify", report, eleads.DetectedRooftop);
     WriteHeartbeatFile(paths, beat);
-    VerifyMarker.Write(paths, beat.State, beat.Rooftop, verified ? Policy.Identity : null, verified ? beat.VerifiedAt : null, verified);
+    VerifyMarker.Write(paths, beat.State, beat.Rooftop, verified ? Policy.Identity : null, verified ? beat.VerifiedAt : null, verified, host);
     Console.WriteLine(report);
+    if (verified)
+    {
+        Console.WriteLine($"This PC ({host.MachineName}) is the live Eleads session. Other PCs can stay installed. Do not Verify two PCs at once.");
+    }
     return verified ? 0 : 6;
 }
 
@@ -160,6 +184,22 @@ async Task<int> TickAsync()
     {
         Console.Error.WriteLine("kill.switch is not armed.");
         return 3;
+    }
+
+    try
+    {
+        HostIdentity.RequireThisMachine(paths, machine);
+    }
+    catch (InvalidOperationException ex)
+    {
+        Console.Error.WriteLine(ex.Message);
+        return 3;
+    }
+
+    if (!VerifyMarker.TryRead(paths, machine, out var receipt) || !receipt.GlennVerified)
+    {
+        Console.Error.WriteLine("Eleads session is not verified on this PC. Double-click CHECKIN.cmd after you sign in.");
+        return 6;
     }
 
     using var sessionLock = new SessionLock(paths);
@@ -252,10 +292,11 @@ int Stop()
 
 int Usage()
 {
-    Console.WriteLine("Titan.ChiefOfStaff — Alienware local host");
+    Console.WriteLine("Titan.ChiefOfStaff — Windows local host");
     Console.WriteLine("verbs: install | status | checkin | tick | report | stop");
     Console.WriteLine("In Command Prompt, do not type verify by itself. Run CHECKIN.cmd");
-    Console.WriteLine("Rooftops 28206 and 28546 only. Never 6220.");
+    Console.WriteLine("Install on each PC separately. Verify one live Eleads session at a time.");
+    Console.WriteLine("Chrome debugging stays on 127.0.0.1:9222. Rooftops 28206 and 28546 only. Never 6220.");
     Console.WriteLine("Titan never stores or types the Eleads password.");
     return 1;
 }
@@ -275,5 +316,5 @@ static string? ReadOverride(string[] args, string name)
 
 static void WriteHeartbeatFile(HostPaths paths, Heartbeat beat)
 {
-    File.WriteAllText(paths.Heartbeat, System.Text.Json.JsonSerializer.Serialize(beat));
+    ProtectedFile.WriteUtf8(paths.Heartbeat, System.Text.Json.JsonSerializer.Serialize(beat));
 }

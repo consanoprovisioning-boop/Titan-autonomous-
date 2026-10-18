@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 
 ALIENWARE_WORKER_ID = "1a1f1f15-72c4-4334-ad8b-f87d54efe73a"
 RETIRED_ALIENWARE_WORKER_IDS = frozenset({"2bd89263-dc03-4936-9b04-6bc709799f66"})
+KNOWN_WINDOWS_WORKER_IDS = frozenset({ALIENWARE_WORKER_ID}) | RETIRED_ALIENWARE_WORKER_IDS
 OWNERSHIP_SCREEN_DAYS = 180
 NY = ZoneInfo("America/New_York")
 IDENTITY = "Bordine, Glenn"
@@ -97,27 +98,73 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
-def alienware_worker(snapshot: dict) -> dict | None:
+def _worker_label_blob(row: dict) -> str:
+    return " ".join(
+        str(row.get(key) or "")
+        for key in ("machineDisplayName", "displayName", "hostname", "machineId")
+    )
+
+
+def worker_looks_like_linux_cloud(row: dict) -> bool:
+    blob = " ".join(
+        str(row.get(key) or "")
+        for key in ("displayName", "directory", "workspacePath", "machineDisplayName", "hostname")
+    ).casefold()
+    return any(
+        marker in blob
+        for marker in ("/home/", "/workspace", "/usr/", "linux", "ubuntu")
+    )
+
+
+def is_enrolled_windows_worker(row: dict | None) -> bool:
+    if not isinstance(row, dict):
+        return False
+    worker_id = str(row.get("workerId") or "")
+    labels = _worker_label_blob(row)
+    known = worker_id in KNOWN_WINDOWS_WORKER_IDS or "Alienware-18" in labels
+    if known:
+        return True
+    if worker_directory_is_system32(row) or worker_looks_like_linux_cloud(row):
+        return False
+    return bool(worker_id)
+
+
+def windows_workers(snapshot: dict) -> list[dict]:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
+        return []
+    return [row for row in workers if is_enrolled_windows_worker(row)]
+
+
+def live_windows_worker(snapshot: dict, receipt: dict | None = None) -> dict | None:
+    rows = windows_workers(snapshot)
+    if not rows:
         return None
-    for row in workers:
-        if not isinstance(row, dict):
-            continue
+    if isinstance(receipt, dict):
+        want_id = str(receipt.get("workerId") or receipt.get("hostId") or "")
+        want_machine = str(receipt.get("machineName") or "").casefold()
+        for row in rows:
+            worker_id = str(row.get("workerId") or "")
+            machine_id = str(row.get("machineId") or "")
+            labels = _worker_label_blob(row)
+            if want_id and want_id in {worker_id, machine_id}:
+                return row
+            if want_machine and want_machine in labels.casefold():
+                return row
+    for row in rows:
         worker_id = str(row.get("workerId") or "")
-        if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
+        labels = _worker_label_blob(row)
+        if worker_id == ALIENWARE_WORKER_ID or "Alienware-18" in labels:
             return row
-        labels = " ".join(
-            str(row.get(key) or "")
-            for key in ("machineDisplayName", "displayName", "hostname")
-        )
-        if labels.startswith("Alienware-18") or "Alienware-18" in labels:
-            return row
-    return None
+    return rows[0]
+
+
+def alienware_worker(snapshot: dict) -> dict | None:
+    return live_windows_worker(snapshot)
 
 
 def worker_is_online(snapshot: dict) -> bool:
-    return alienware_worker(snapshot) is not None
+    return live_windows_worker(snapshot) is not None
 
 
 def worker_directory_is_system32(row: dict | None) -> bool:
@@ -140,6 +187,9 @@ def verify_receipt_ok(receipt: dict | None) -> bool:
     if receipt.get("state") != "VerifiedIdle":
         return False
     if receipt.get("identity") != IDENTITY:
+        return False
+    host_id = receipt.get("hostId")
+    if not isinstance(host_id, str) or not host_id.strip():
         return False
     return rooftop_allowed(receipt.get("rooftop") if isinstance(receipt.get("rooftop"), str) else None)
 
@@ -165,21 +215,30 @@ def specialist_results() -> list[dict]:
 
 
 def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
-    row = alienware_worker(snapshot)
+    candidates = windows_workers(snapshot)
+    row = live_windows_worker(snapshot, receipt)
     online = row is not None
     seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
+    machine_name = str((row or {}).get("machineDisplayName") or (row or {}).get("displayName") or "windows-pc")
     system32 = worker_directory_is_system32(row)
     verified = online and verify_receipt_ok(receipt) and not system32
     workers = snapshot.get("workers") or []
     worker_count = len(workers) if isinstance(workers, list) else 0
+    extra_hosts = max(0, len(candidates) - 1)
+    fleet_note = (
+        f"One live Eleads session on {machine_name} ({seen_id}). "
+        f"{extra_hosts} other enrolled PC(s) stay installed and do not send."
+        if verified and extra_hosts
+        else None
+    )
     if verified:
         blockers: list[str] = []
-        host = "alienware-verified"
+        host = "windows-verified"
         mode = "v1.1-execute"
-        session = "alienware-cdp-9222"
+        session = "windows-cdp-9222-loopback"
     elif online and system32:
         blockers = [
-            f"Alienware-18 worker {seen_id} is online in C:\\Windows\\system32. "
+            f"Windows worker {seen_id} is online in C:\\Windows\\system32. "
             "No agent will be placed there. Verify is not complete. "
             "Glenn must run CHECKIN.cmd from %LOCALAPPDATA%\\TitanChief\\app, "
             "sign in as Bordine, Glenn, run CHECKIN.cmd again, and leave Chrome open. "
@@ -190,9 +249,10 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         session = ELEADS_SESSION_NONE
     elif online:
         blockers = [
-            "Alienware-18 worker is online. Verify is not complete. "
-            "Glenn must double-click CHECKIN.cmd, sign in as Bordine, Glenn, "
+            f"Windows worker {machine_name} ({seen_id}) is online. Verify is not complete. "
+            "Glenn must double-click CHECKIN.cmd on that PC, sign in as Bordine, Glenn, "
             "double-click CHECKIN.cmd again, and leave Chrome open. "
+            "Other enrolled PCs can stay installed. Verify one live session at a time. "
             "This cloud host will not open Eleads."
         ]
         host = "cloud-linux"
@@ -201,9 +261,10 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     else:
         shown = "workers=[]" if worker_count == 0 else f"workers={worker_count}"
         blockers = [
-            f"Alienware-18 worker {ALIENWARE_WORKER_ID} is offline ({shown}). "
-            "Start it on the Alienware with agent worker start --verbose and leave that window open. "
-            "This cloud host will not open Eleads."
+            f"No enrolled Windows worker is online ({shown}). "
+            f"Known Alienware-18 worker {ALIENWARE_WORKER_ID} is offline. "
+            "Start Cursor worker on this PC or another Glenn PC with agent worker start --verbose "
+            "and leave that window open. This cloud host will not open Eleads."
         ]
         host = "cloud-linux"
         mode = "draft-blocked-local"
@@ -234,6 +295,11 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "ownershipScreenDays": OWNERSHIP_SCREEN_DAYS,
         "eleadsSession": session,
         "workerId": seen_id,
+        "liveWorkerId": seen_id if online else None,
+        "onlineWorkerCount": len(candidates),
+        "oneLiveSession": True,
+        "fleetNote": fleet_note,
+        "hostId": receipt.get("hostId") if isinstance(receipt, dict) else None,
         "workerOnline": online,
         "timerTick": None,
         "openedFromThisProcess": False,
@@ -261,7 +327,7 @@ def prepend_ticklog(path: Path, state: dict, previous: dict | None) -> None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     prior = path.read_text(encoding="utf-8") if path.is_file() else ""
-    blocker = state["blockers"][0] if state["blockers"] else "Verified Alienware session. No send from this cloud host."
+    blocker = state["blockers"][0] if state["blockers"] else "Verified Windows session. No send from this cloud host."
     note = (
         f"## {state['checkedAtUtc']} launch-check\n"
         f"{blocker} No timer fired. This is not a numbered tick. "

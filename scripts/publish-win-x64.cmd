@@ -1,6 +1,6 @@
 @echo off
 setlocal
-REM Build the Alienware win-x64 host from cmd.exe. No PowerShell.
+REM Build the Windows win-x64 host from cmd.exe. No PowerShell.
 cd /d "%~dp0\.."
 set PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 dotnet test Titan.ChiefOfStaff.sln -c Release

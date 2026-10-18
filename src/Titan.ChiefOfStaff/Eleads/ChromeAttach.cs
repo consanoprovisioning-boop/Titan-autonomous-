@@ -5,7 +5,7 @@ namespace Titan.ChiefOfStaff.Eleads;
 
 public static class ChromeAttach
 {
-    public const string Cdp = "http://127.0.0.1:9222";
+    public const string Cdp = CdpEndpoint.LoopbackHttp;
 
     public static string? FindChrome()
     {
@@ -74,13 +74,24 @@ public static class ChromeAttach
         Process.Start(new ProcessStartInfo
         {
             FileName = chrome,
-            Arguments = $"--remote-debugging-port=9222 --user-data-dir=\"{paths.BrowserProfile}\" --no-first-run --no-default-browser-check",
+            Arguments = ChromeArguments(paths),
             UseShellExecute = false
         });
     }
 
+    public static string ChromeArguments(HostPaths paths)
+        => string.Join(
+            " ",
+            $"--remote-debugging-port={CdpEndpoint.Port}",
+            "--remote-debugging-address=127.0.0.1",
+            $"--remote-allow-origins={CdpEndpoint.LoopbackOrigin}",
+            $"--user-data-dir=\"{paths.BrowserProfile}\"",
+            "--no-first-run",
+            "--no-default-browser-check");
+
     public static async Task<CdpAttachment> ConnectAsync()
     {
+        CdpEndpoint.RefuseUntrusted(Cdp);
         var targets = await CdpPageCatalog.ListAsync();
         var playwright = await Playwright.CreateAsync();
         try

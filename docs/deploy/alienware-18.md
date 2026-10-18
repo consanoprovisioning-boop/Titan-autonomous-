@@ -1,5 +1,7 @@
 # Alienware-18 — Titan.ChiefOfStaff install-without-launch
 
+Alienware-18 is one enrolled Windows host. Other Glenn PCs follow `docs/deploy/windows-hosts.md`. One live Eleads session at a time.
+
 Glenn-approved signed-install copy only. **NO launch. NO live Eleads.**
 
 This is the source runbook for the framework-dependent `win-x64` Release publish of `Titan.ChiefOfStaff` (`net8.0`). The Alienware host must already have the .NET 8 runtime (or .NET 8 desktop runtime) installed.
@@ -55,9 +57,7 @@ Expected: a line that is `armed`.
 certutil -hashfile "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" SHA256
 ```
 
-Expected launch exe SHA-256: `84ce4d54d1419f9ccaf0342e0360316eeb7dfea8788c9cee29f0f35ec37280cb`
-
-That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt`. Do not compare the launch exe to the archived incomplete-drop hash.
+Hash the launch exe against the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt` after a fresh publish. Do not compare the launch exe to the archived incomplete-drop hash.
 
 ## STOP
 
@@ -72,7 +72,7 @@ That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt`. Do no
 
 ## Cloud / Linux agents
 
-This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `eleadcrm.com` from a cloud agent to “stand in” for Titan. One live Eleads session belongs to the Alienware Titan host after Glenn Verify, not to Cursor Playwright.
+This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `eleadcrm.com` from a cloud agent to “stand in” for Titan. One live Eleads session belongs to a Glenn-verified Windows Titan host (Alienware-18 or another enrolled PC) after Verify, not to Cursor Playwright. Chrome debugging stays on `127.0.0.1:9222`.
 
 ## Local program (this repo)
 
