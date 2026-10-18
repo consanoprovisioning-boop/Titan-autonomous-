@@ -31,6 +31,12 @@ public class LauncherScriptTests
         Assert.DoesNotContain("onepassword://", cos, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotMatch(new Regex(@"(?m)^\s*op\s"), cos);
         Assert.Contains("cursor worker start", cos, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(":WaitForWorker", cos, StringComparison.Ordinal);
+        Assert.Contains("GEQ 30", cos, StringComparison.Ordinal);
+        Assert.Contains("worker-start.lock", cos, StringComparison.Ordinal);
+        Assert.Contains("Not starting a second one", cos, StringComparison.Ordinal);
+        Assert.Single(Regex.Matches(cos, "start \"Titan Cursor Worker\"").Cast<Match>());
+        Assert.Contains("Leaving Chrome and the worker alone", cos, StringComparison.Ordinal);
         Assert.Contains("CHECKIN.cmd\" nopause", cos, StringComparison.Ordinal);
         Assert.Contains("state=VerifiedIdle", cos, StringComparison.Ordinal);
         Assert.Contains("Fill in Browser", cos, StringComparison.Ordinal);
@@ -46,6 +52,8 @@ public class LauncherScriptTests
                     && line.Contains("verify", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("COS.cmd", install, StringComparison.Ordinal);
         Assert.Contains("COS.cmd", readme, StringComparison.Ordinal);
+        Assert.Contains("30 seconds", readme, StringComparison.Ordinal);
+        Assert.Contains("exactly one", readme, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("already unlocked", readme, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Ctrl+Backslash", readme, StringComparison.Ordinal);
         Assert.Contains("COS.lnk", start, StringComparison.Ordinal);

@@ -131,35 +131,86 @@ pause
 endlocal & exit /b 6
 
 :EnsureWorker
+REM One cursor worker start. Do not stop Chrome or a healthy worker. A live second click leaves that worker alone.
 set "WORKER_UP=0"
 call :WorkerAlreadyRunning
 if "%WORKER_UP%"=="1" (
   echo Cursor worker is already running. Leaving it.
   goto :eof
 )
+if not exist "%ROOT%" mkdir "%ROOT%" >nul 2>&1
+if exist "%ROOT%\worker-start.lock" (
+  call :LockFreshness
+  if "%LOCK_FRESH%"=="1" (
+    echo Cursor worker start is already in progress. Not starting a second one.
+    call :WaitForWorker
+    if "%WORKER_UP%"=="1" echo Cursor worker is up. Leaving that process running.
+    if not "%WORKER_UP%"=="1" echo Cursor worker was not confirmed within 30 seconds. Not starting a second one. Check-in will still run.
+    goto :eof
+  )
+  rmdir "%ROOT%\worker-start.lock" 2>nul
+)
+mkdir "%ROOT%\worker-start.lock" 2>nul
+if errorlevel 1 (
+  echo Cursor worker start is already in progress. Not starting a second one.
+  call :WaitForWorker
+  if "%WORKER_UP%"=="1" echo Cursor worker is up. Leaving that process running.
+  if not "%WORKER_UP%"=="1" echo Cursor worker was not confirmed within 30 seconds. Not starting a second one. Check-in will still run.
+  goto :eof
+)
+call :WorkerAlreadyRunning
+if "%WORKER_UP%"=="1" (
+  rmdir "%ROOT%\worker-start.lock" 2>nul
+  echo Cursor worker is already running. Leaving it.
+  goto :eof
+)
 set "CURSOR_CMD="
 call :ResolveCursor
 if not defined CURSOR_CMD (
+  rmdir "%ROOT%\worker-start.lock" 2>nul
   echo cursor was not found. The worker was not started. Check-in will still run.
   echo When cursor is on PATH, double-click COS again. It runs: cursor worker start
   goto :eof
 )
-if not exist "%ROOT%" mkdir "%ROOT%" >nul 2>&1
 set "RUNNER=%ROOT%\start-cursor-worker.cmd"
 > "%RUNNER%" echo @echo off
 >> "%RUNNER%" echo title Titan Cursor Worker
 >> "%RUNNER%" echo cd /d "%USERPROFILE%"
 >> "%RUNNER%" echo call "%CURSOR_CMD%" worker start
-echo Starting cursor worker. Leave that window running.
+echo Starting one cursor worker.
 start "Titan Cursor Worker" /MIN cmd.exe /c "%RUNNER%"
+call :WaitForWorker
+rmdir "%ROOT%\worker-start.lock" 2>nul
+if "%WORKER_UP%"=="1" (
+  echo Cursor worker is up. Leaving that process running.
+  goto :eof
+)
+echo Cursor worker was not confirmed within 30 seconds. Check-in will still run. This click did not start another worker.
+goto :eof
+
+:WaitForWorker
+set "WAITED=0"
+:WaitWorkerLoop
+call :WorkerAlreadyRunning
+if "%WORKER_UP%"=="1" goto :eof
+if %WAITED% GEQ 30 goto :eof
+timeout /t 2 /nobreak >nul
+set /a WAITED+=2
+goto :WaitWorkerLoop
+
+:LockFreshness
+set "LOCK_FRESH=0"
+del /q "%TEMP%\titan-cos-lock.txt" >nul 2>&1
+powershell.exe -NoProfile -NonInteractive -Command " $s = 'STALE'; try { $p = $env:LOCALAPPDATA + '\TitanChief\worker-start.lock'; $age = ((Get-Date) - (Get-Item -LiteralPath $p).CreationTime).TotalSeconds; if ($age -lt 40) { $s = 'FRESH' } } catch {}; Set-Content -LiteralPath ($env:TEMP + '\titan-cos-lock.txt') -Value $s -Encoding Ascii"
+findstr /X /C:"FRESH" "%TEMP%\titan-cos-lock.txt" >nul 2>&1
+if not errorlevel 1 set "LOCK_FRESH=1"
+del /q "%TEMP%\titan-cos-lock.txt" >nul 2>&1
 goto :eof
 
 :WorkerAlreadyRunning
+REM Up means a process command line contains worker start. Do not treat the query itself as the worker.
 set "WORKER_UP=0"
 powershell.exe -NoProfile -NonInteractive -Command "if (Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*worker start*' -and $_.CommandLine -notlike '*Win32_Process*' }) { exit 0 } else { exit 1 }"
-if not errorlevel 1 set "WORKER_UP=1"
-if "%WORKER_UP%"=="1" goto :eof
-tasklist /FI "WINDOWTITLE eq Titan Cursor Worker" /NH 2>nul | find /I "cmd.exe" >nul
 if not errorlevel 1 set "WORKER_UP=1"
 goto :eof
 
