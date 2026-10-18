@@ -10,9 +10,15 @@ Titan never stores or types the Eleads password. `INSTALL.cmd` and `kill.switch=
 
 - .NET 8 desktop runtime
 - Google Chrome
-- Cursor worker left running: `agent worker start --verbose`
+- Cursor CLI (`agent`) on PATH, signed in (`agent login`)
 
 Do not pass `--name`. Do not type `Titan.cmd` from `C:\Windows\system32`.
+
+## Live launch on this Windows PC
+
+Double-click `LAUNCH-COS-LIVE.cmd` in `dist\titan-chief-win-x64\` (also in `deploy\alienware-local-program\`). That starts `agent worker start --verbose` in a new Command Prompt on **this** PC. It does not open Eleads and does not type a password.
+
+The Linux cloud agent cannot become Windows. The Windows operator is `.cursor/agents/windows-titan-cos.md` plus this launcher. After the worker window is open, CHECKIN as below.
 
 ## Install (each PC)
 

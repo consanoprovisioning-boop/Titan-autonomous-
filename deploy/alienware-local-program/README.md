@@ -24,6 +24,12 @@ Or double-click `INSTALL.cmd` inside `dist\titan-chief-win-x64\`.
 
 That copies into `%LOCALAPPDATA%\TitanChief\app\`, enrolls this PC, and arms `kill.switch`. It does not start the host, does not open Eleads, and does not type a password. Do not copy `%LOCALAPPDATA%\TitanChief` between PCs.
 
+## Live launch
+
+Double-click `LAUNCH-COS-LIVE.cmd`. That starts the Cursor worker on this PC. It does not open Eleads.
+
+Then CHECKIN as below.
+
 ## Check in
 
 Command Prompt’s own command is named `verify`. Typing `verify` by itself never starts Titan.

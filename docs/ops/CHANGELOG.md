@@ -1,5 +1,9 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-18 — Windows COS operator (separate from the Linux cloud agent)
+
+A Linux cloud agent cannot switch OS or start Eleads. The Windows operator is a different agent: `.cursor/agents/windows-titan-cos.md` and `.cursor/skills/windows-titan-cos-host/SKILL.md`. Glenn double-clicks `LAUNCH-COS-LIVE.cmd` on the Windows PC. That starts `agent worker start --verbose` locally. It does not open Eleads and does not type a password. Then CHECKIN / Verify as before.
+
 ## 2026-10-18 — Host hardening and more than one Windows PC
 
 Titan on disk is harder to steal, and Glenn can install it on more than Alienware-18.

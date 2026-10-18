@@ -2,8 +2,11 @@ Titan Chief of Staff — Windows PC
 
 Command Prompt owns the word verify. Typing verify by itself does not start Titan.
 
-1. On this PC, start the Cursor worker and leave it running: agent worker start --verbose
-2. Double-click INSTALL.cmd once if TitanChief is not installed yet.
+To run COS live on THIS Windows PC:
+
+1. Double-click LAUNCH-COS-LIVE.cmd. Leave the new worker window open.
+   That starts "agent worker start --verbose" on this PC. It does not open Eleads.
+2. If TitanChief is not installed yet, INSTALL.cmd runs once from that launcher.
    INSTALL.cmd does not start the program and does not open Eleads.
    Run INSTALL on each PC. Do not copy TitanChief from another machine.
 3. Close every Chrome window and the tray icon.
@@ -11,7 +14,9 @@ Command Prompt owns the word verify. Typing verify by itself does not start Tita
 5. Sign into Eleads in that Chrome window as Bordine, Glenn on store 28206 or 28546.
 6. Double-click CHECKIN.cmd again. That second run is Verify. Leave Chrome open.
    Chrome debugging stays on 127.0.0.1:9222. Verify one live session at a time.
-7. The cloud COS loop attaches after Verify. Do not type Titan.cmd from C:\Windows\system32.
+7. Do not type Titan.cmd from C:\Windows\system32.
 
-Needs the .NET 8 desktop runtime and Google Chrome.
+A Linux cloud agent cannot become this PC. The Windows operator is this launcher plus CHECKIN.
+
+Needs the .NET 8 desktop runtime, Google Chrome, and the Cursor CLI ("agent") on PATH.
 INSTALL.cmd is not send authorization. Titan never types the password.

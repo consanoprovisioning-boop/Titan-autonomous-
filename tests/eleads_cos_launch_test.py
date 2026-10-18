@@ -125,14 +125,24 @@ class LaunchGuardTests(unittest.TestCase):
     def test_checkin_cmd_does_not_type_verify(self) -> None:
         checkin = (ROOT / "deploy/alienware-local-program/CHECKIN.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
         install = (ROOT / "deploy/alienware-local-program/INSTALL.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
-        for line in checkin.splitlines():
-            stripped = line.strip().lower()
-            self.assertNotEqual("verify", stripped)
-            self.assertFalse(stripped.startswith("verify "))
+        launch = (ROOT / "deploy/alienware-local-program/LAUNCH-COS-LIVE.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        for name, text in (("checkin", checkin), ("launch", launch)):
+            del name
+            for line in text.splitlines():
+                stripped = line.strip().lower()
+                self.assertNotEqual("verify", stripped)
+                self.assertFalse(stripped.startswith("verify "))
         self.assertIn("checkin", checkin.lower())
         self.assertNotIn(".exe verify", checkin.lower())
         self.assertNotIn(".exe install", install.lower())
         self.assertNotIn(".exe checkin", install.lower())
+        self.assertIn("agent worker start --verbose", launch.lower())
+        self.assertNotIn("eleadcrm.com", launch.lower())
+        self.assertNotIn("powershell.exe", launch.lower())
+        self.assertNotIn("pwsh", launch.lower())
+        self.assertNotIn("set-executionpolicy", launch.lower())
+        self.assertIn("do not run", launch.lower())
+        self.assertIn("system32", launch.lower())
 
     def test_verify_receipt_matches_local_marker(self) -> None:
         self.assertTrue(launch.verify_receipt_ok({
