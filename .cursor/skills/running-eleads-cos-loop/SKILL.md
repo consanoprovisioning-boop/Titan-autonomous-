@@ -137,6 +137,8 @@ While the Alienware session is verified:
 4. Past owners and equity.
 5. Birthday and vehicle anniversary.
 
+**Glenn 2026-10-18 strict queue (both rooftops, inside the order above):** P1 complete the scheduled emails in the Daily Organizer (Open/All) first — before any database prospecting; P2 then study the customer database (both rooftops, full profile inspection, 180-day screen); P3 then send tailored upgrade emails profile-by-profile — actual current vehicle named + specific upgrade angle proven in that record + complimentary current-vehicle appraisal appointment offer where the existing workflow includes it. Never fabricate equity/payment/trade value/profile details; thin profile → skip/defer, never a generic blast. The appointment-commitment fast path still preempts for its lead. Code: `src/Titan.ChiefOfStaff/DailyUpgradeQueue.cs`.
+
 Stop at the first unfinished rank. Others’ live-countdown and unassigned stay untouched until 96 hours with zero contact by anyone. Any qualifying contact in the preceding 72 hours holds another salesperson’s potential customer. History unloadable means manual verification required.
 
 Cadence: customer-requested next action or existing dealership cadence first; otherwise next-day for active opportunities; four working days for older inactive customers without a recent inquiry.

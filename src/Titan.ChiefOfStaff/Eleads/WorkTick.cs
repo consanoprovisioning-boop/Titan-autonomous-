@@ -4,7 +4,7 @@ namespace Titan.ChiefOfStaff.Eleads;
 
 public sealed class WorkTick
 {
-    public async Task<string> RunAsync(IPage page, HostStore store, string rooftop, DateTimeOffset nowEt)
+    public async Task<string> RunAsync(IPage page, HostStore store, string rooftop, DateTimeOffset nowEt, DailyUpgradeProgress? dailyUpgradeProgress = null)
     {
         if (Policy.IsForbiddenRooftop(rooftop) || !Policy.IsAllowedRooftop(rooftop))
         {
@@ -31,9 +31,20 @@ public sealed class WorkTick
         var seen = 0;
         var held = 0;
         var ready = 0;
+        var progress = dailyUpgradeProgress ?? DailyUpgradeProgress.Empty;
         foreach (var queue in WorkOrder.MandatoryOrder)
         {
             store.WriteHeartbeat(store.ReadHeartbeat() with { State = "Tick" + queue });
+            // Glenn 2026-10-18 strict order: database prospecting (P2/P3)
+            // stays closed until P1 Daily Organizer scheduled emails are
+            // complete on both rooftops.
+            if (queue == WorkQueue.Database
+                && DailyUpgradeQueue.GateReason(DailyUpgradePhase.CustomerDatabaseStudy, progress) is { } gate)
+            {
+                store.Log(queue.ToString(), "held-order", gate, rooftop);
+                continue;
+            }
+
             var rows = ParseVisibleRows(organizer, queue);
             foreach (var row in rows)
             {
@@ -73,6 +84,29 @@ public sealed class WorkTick
             rooftop,
             customerKey);
         return decision;
+    }
+
+    /// <summary>
+    /// P3 gatekeeper log (Glenn 2026-10-18): a tailored upgrade email may
+    /// be composed/sent on the verified host only when P1 and P2 are
+    /// complete for both rooftops and this customer's own profile passes
+    /// TailoredUpgradeEmail.Evaluate. Thin profiles are skipped, never
+    /// blasted with generic copy. Decision/log only here.
+    /// </summary>
+    public static TailoredUpgradeDecision HandleTailoredUpgradeCandidate(
+        HostStore store, string rooftop, string customerKey,
+        CustomerProfileFacts profile, DailyUpgradeProgress progress, TailoredUpgradeDecision decision)
+    {
+        var gate = DailyUpgradeQueue.GateReason(DailyUpgradePhase.TailoredUpgradeEmails, progress);
+        store.Log(
+            "tailored-upgrade",
+            gate is not null ? "held-order" : decision.Disposition.ToString(),
+            gate ?? string.Join(" ", decision.Reasons),
+            rooftop,
+            customerKey);
+        return gate is not null
+            ? new TailoredUpgradeDecision(TailoredUpgradeDisposition.Blocked, [gate], null, null)
+            : decision;
     }
 
     public static IReadOnlyList<OrganizerRow> ParseVisibleRows(string organizerText, WorkQueue queue)

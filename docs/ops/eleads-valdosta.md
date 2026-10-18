@@ -190,6 +190,14 @@ Arrival notes: vehicles of interest; trade year/make/model; mileage and payoff i
 
 Space routine follow-up tasks at least five minutes apart when practical. Prefer the verified customer-requested next action or existing dealership cadence first. Use the customer’s requested callback or appointment time when provided. Active opportunities may use next-day follow-up; older inactive customers without a recent inquiry may use four-working-day follow-up.
 
+## Daily Organizer → database study → tailored upgrades (Glenn 2026-10-18 06:10/06:12 UTC)
+
+Strict order, both rooftops (28206 Valdosta Nissan, 28546 Valdosta Mitsubishi), executed only on the Glenn-verified Alienware-18 host session (CHECKIN Verify per rooftop; 28546 needs its own Verify). The appointment-commitment fast path above preempts this queue whenever a commitment reply lands for a lead. Decision logic: `DailyUpgradeQueue` / `TailoredUpgradeEmail.Evaluate` in `src/Titan.ChiefOfStaff/DailyUpgradeQueue.cs`; `WorkTick.RunAsync` holds the Database queue closed until P1 is complete, and `WorkTick.HandleTailoredUpgradeCandidate` logs the P3 gate.
+
+1. **P1 — Daily Organizer scheduled emails first, before any database prospecting.** Daily Organizer status **Open**, contact type **All**, Glenn-assigned first. Complete the scheduled emails on **both** rooftops. Counts are CRM-history-confirmed only; unknown until the host runs — never claimed from the cloud.
+2. **P2 — Study the customer database (both rooftops)** only after P1 is complete on both. Full profile inspection per the rules above (no list-view qualification): current vehicle, ownership/inquiry recency, service context, permissions, exact timestamps. The 180-day ownership screen applies; a recent inquiry overrides; model year never proves duration.
+3. **P3 — Tailored upgrade emails, profile-by-profile, never a generic blast.** Each email must name the customer's actual current vehicle (year/make/model, trim if in the record) and a specific upgrade angle proven in that customer's own record (vehicle of interest, service context, or recent inquiry), and include a complimentary current-vehicle appraisal appointment offer where the existing workflow for that profile includes it. Never fabricate equity, payment, trade value, APR, or any profile detail not in the record. **If a record lacks enough proven facts, skip/defer that customer** — do not send generic copy. Under V1.1 no approval pause once verified; consent/DNC/DNT/Stop/hard-bounce, rooftop, and identity checks still gate every send. Live SMS (if used) only 08:00–21:00 ET; appointment offers only inside the windows above, never Sunday.
+
 ## Safe-send sequence
 
 1. Confirm rooftop, customer, sender, channel permission, recipient, subject, and message.

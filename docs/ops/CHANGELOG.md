@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-18 — Daily Organizer → database study → tailored upgrades (Glenn directive 06:10/06:12 UTC)
+
+**Decision (Glenn):** strict order — (P1) complete the scheduled emails in the Daily Organizer on both rooftops (28206 + 28546) before any database prospecting; (P2) then study the customer database (both rooftops); (P3) then continue tailored upgrade emails specific to each customer profile (profile-by-profile, not a generic blast), with a complimentary current-vehicle appraisal appointment offer where the existing workflow includes it. The appointment-commitment fast path still preempts this queue for its lead.
+
+**Effect:** codified in `src/Titan.ChiefOfStaff/DailyUpgradeQueue.cs` (`DailyUpgradeQueue.OrderedPhases`/`NextPhase`/`GateReason` require both-rooftop completion before the next phase; `TailoredUpgradeEmail.Evaluate` requires the customer's proven current vehicle + a specific proven upgrade angle, applies consent/email-permission/180-day-screen/appointment-window gates, and returns `SkipThinProfile` — never generic copy — when the record is thin; equity/payment/trade-value fabrication is impossible in the composed copy and re-checked against `Consent.PromisesForbiddenTerms`). `WorkTick.RunAsync` holds the Database queue closed (`held-order`) until P1 completes on both rooftops, and `WorkTick.HandleTailoredUpgradeCandidate` logs the P3 gate. No approvals are added (V1.1); live SMS stays 08:00–21:00 ET and appointment offers stay inside Mon/Wed/Thu/Fri 09:00–18:30, Sat 09:00–17:30, never Sunday.
+
+**Loop/host status:** fresh check at directive time — `list-self-hosted-workers scope=all status=all` → 0 workers/0 pools; `list-cloud-agents isSelfHostedWorker=true` → 0 agents. Alienware-18 is still offline with no running placement, so no emails were completed, no database was studied, and no customer sends are claimed (counts unknown/not claimed; `sends=[]`). This stacked branch (`cursor/eleads-daily-upgrade-7dfe` on `cursor/eleads-appt-commit-7dfe`, PR #16) makes the host execute exactly P1 → P2 → P3 on CHECKIN Verify (28206 verified on file; 28546 Verify still pending).
+
 ## 2026-10-18 — Appointment-commitment fast path (Glenn directive)
 
 **Decision (Glenn):** “start eLeads Chief of Staff loop when a customer responds with appointment commitment reply immediately and schedule appointment day and time and change customer status to appointment set.”
