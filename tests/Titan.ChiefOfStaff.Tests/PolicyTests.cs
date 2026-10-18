@@ -22,16 +22,17 @@ public class PolicyTests
     }
 
     [Fact]
-    public void Sms_window_is_9_to_19_et()
+    public void Sms_window_is_8_to_21_et()
     {
-        var fridayOpen = new DateTimeOffset(2026, 9, 25, 10, 0, 0, TimeSpan.FromHours(-4));
-        var fridayClosed = new DateTimeOffset(2026, 9, 25, 19, 0, 0, TimeSpan.FromHours(-4));
-        var sundayInside = new DateTimeOffset(2026, 9, 27, 10, 0, 0, TimeSpan.FromHours(-4));
-        var sundayClosed = new DateTimeOffset(2026, 9, 27, 20, 0, 0, TimeSpan.FromHours(-4));
+        var fridayBefore = new DateTimeOffset(2026, 9, 25, 7, 59, 0, TimeSpan.FromHours(-4));
+        var fridayOpen = new DateTimeOffset(2026, 9, 25, 8, 0, 0, TimeSpan.FromHours(-4));
+        var fridayEvening = new DateTimeOffset(2026, 9, 25, 19, 0, 0, TimeSpan.FromHours(-4));
+        var fridayClosed = new DateTimeOffset(2026, 9, 25, 21, 0, 0, TimeSpan.FromHours(-4));
+        Assert.False(Policy.SmsOpen(fridayBefore));
         Assert.True(Policy.SmsOpen(fridayOpen));
+        Assert.True(Policy.SmsOpen(fridayEvening));
         Assert.False(Policy.SmsOpen(fridayClosed));
-        Assert.True(Policy.SmsOpen(sundayInside));
-        Assert.False(Policy.SmsOpen(sundayClosed));
+        Assert.Equal(fridayOpen, Policy.NextSmsOpen(new DateTimeOffset(2026, 9, 25, 6, 0, 0, TimeSpan.FromHours(-4))));
     }
 
     [Fact]

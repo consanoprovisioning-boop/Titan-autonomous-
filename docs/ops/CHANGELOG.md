@@ -1,5 +1,15 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-18 — Appointment-commitment fast path (Glenn directive)
+
+**Decision (Glenn):** “start eLeads Chief of Staff loop when a customer responds with appointment commitment reply immediately and schedule appointment day and time and change customer status to appointment set.”
+
+**Effect:** a first-class fast path (`AppointmentCommitment.Evaluate` in `src/Titan.ChiefOfStaff/AppointmentCommitment.cs`, logged via `WorkTick.HandleInboundReply`) preempts the normal queue/priority order for that lead. On a commitment reply (accepts a proposed slot, proposes a specific slot, or confirms attendance) on the Glenn-verified Alienware host session, with no approval pause under V1.1: reply immediately on the same channel confirming day/date/time + rooftop, book the Eleads appointment, set status to **Appointment Set**, and write the CRM note. Ambiguous commitment → clarification only. Outside-window/Sunday slot → propose nearest valid, no invalid booking. Duplicate → idempotent. Opt-out, questions, and soft interest never trigger.
+
+**SMS gating:** follows `Policy.SmsOpen`. `Policy.cs` on this branch now carries the live Glenn 2026-10-17 window **08:00–21:00 America/New_York** (already recorded in the state store; older 9:00–19:00 code/docs were stale) — this aligns code with the directed live window and does not widen it. Outside the window an SMS reply queues to the next 08:00 ET open; the booking/status decision is still made on detection.
+
+**Loop/host status at activation:** Alienware-18 worker `e630caf9-875d-4439-ab1a-3e6c386f6c0f` was offline on a fresh check (0 workers, 0 self-hosted agents), so the loop stays host-blocked at 30-minute pace. No sends or bookings are claimed (`sends=[]`, `appointments=[]`) without host CRM proof. Glenn must bring the worker online, place/approve the agent on Alienware-18, and run `CHECKIN.cmd` on the needed rooftop tab (28206 verified; 28546 Verify still pending) before P1 executes.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

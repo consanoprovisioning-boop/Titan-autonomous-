@@ -32,14 +32,14 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertTrue(launch.passes_ownership_screen(now, now - timedelta(days=400), True, 2014))
         self.assertFalse(launch.passes_ownership_screen(now, None, False, 2024))
 
-    def test_sms_window_is_9_to_19_america_new_york(self) -> None:
-        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 9, 0, tzinfo=launch.NY)))
-        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 18, 59, tzinfo=launch.NY)))
-        self.assertFalse(launch.sms_open(datetime(2026, 10, 16, 19, 0, tzinfo=launch.NY)))
-        self.assertFalse(launch.sms_open(datetime(2026, 10, 16, 20, 0, tzinfo=launch.NY)))
-        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 13, 0, tzinfo=timezone.utc)))
-        self.assertFalse(launch.sms_open(datetime(2026, 10, 16, 23, 0, tzinfo=timezone.utc)))
-        self.assertFalse(launch.sms_open(datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)))
+    def test_sms_window_is_8_to_21_america_new_york(self) -> None:
+        self.assertFalse(launch.sms_open(datetime(2026, 10, 16, 7, 59, tzinfo=launch.NY)))
+        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 8, 0, tzinfo=launch.NY)))
+        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 19, 0, tzinfo=launch.NY)))
+        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 20, 59, tzinfo=launch.NY)))
+        self.assertFalse(launch.sms_open(datetime(2026, 10, 16, 21, 0, tzinfo=launch.NY)))
+        self.assertTrue(launch.sms_open(datetime(2026, 10, 16, 12, 0, tzinfo=timezone.utc)))
+        self.assertFalse(launch.sms_open(datetime(2026, 10, 17, 1, 0, tzinfo=timezone.utc)))
         self.assertEqual("America/New_York", launch.NY.key)
 
     def test_appointment_set_requires_day_and_time(self) -> None:

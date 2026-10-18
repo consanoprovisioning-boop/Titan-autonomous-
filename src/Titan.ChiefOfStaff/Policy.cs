@@ -39,10 +39,31 @@ public static class Policy
             || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
     }
 
+    // Live SMS window (Glenn 2026-10-17, recorded in eleads-valdosta-state.json):
+    // 08:00-21:00 America/New_York. This is the directed live window, not a new
+    // expansion; never widen it here. Older docs saying 9:00-19:00 are stale.
+    public const int SmsStartHourEt = 8;
+    public const int SmsEndHourEt = 21;
+
+    public const string AppointmentSetStatusLabel = "Appointment Set";
+
+    public static string RooftopDisplayName(string? rooftopId) => rooftopId?.Trim() switch
+    {
+        NissanId => "Valdosta Nissan",
+        MitsubishiId => "Valdosta Mitsubishi",
+        _ => "Valdosta"
+    };
+
     public static bool SmsOpen(DateTimeOffset nowEt)
     {
         var tod = nowEt.TimeOfDay;
-        return tod >= TimeSpan.FromHours(9) && tod < TimeSpan.FromHours(19);
+        return tod >= TimeSpan.FromHours(SmsStartHourEt) && tod < TimeSpan.FromHours(SmsEndHourEt);
+    }
+
+    public static DateTimeOffset NextSmsOpen(DateTimeOffset nowEt)
+    {
+        var openToday = new DateTimeOffset(nowEt.Date.AddHours(SmsStartHourEt), nowEt.Offset);
+        return nowEt.TimeOfDay < TimeSpan.FromHours(SmsStartHourEt) ? openToday : openToday.AddDays(1);
     }
 
     public static bool SmsOpenEastern(DateTimeOffset instant)
