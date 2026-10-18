@@ -2,42 +2,23 @@
 
 Finished local suite. Chief of Staff is the host. Rooftops **28206** and **28546** only. Never **6220**.
 
-## Need on the PC
+## One double-click
 
-- [.NET 8 desktop runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Google Chrome
+Double-click `COS.cmd`. The first run on the Alienware also puts `COS.lnk` on the desktop. Pin that shortcut.
 
-This cloud agent cannot copy files onto the Alienware.
+That click:
 
-## Install
+- If `%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe` is missing and the suite exe is in the same folder, runs `INSTALL.cmd` once. It does not reinstall over an app folder that already has the exe. If the exe is missing and this file is not beside the suite, it tells you once to run `INSTALL.cmd`.
+- Starts exactly one `cursor worker start` when none is running, waits up to 30 seconds until that process is up, then continues check-in. A worker that is already running is left alone. A second double-click does not start another worker and does not kill a healthy worker.
+- Runs `CHECKIN.cmd` so the host and Chrome CDP 9222 come up the same way. It does not start a second host. A second double-click while the session is live leaves that Chrome and that worker alone, and does not start another Chief of Staff.
+- If the Eleads tab is missing or on the login page, focuses Titan Chrome and sends Ctrl+Backslash once. That is 1Password Fill in Browser. The Chrome extension fills the login in that profile. If 1Password is locked, the unlock box stays and the session is not live. If 1Password is absent, the password box stays empty.
 
-1. Download branch `cursor/titan-chief-host-7954` (PR #2) as a ZIP.
-2. In cmd.exe:
+Needs the .NET 8 desktop runtime, Google Chrome, and `cursor` on PATH for the worker.
 
-```bat
-deploy\alienware-local-program\INSTALL.cmd C:\path\to\dist\titan-chief-win-x64
-```
-
-That copies into `%LOCALAPPDATA%\TitanChief\app\`, arms `kill.switch`, and initializes the host store. It does not type a password.
-
-## Check in
-
-Command Prompt’s own command is named `verify`. Typing `verify` by itself never starts Titan.
-
-After install, close every Chrome window and the tray icon, then double-click `CHECKIN.cmd` in the unzipped folder (or in `%LOCALAPPDATA%\TitanChief\app\`).
-
-Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546. Leave Chrome open. Double-click `CHECKIN.cmd` again.
-
-Do not type `Titan.cmd` from `C:\Windows\system32`. Another program on this PC uses that name.
-
-After check-in succeeds, double-click `TICK.cmd` in `%LOCALAPPDATA%\TitanChief\app\`.
-
-```bat
-"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" status
-"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" tick
-"%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" report
-```
+`INSTALL.cmd` and `kill.switch=armed` are not check-in and not send authorization. Do not type `verify` by itself. Command Prompt owns that word. Do not run `C:\Windows\system32\Titan.cmd`.
 
 `tick` attaches to that same Chrome and does not close it.
 
-`install` / `INSTALL.cmd` is not Verify and not send authorization.
+## 1Password
+
+Sign in to the 1Password app yourself once. COS does not call `op`, does not read the Eleads password, and does not create a vault item. Unattended fill works only when 1Password is already unlocked. The extension id `aeblfdkhhhdcdjpifhhbdiojplfjncoa` is registered for Chrome, including the Titan profile, when 1Password is installed.

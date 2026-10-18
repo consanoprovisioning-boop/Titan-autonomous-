@@ -62,7 +62,7 @@ Expected exe SHA-256: `82c2a986af7473244fdb57be971e7448b2ae14a8f010b04a74402ed96
 - Do **not** start `Titan.ChiefOfStaff.exe`.
 - Do **not** run `dotnet`, `dotnet run`, or any host command.
 - Do **not** open Eleads.
-- Do **not** create Desktop or Start Menu shortcuts.
+- Do **not** create Desktop or Start Menu shortcuts from this install-without-launch procedure. Glenn's double-click of `COS.cmd` may place `COS.lnk` on his desktop when he runs it.
 - Do **not** use a PowerShell self-extractor.
 - Do **not** set execution policy to bypass.
 - Do **not** type an Eleads password (Titan never stores it and never types it).
@@ -74,4 +74,4 @@ This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `e
 
 ## Local program (this repo)
 
-The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, double-click `INSTALL.cmd` once, then double-click `CHECKIN.cmd`. Do not type `verify` by itself — Command Prompt owns that word. Glenn signs into Eleads in that Chrome window. Titan never types the password.
+The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, double-click `deploy/alienware-local-program/COS.cmd` (see that folder's README). Do not type `verify` by itself — Command Prompt owns that word. Glenn signs into Eleads in that Chrome window. Titan never types the password.

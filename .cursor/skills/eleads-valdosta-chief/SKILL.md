@@ -14,7 +14,7 @@ Read `docs/ops/eleads-instructions.md` and `docs/ops/eleads-parallel-loop.md` be
 - Rooftops: **28206** and **28546** only. Never **6220**.
 - Identity: **Bordine, Glenn** on every CRM action.
 - Cloud/Linux agent: do **not** open Eleads, do **not** type the Eleads password, and do **not** run the host. Sub-agents receive text packets only.
-- One live Eleads session: Alienware Chrome after Glenn double-clicks `CHECKIN.cmd`. Do not tell him to type `verify`. Leave Chrome open. `tick` attaches and must not kill Chrome.
+- One live Eleads session: Alienware Chrome after Glenn double-clicks `COS.cmd`, which runs `CHECKIN.cmd`. Do not tell him to type `verify`. Leave Chrome open. `tick` attaches and must not kill Chrome. The launcher does not read or store the Eleads password.
 - `INSTALL.cmd` and `kill.switch=armed` are not check-in and not send authorization.
 - Titan never stores or types the password.
 - SMS only from 9:00 AM until 7:00 PM America/New_York, never Sunday.
