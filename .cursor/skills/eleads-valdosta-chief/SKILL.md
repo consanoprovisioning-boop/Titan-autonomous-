@@ -13,7 +13,7 @@ Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acti
 
 Glenn’s Oct 5, 2026 written direction “include autonomous workflow no approvals required” is **Version 1.1**. It replaces per-message / per-batch / per-task / per-appointment exact-draft pauses.
 
-After a **live Glenn-verified Eleads session** exists on Alienware-18 Chrome CDP 9222, execute automatically: routine eligible email/SMS, CRM notes, task create/reschedule/complete, and **customer-confirmed** appointment saves.
+After a **live Glenn-verified Eleads session** exists on an enrolled Windows PC (Alienware-18 or another Glenn PC) Chrome CDP `127.0.0.1:9222`, execute automatically: routine eligible email/SMS, CRM notes, task create/reschedule/complete, and **customer-confirmed** appointment saves.
 
 Still required (never skipped): consent / DNC / DNT / Stop; rooftop + user verification (28206 / 28546, Bordine, Glenn); 72h other-consultant hold / 96h zero-contact for others’ unassigned; a customer day-and-time commitment before Appointment Set; no invented facts; no fabricated completions. CRM history is proof.
 
@@ -24,11 +24,11 @@ Exact-draft is **not** a hard stop under V1.1. The original PDF/RTF/source packe
 - Rooftops: **28206** and **28546** only. Never **6220**.
 - Identity: **Bordine, Glenn** on every CRM action.
 - Cloud/Linux agent: do **not** open Eleads, do **not** type the Eleads password, do **not** run PowerShell self-extractors, do **not** start `Titan.ChiefOfStaff.exe`.
-- One live Eleads session: Alienware Chrome on CDP 9222 after Glenn double-clicks `CHECKIN.cmd` (not verify, not `C:\Windows\system32\Titan.cmd`) and completes Verify. Do not tell him to type `verify` — Command Prompt owns that word. Leave Chrome open. `tick` attaches and must not kill Chrome.
+- One live Eleads session: Chrome on CDP `127.0.0.1:9222` after Glenn double-clicks `CHECKIN.cmd` on that PC (not verify, not `C:\Windows\system32\Titan.cmd`) and completes Verify. Other PCs may stay installed. Do not Verify two PCs at once. Do not tell him to type `verify` — Command Prompt owns that word. Leave Chrome open. `tick` attaches and must not kill Chrome.
 - `INSTALL.cmd` and `kill.switch=armed` are not Verify and not send authorization.
 - Titan never stores or types the password.
 
-If Alienware-18 is offline or not Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
+If no enrolled Windows worker is online or Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
 
 Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It checks the worker snapshot, refuses to open Eleads, and records ready or blocked.
 

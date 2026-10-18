@@ -1,5 +1,21 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-18 — Windows COS operator (separate from the Linux cloud agent)
+
+A Linux cloud agent cannot switch OS or start Eleads. The Windows operator is a different agent: `.cursor/agents/windows-titan-cos.md` and `.cursor/skills/windows-titan-cos-host/SKILL.md`. Glenn double-clicks `LAUNCH-COS-LIVE.cmd` on the Windows PC. That starts `agent worker start --verbose` locally. It does not open Eleads and does not type a password. Then CHECKIN / Verify as before.
+
+## 2026-10-18 — Host hardening and more than one Windows PC
+
+Titan on disk is harder to steal, and Glenn can install it on more than Alienware-18.
+
+- Chrome DevTools binds to `127.0.0.1:9222` only. Titan refuses a remote debugging URL.
+- Each PC enrolls on INSTALL. `host.json` / `host.secret` / `verify.json` are machine-bound (Windows DPAPI for the current user). Do not copy `%LOCALAPPDATA%\TitanChief` between PCs.
+- Work-log customer keys are stored as a short hash, not the visible name.
+- Cloud attach accepts any enrolled Windows worker. One live send session. Alienware-18 stays the preferred host when more than one worker is online and the Verify receipt does not name another PC.
+- Runbook: `docs/deploy/windows-hosts.md`.
+
+Consent, rooftops 28206/28546, identity Bordine, Glenn, and the filed source packet are unchanged.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

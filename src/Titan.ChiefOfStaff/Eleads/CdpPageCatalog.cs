@@ -48,6 +48,7 @@ public static class CdpPageCatalog
 
     public static async Task<IReadOnlyList<CdpPageTarget>> ListAsync()
     {
+        CdpEndpoint.RefuseUntrusted(ChromeAttach.Cdp);
         try
         {
             using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };

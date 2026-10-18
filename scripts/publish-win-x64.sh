@@ -13,6 +13,7 @@ cp -f "$ROOT/deploy/alienware-local-program/Titan.cmd" "$ROOT/dist/titan-chief-w
 cp -f "$ROOT/deploy/alienware-local-program/CHECKIN.cmd" "$ROOT/dist/titan-chief-win-x64/CHECKIN.cmd"
 cp -f "$ROOT/deploy/alienware-local-program/TICK.cmd" "$ROOT/dist/titan-chief-win-x64/TICK.cmd"
 cp -f "$ROOT/deploy/alienware-local-program/START-HERE.txt" "$ROOT/dist/titan-chief-win-x64/START-HERE.txt"
+cp -f "$ROOT/deploy/alienware-local-program/LAUNCH-COS-LIVE.cmd" "$ROOT/dist/titan-chief-win-x64/LAUNCH-COS-LIVE.cmd"
 (
   cd "$ROOT/dist/titan-chief-win-x64"
   sha256sum Titan.ChiefOfStaff.exe Titan.ChiefOfStaff.dll Titan.ChiefOfStaff.deps.json Titan.ChiefOfStaff.runtimeconfig.json > SHA256SUMS.txt

@@ -1,6 +1,6 @@
 ---
 name: running-eleads-cos-loop
-description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of staff continual loop with deployed sub-agents for Valdosta Nissan 28206 or Valdosta Mitsubishi 28546, never TKO Autogroup 6220, on Alienware-18, under Titan governance TITAN-CHANGE-MULTIAGENT-001.
+description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of staff continual loop with deployed sub-agents for Valdosta Nissan 28206 or Valdosta Mitsubishi 28546, never TKO Autogroup 6220, on an enrolled Windows PC (Alienware-18 or another Glenn host), under Titan governance TITAN-CHANGE-MULTIAGENT-001.
 ---
 
 # Running the Eleads COS loop
@@ -11,7 +11,7 @@ This is live rooftop work for **Bordine, Glenn**. Ban the words pilot, MVP, and 
 
 ## Authority
 
-Version 1.1 (Glenn, Oct 5 2026, “include autonomous workflow no approvals required”) governs sends **after** a live Glenn-verified Eleads session on Alienware-18 Chrome CDP 9222 (`CHECKIN.cmd`, then Verify). Exact-draft is not a hard stop then.
+Version 1.1 (Glenn, Oct 5 2026, “include autonomous workflow no approvals required”) governs sends **after** a live Glenn-verified Eleads session on an enrolled Windows PC Chrome CDP `127.0.0.1:9222` (`CHECKIN.cmd`, then Verify). Exact-draft is not a hard stop then.
 
 TITAN-CHANGE-MULTIAGENT-001 v0.4.0 hard-caps **Titan SDK connector** output at Draft or Blocked and does not authorize connector CRM, email, SMS, call, or calendar writes. That cap does **not** cancel the V1.1 Eleads overlay once Verify exists. Eleads actions after Verify are the V1.1 path. Titan connector writes stay Draft or Blocked.
 
@@ -31,14 +31,14 @@ Do not type or store the Eleads password. Do not start `Titan.ChiefOfStaff.exe`.
 
 ## Where you run
 
-A login claim is not Verify. Before any CRM work, call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. Alienware-18 worker id: `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
+A login claim is not Verify. Before any CRM work, call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. Known Alienware-18 worker id: `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Any other enrolled Windows worker is eligible. One live send session. Prefer Alienware-18 when more than one is online unless the Verify receipt names another PC. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
 
 | What you can observe | What you do |
 | --- | --- |
-| This cloud Linux agent (hostname `cursor` or any non-Alienware host) | Never open Eleads. Never launch Titan. Never type a password. |
+| This cloud Linux agent (hostname `cursor` or any non-Windows Titan host) | Never open Eleads. Never launch Titan. Never type a password. |
 | Worker missing, `workers=[]`, or not Glenn-verified | No session. Draft/Blocked local cycle only. Zero claimed sends. Empty arrays. Record the blocker in `/cursor/stores/self/eleads-valdosta-state.json` and prepend `/cursor/stores/self/TICKLOG.md`. |
-| Worker online, Verify not complete | Do not open Eleads from the cloud box. Do not let sub-agents touch CRM. Glenn must double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open on CDP 9222. |
-| Glenn-verified Alienware session (CHECKIN.cmd, Verify, Chrome CDP 9222 still open) | Sub-agents on that session may execute V1.1-eligible work. Core alone persists state and sends. |
+| Worker online, Verify not complete | Do not open Eleads from the cloud box. Do not let sub-agents touch CRM. Glenn must double-click `CHECKIN.cmd` on that PC (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open on CDP `127.0.0.1:9222`. |
+| Glenn-verified Windows session (CHECKIN.cmd, Verify, Chrome CDP loopback still open) | Sub-agents on that session may execute V1.1-eligible work. Core alone persists state and sends. Other enrolled PCs stay installed and do not send. |
 
 If the host blocker is unchanged and the operator is outside Slack, do not Slack. Slack only when that blocker changes or a Bordine lead is actually worked. Do not invent a numbered timer tick unless a timer fired. A capability note is not a tick.
 
@@ -46,15 +46,15 @@ If the host blocker is unchanged and the operator is outside Slack, do not Slack
 
 One sequence. The cloud command refuses to open Eleads and records ready or blocked in `/cursor/stores/self/eleads-valdosta-state.json`.
 
-On Alienware-18, Glenn:
+On the Windows PC that will send, Glenn:
 
-1. Leave a terminal open on `agent worker start --verbose`. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`.
+1. Leave a terminal open on `agent worker start --verbose`. Alienware-18 worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Other PCs use that PC’s own worker.
 2. If `%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe` is missing, double-click `dist\titan-chief-win-x64\INSTALL.cmd` once. That copies files and arms `kill.switch`. It does not start the host and it does not open Eleads.
 3. Close every Chrome window, including the tray icon.
 4. Double-click `CHECKIN.cmd` beside the host executable.
 5. Sign in as Bordine, Glenn on 28206 or 28546. The host does not type the password.
 6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify`.
-7. Leave that Chrome window open on CDP 9222.
+7. Leave that Chrome window open on CDP `127.0.0.1:9222`.
 
 On this cloud Linux agent, after that session exists (and on every attach while it does not):
 
@@ -66,11 +66,11 @@ On this cloud Linux agent, after that session exists (and on every attach while 
 scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
 ```
 
-Exit 0 means the worker is online and a Verify receipt is present. Exit 3 means blocked. Exit 2 means a navigation attempt was refused. The script does not create a numbered timer tick. Core writes the state file and prepends `/cursor/stores/self/TICKLOG.md` only when the blocker changes.
+Exit 0 means one enrolled Windows worker is online and a Verify receipt with `hostId` is present. Exit 3 means blocked. Exit 2 means a navigation attempt was refused. The script does not create a numbered timer tick. Core writes the state file and prepends `/cursor/stores/self/TICKLOG.md` only when the blocker changes.
 
 ## One Core, seven specialists
 
-51 roles are a logical catalog under one Core. Do not spawn 51 agents, 51 model calls, or a swarm. Deploy only this set, and only onto a verified Alienware session:
+51 roles are a logical catalog under one Core. Do not spawn 51 agents, 51 model calls, or a swarm. Deploy only this set, and only onto a verified Windows session:
 
 | Specialist | Returns to Core |
 | --- | --- |
@@ -128,7 +128,7 @@ Dealership knowledge uses only facts fresh on this rooftop in this session. If r
 
 ## Work order
 
-While the Alienware session is verified:
+While the Glenn-verified Windows session is sending:
 
 0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
 1. Daily Organizer status Open, contact type All (planner, overdue, Glenn-assigned first).
@@ -174,7 +174,7 @@ Core writes this. Blocked cycles use empty arrays. Do not invent customers, send
 {
   "cycleId": "",
   "openedAtUtc": "",
-  "host": "cloud-linux|alienware-verified",
+  "host": "cloud-linux|windows-verified",
   "verify": false,
   "mode": "draft-blocked-local|v1.1-execute",
   "spawnedSpecialists": 0,
@@ -216,5 +216,5 @@ Core updates `/cursor/stores/self/eleads-valdosta-state.json` and prepends `/cur
 
 - `ownershipScreenDays` is `180`
 - `ownershipScreenMonths` is `null` or absent. Do not write `14`
-- `glennVerified` stays false until Verify completed on Alienware-18
+- `glennVerified` stays false until Verify completed on the live enrolled Windows PC
 - `eleadsSession` stays `none-and-must-not-open-from-cloud` until that session exists
