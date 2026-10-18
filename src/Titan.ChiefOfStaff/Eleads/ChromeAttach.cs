@@ -7,6 +7,19 @@ public static class ChromeAttach
 {
     public const string Cdp = "http://127.0.0.1:9222";
 
+    // Per-isolate V8 old-space ceiling. Chrome can run the page, the 1Password
+    // extension, and an iframe as separate isolates, so this cap is not a
+    // machine-wide reservation. 4GB is enough for an Eleads organizer and stops
+    // one leaked tab's JavaScript heap from growing until Windows pages.
+    public const int V8OldSpaceMegabytes = 4096;
+
+    // Disk HTTP cache for the Titan Chrome profile. 1GB keeps repeat Eleads
+    // loads warm. It is a disk ceiling, not RAM set aside for Chrome.
+    public const long DiskCacheBytes = 1_073_741_824L;
+
+    public static string BuildLaunchArguments(string browserProfile)
+        => $"--remote-debugging-port=9222 --user-data-dir=\"{browserProfile}\" --no-first-run --no-default-browser-check --disk-cache-size={DiskCacheBytes} --js-flags=--max-old-space-size={V8OldSpaceMegabytes}";
+
     public static string? FindChrome()
     {
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -73,7 +86,7 @@ public static class ChromeAttach
         Process.Start(new ProcessStartInfo
         {
             FileName = chrome,
-            Arguments = $"--remote-debugging-port=9222 --user-data-dir=\"{paths.BrowserProfile}\" --no-first-run --no-default-browser-check",
+            Arguments = BuildLaunchArguments(paths.BrowserProfile),
             UseShellExecute = false
         });
     }
