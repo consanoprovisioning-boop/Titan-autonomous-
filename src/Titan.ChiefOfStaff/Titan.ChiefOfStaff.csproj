@@ -8,6 +8,9 @@
     <RootNamespace>Titan.ChiefOfStaff</RootNamespace>
     <Version>1.0.0</Version>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Console Exe, not a WinExe. Server GC fits this worker-style host on a 32GB multi-core machine. The 2GB heap hard limit lives in runtimeconfig.template.json so it stays a JSON number. -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />

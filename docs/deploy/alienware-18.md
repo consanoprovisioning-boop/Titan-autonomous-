@@ -75,3 +75,21 @@ This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `e
 ## Local program (this repo)
 
 The finished host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`. On the Alienware, double-click `deploy/alienware-local-program/COS.cmd` (see that folder's README). Do not type `verify` by itself — Command Prompt owns that word. Glenn signs into Eleads in that Chrome window. Titan never types the password.
+
+## Memory budget
+
+Glenn stated this Alienware 18 has 32GB of RAM and dual GPUs. He did not name the GPU models, the CPU, or the Windows version. These caps are build settings. This repo change did not read live RAM counters from that PC.
+
+| What | Cap | What it limits |
+| --- | --- | --- |
+| Titan.ChiefOfStaff GC heap | 2GB (`System.GC.HeapHardLimit` = 2147483648) | Hard ceiling on the .NET GC heap. It is not memory reserved up front. The host keeps one SQLite heartbeat, a short log, and the text of one organizer page, so a larger heap would not make Eleads faster. |
+| Server GC | on (`System.GC.Server` = true, concurrent GC left on) | The host is a console `Exe` that runs a verb and exits, not a WinExe with a UI. |
+| Chrome JavaScript heap | 4GB per isolate (`--js-flags=--max-old-space-size=4096`) | Old-space ceiling for the Chrome window Titan starts on port 9222. The page, an extension, and an iframe can each be an isolate, so the cap is per isolate. |
+| Chrome disk cache | 1GB (`--disk-cache-size=1073741824`) | Disk cache of that Chrome profile. Repeat Eleads loads stay warm. This is not a RAM reservation. |
+| Left for the rest of the machine | at least 8GB | Windows, the dual-GPU drivers, the desktop, and the Cursor worker. No Titan cap is placed on this memory. |
+
+No heap or job limit is set above 20GB. The dedicated ceilings are the 2GB .NET heap and the 4GB Chrome JavaScript heap. Together with the 8GB left for the rest of the machine, they stay inside 32GB even if both ceilings are reached. The sandbox stays enabled. No GPU flag is passed.
+
+The next `scripts/publish-win-x64.sh` run writes the GC settings into `Titan.ChiefOfStaff.runtimeconfig.json`. Chrome uses the new flags the next time that build's host starts Chrome. This change does not republish `dist/`.
+
+The Alienware has two GPUs. Titan does not name a GPU, load a driver overclock, or start a CUDA workload. The Chrome window it already starts should keep Windows' normal high-performance graphics preference for that Chrome process.
