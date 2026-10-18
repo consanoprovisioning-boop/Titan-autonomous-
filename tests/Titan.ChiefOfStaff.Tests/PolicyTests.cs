@@ -18,7 +18,13 @@ public class PolicyTests
     public void Tko_text_is_forbidden()
     {
         Assert.True(Policy.IsForbiddenRooftop("The TKO Autogroup (6220)"));
+        Assert.True(Policy.IsForbiddenRooftop("The TKO Autogroup"));
+        Assert.True(Policy.IsForbiddenRooftop("store=6220"));
+        Assert.True(Policy.IsForbiddenRooftop("6220"));
         Assert.False(Policy.IsForbiddenRooftop("Valdosta Nissan 28206"));
+        Assert.False(Policy.IsForbiddenRooftop("https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=162203"));
+        Assert.False(Policy.IsForbiddenRooftop("Customer 162203\nPhone 2296220145"));
+        Assert.False(Policy.IsForbiddenRooftop("stock 62201"));
     }
 
     [Fact]

@@ -35,9 +35,19 @@ public static class Policy
             return false;
         }
 
-        return text.Contains(ForbiddenTkoId, StringComparison.Ordinal)
-            || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
+        // Rooftop 6220 is a whole id. A longer customer, phone, or lead number
+        // that merely contains those digits is not The TKO Autogroup.
+        if (text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return ForbiddenRooftopId.IsMatch(text);
     }
+
+    private static readonly System.Text.RegularExpressions.Regex ForbiddenRooftopId = new(
+        "(?<!\\d)" + ForbiddenTkoId + "(?!\\d)",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     public static bool SmsOpen(DateTimeOffset nowEt)
     {

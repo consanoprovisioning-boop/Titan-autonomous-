@@ -83,6 +83,26 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Lead_id_containing_6220_does_not_reject_an_open_valdosta_session()
+    {
+        var valdosta = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=162203",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=162203",
+                "Valdosta Nissan 28206\nBordine, Glenn\nCustomer 162203\nPhone 2296220145")]);
+
+        var verdict = EleadsInspection.Choose([valdosta]);
+        Assert.False(verdict.Forbidden);
+        Assert.True(verdict.LoggedIn);
+        Assert.Equal("28206", verdict.DetectedRooftop);
+        Assert.Equal("Verified rooftop 28206 as Bordine, Glenn.", EleadsInspection.Describe(verdict));
+
+        var rows = WorkTick.ParseVisibleRows("new lead internet customer 162203", WorkQueue.NewLeads);
+        Assert.Single(rows);
+        Assert.Empty(WorkTick.ParseVisibleRows("new lead internet store 6220", WorkQueue.NewLeads));
+    }
+
+    [Fact]
     public void Open_6220_session_rejects_even_when_another_page_shows_valdosta()
     {
         var valdosta = new PageSnapshot(
