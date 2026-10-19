@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 
 namespace Titan.ChiefOfStaff.Eleads;
@@ -92,26 +93,48 @@ public sealed class EleadsSession : IAsyncDisposable
 
     public static string? DetectRooftop(string text, string url)
     {
+        var blob = text + "\n" + url;
+        var nissanName = blob.Contains("Valdosta Nissan", StringComparison.OrdinalIgnoreCase);
+        var mitsubishiName = blob.Contains("Valdosta Mitsubishi", StringComparison.OrdinalIgnoreCase);
+
+        // The store name is the session. A customer zip, phone, or lead id can
+        // contain the other rooftop's digits and must not switch the store.
+        if (nissanName && !mitsubishiName)
+        {
+            return Policy.NissanId;
+        }
+
+        if (mitsubishiName && !nissanName)
+        {
+            return Policy.MitsubishiId;
+        }
+
         foreach (var id in Policy.AllowedRooftops)
         {
-            if (text.Contains(id, StringComparison.Ordinal) || url.Contains(id, StringComparison.Ordinal))
+            if (WholeRooftopId(blob, id))
             {
                 return id;
             }
         }
 
-        if (text.Contains("Valdosta Nissan", StringComparison.OrdinalIgnoreCase))
-        {
-            return Policy.NissanId;
-        }
-
-        if (text.Contains("Valdosta Mitsubishi", StringComparison.OrdinalIgnoreCase))
-        {
-            return Policy.MitsubishiId;
-        }
-
         return null;
     }
+
+    private static bool WholeRooftopId(string blob, string rooftopId)
+        => rooftopId switch
+        {
+            Policy.NissanId => NissanIdToken.IsMatch(blob),
+            Policy.MitsubishiId => MitsubishiIdToken.IsMatch(blob),
+            _ => false
+        };
+
+    private static readonly Regex NissanIdToken = new(
+        "(?<!\\d)" + Policy.NissanId + "(?!\\d)",
+        RegexOptions.CultureInvariant);
+
+    private static readonly Regex MitsubishiIdToken = new(
+        "(?<!\\d)" + Policy.MitsubishiId + "(?!\\d)",
+        RegexOptions.CultureInvariant);
 
     public static bool IsEleadsUrl(string? url) => EleadsOpenGuard.IsEleadsUrl(url);
 

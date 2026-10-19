@@ -67,6 +67,30 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Mitsubishi_page_with_charlotte_zip_does_not_verify_as_nissan()
+    {
+        var mitsubishi = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=1282069",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=1282069",
+                "Valdosta Mitsubishi\nBordine, Glenn\n123 Main St, Charlotte, NC 28206\nLead 1282069\nPhone 2292820655")]);
+
+        var verdict = EleadsInspection.Evaluate(mitsubishi);
+        Assert.True(verdict.LoggedIn);
+        Assert.False(verdict.Forbidden);
+        Assert.Equal("28546", verdict.DetectedRooftop);
+        Assert.Equal("Verified rooftop 28546 as Bordine, Glenn.", EleadsInspection.Describe(verdict));
+
+        var embeddedOnly = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=1282069",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx?lpid=1282069",
+                "Bordine, Glenn\nLead 1282069\nPhone 2292820655")]));
+        Assert.False(embeddedOnly.LoggedIn);
+        Assert.Null(embeddedOnly.DetectedRooftop);
+    }
+
+    [Fact]
     public void Login_form_and_non_eleads_page_do_not_verify()
     {
         var login = EleadsInspection.Evaluate(new PageSnapshot(
