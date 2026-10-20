@@ -325,6 +325,10 @@ public static class AppointmentCommitment
         return null;
     }
 
+    // No am/pm. Appointment windows are daytime: 7-11 AM, 12 noon, 1-6 PM.
+    private static int DaytimeHour(int hour)
+        => hour is >= 1 and <= 6 ? hour + 12 : hour;
+
     private static TimeSpan? TryParseClockTime(string text)
     {
         var m = Regex.Match(text, @"\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)\b", RegexOptions.IgnoreCase);
@@ -343,20 +347,23 @@ public static class AppointmentCommitment
         m = Regex.Match(text, @"\b([01]?\d|2[0-3]):([0-5]\d)\b");
         if (m.Success)
         {
-            return new TimeSpan(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture), 0);
+            var hour = int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
+            var minute = int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
+            // 13-23 are explicit 24-hour times. A 1-12 clock with no am/pm uses
+            // the same daytime reading as bare "at 2": otherwise "Saturday at
+            // 2:30" is 02:30 and the fast path offers 9:00 AM instead of booking.
+            if (hour <= 12)
+            {
+                hour = DaytimeHour(hour);
+            }
+
+            return new TimeSpan(hour, minute, 0);
         }
 
         m = Regex.Match(text, @"\bat\s+(1[0-2]|0?[1-9])\b", RegexOptions.IgnoreCase);
         if (m.Success)
         {
-            // Bare "at 10" with no am/pm: appointment windows are daytime; 7-11
-            // reads as AM, 12 as noon, 1-6 as PM inside the windows.
-            var hour = int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
-            if (hour >= 1 && hour <= 6)
-            {
-                hour += 12;
-            }
-
+            var hour = DaytimeHour(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
             return new TimeSpan(hour, 0, 0);
         }
 
