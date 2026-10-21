@@ -66,10 +66,11 @@ public sealed class WorkTick
         HostStore store, string rooftop, string customerKey, AppointmentCommitmentRequest request)
     {
         var decision = AppointmentCommitment.Evaluate(request);
+        var detail = decision.CrmNote is null ? decision.Reason : $"{decision.Reason} {decision.CrmNote}";
         store.Log(
             "appointment-commitment",
             decision.Action.ToString(),
-            decision.CrmNote ?? decision.Reason,
+            detail,
             rooftop,
             customerKey);
         return decision;
