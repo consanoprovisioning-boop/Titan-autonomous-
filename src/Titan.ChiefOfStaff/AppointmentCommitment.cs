@@ -109,8 +109,10 @@ public static class AppointmentCommitment
                 Reason: "Commitment without a concrete day/time and none proposed. Ask for the specific day+time; do not book or set Appointment Set.");
         }
 
-        if (request.CurrentStatus == LeadStatus.AppointmentSet
-            || (request.ExistingAppointmentSlotEt is not null && request.ExistingAppointmentSlotEt.Value == slot.Value))
+        var existing = request.ExistingAppointmentSlotEt;
+        var sameSlot = existing is not null && existing.Value == slot.Value;
+        var bookedWithoutADifferentTime = existing is null && request.CurrentStatus == LeadStatus.AppointmentSet;
+        if (sameSlot || bookedWithoutADifferentTime)
         {
             return new AppointmentCommitmentDecision(
                 AppointmentCommitmentAction.AlreadyBooked,
@@ -124,6 +126,22 @@ public static class AppointmentCommitment
                 NewStatusLabel: null,
                 ReplyText: null,
                 Reason: "Duplicate commitment for an already-booked slot. Idempotent: no double-book, no duplicate text.");
+        }
+
+        if (slot.Value <= request.NowEt)
+        {
+            return new AppointmentCommitmentDecision(
+                AppointmentCommitmentAction.ClarifySlot,
+                IsCommitment: true,
+                ShouldBook: false,
+                ShouldReplyNow: replyNow,
+                ReplyAtEt: replyAt,
+                SlotEt: slot,
+                ProposedNearestSlotEt: null,
+                NewStatus: null,
+                NewStatusLabel: null,
+                ReplyText: "Thanks — that time has already passed. What day and time works best for you?",
+                Reason: "Committed time is already in the past. Do not book it or set Appointment Set.");
         }
 
         var customerRequestedTuesday = slot.Value.DayOfWeek == DayOfWeek.Tuesday;
@@ -147,6 +165,7 @@ public static class AppointmentCommitment
         }
 
         var rooftop = Policy.RooftopDisplayName(request.RooftopId);
+        var replacing = existing is not null && existing.Value != slot.Value;
         return new AppointmentCommitmentDecision(
             AppointmentCommitmentAction.ConfirmAndBook,
             IsCommitment: true,
@@ -158,7 +177,9 @@ public static class AppointmentCommitment
             NewStatus: LeadStatus.AppointmentSet,
             NewStatusLabel: Policy.AppointmentSetStatusLabel,
             ReplyText: $"You're set for {FormatSlot(slot.Value)} at {rooftop}. Please ask for {Policy.Identity} when you arrive. Reply here if anything changes.",
-            Reason: "Clear appointment commitment with a valid day/time. Reply immediately on the same channel, book in Eleads, set Appointment Set — no approval pause (V1.1). Preempts normal queue order.");
+            Reason: replacing
+                ? "Customer committed to a different day/time than the appointment already on file. Book this slot instead of the previous one. Do not add a second visit."
+                : "Clear appointment commitment with a valid day/time. Reply immediately on the same channel, book in Eleads, set Appointment Set — no approval pause (V1.1). Preempts normal queue order.");
     }
 
     public static string FormatSlot(DateTimeOffset slot)
@@ -249,17 +270,28 @@ public static class AppointmentCommitment
         var monthDay = Regex.Match(lower, @"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?\b");
         var numeric = Regex.Match(lower, @"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b");
 
-        if (monthDay.Success)
+        if (monthDay.Success || numeric.Success)
         {
-            var month = MonthNumber(monthDay.Groups[1].Value);
-            var day = int.Parse(monthDay.Groups[2].Value, CultureInfo.InvariantCulture);
-            date = ResolveDated(nowEt.Date, month, day);
-        }
-        else if (numeric.Success)
-        {
-            var month = int.Parse(numeric.Groups[1].Value, CultureInfo.InvariantCulture);
-            var day = int.Parse(numeric.Groups[2].Value, CultureInfo.InvariantCulture);
-            date = ResolveDated(nowEt.Date, month, day);
+            int month;
+            int day;
+            if (monthDay.Success)
+            {
+                month = MonthNumber(monthDay.Groups[1].Value);
+                day = int.Parse(monthDay.Groups[2].Value, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                month = int.Parse(numeric.Groups[1].Value, CultureInfo.InvariantCulture);
+                day = int.Parse(numeric.Groups[2].Value, CultureInfo.InvariantCulture);
+            }
+
+            var resolved = ResolveDated(nowEt.Date, month, day);
+            if (resolved is null)
+            {
+                return null;
+            }
+
+            date = resolved.Value;
         }
         else if (lower.Contains("tomorrow"))
         {
@@ -289,10 +321,22 @@ public static class AppointmentCommitment
         return new DateTimeOffset(date.Add(time.Value), nowEt.Offset);
     }
 
-    private static DateTime ResolveDated(DateTime today, int month, int day)
+    private static DateTime? ResolveDated(DateTime today, int month, int day)
     {
-        var candidate = new DateTime(today.Year, month, day);
-        return candidate < today ? candidate.AddYears(1) : candidate;
+        try
+        {
+            var candidate = new DateTime(today.Year, month, day);
+            if (candidate >= today)
+            {
+                return candidate;
+            }
+
+            return candidate.AddYears(1);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
     }
 
     private static int MonthNumber(string prefix) => prefix switch

@@ -109,6 +109,47 @@ public class AppointmentCommitmentTests
     }
 
     [Fact]
+    public void Different_day_replaces_the_appointment_already_on_file()
+    {
+        var wednesday2pm = new DateTimeOffset(2026, 9, 30, 14, 0, 0, TimeSpan.FromHours(-4));
+        var d = Eval(
+            "Can we do Wednesday at 2pm instead?",
+            status: LeadStatus.AppointmentSet,
+            existing: Sat10);
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, d.Action);
+        Assert.True(d.ShouldBook);
+        Assert.True(d.ShouldReplyNow);
+        Assert.Equal(wednesday2pm, d.SlotEt);
+        Assert.Equal(LeadStatus.AppointmentSet, d.NewStatus);
+        Assert.Contains("instead", d.Reason, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("second", d.Reason, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Passed_clock_time_is_not_booked()
+    {
+        var friday3pm = new DateTimeOffset(2026, 9, 25, 15, 0, 0, TimeSpan.FromHours(-4));
+        var d = Eval("Yes I'll be there today at 10am", now: friday3pm);
+        Assert.Equal(AppointmentCommitmentAction.ClarifySlot, d.Action);
+        Assert.False(d.ShouldBook);
+        Assert.Null(d.NewStatus);
+        Assert.Contains("already passed", d.ReplyText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Impossible_calendar_day_does_not_throw()
+    {
+        var feb29 = Eval("Yes, February 29 at 10am");
+        Assert.Equal(AppointmentCommitmentAction.ClarifySlot, feb29.Action);
+        Assert.False(feb29.ShouldBook);
+        Assert.Null(feb29.NewStatus);
+
+        var feb30 = Eval("I'll be there February 30 at 2pm");
+        Assert.Equal(AppointmentCommitmentAction.ClarifySlot, feb30.Action);
+        Assert.False(feb30.ShouldBook);
+    }
+
+    [Fact]
     public void Sms_outside_window_queues_reply_but_still_decides_booking()
     {
         var satNight = new DateTimeOffset(2026, 9, 26, 22, 0, 0, TimeSpan.FromHours(-4));
