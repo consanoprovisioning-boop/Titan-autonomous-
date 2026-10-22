@@ -7,7 +7,7 @@ dotnet test Titan.ChiefOfStaff.sln -c Release
 if errorlevel 1 exit /b 1
 dotnet publish src\Titan.ChiefOfStaff\Titan.ChiefOfStaff.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -o dist\titan-chief-win-x64
 if errorlevel 1 exit /b 1
-dotnet publish src\Titan.Launcher\Titan.Launcher.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -o dist\titan-chief-win-x64
+dotnet publish src\Titan.Launcher\Titan.Launcher.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o dist\titan-chief-win-x64
 if errorlevel 1 exit /b 1
 del /Q dist\titan-chief-win-x64\*.ps1 2>nul
 copy /Y deploy\alienware-local-program\INSTALL.cmd dist\titan-chief-win-x64\INSTALL.cmd

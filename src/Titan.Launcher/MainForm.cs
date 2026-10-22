@@ -14,8 +14,8 @@ public sealed class MainForm : Form
     private readonly Label _status = new() { AutoSize = true, Font = new Font(SystemFonts.DefaultFont, FontStyle.Bold) };
     private readonly Label _detail = new() { AutoSize = true };
     private readonly RichTextBox _log = new() { ReadOnly = true, Dock = DockStyle.Fill, Font = new Font(FontFamily.GenericMonospace, 9f) };
-    private readonly Button _checkin = new() { Text = "1  Check In / Verify", AutoSize = true };
-    private readonly Button _startLoop = new() { Text = "2  Start Live CRM Loop", AutoSize = true };
+    private readonly Button _checkin = new() { Text = "Check In / Verify", AutoSize = true };
+    private readonly Button _startLoop = new() { Text = "Restart Live Loop", AutoSize = true };
     private readonly Button _tickOnce = new() { Text = "Tick Once", AutoSize = true };
     private readonly Button _stop = new() { Text = "Stop Loop", AutoSize = true, Enabled = false };
     private readonly Button _refresh = new() { Text = "Refresh Status", AutoSize = true };
@@ -52,15 +52,16 @@ public sealed class MainForm : Form
 
         _checkin.Click += async (_, _) => await RunHostAsync("checkin", isLoop: false);
         _tickOnce.Click += async (_, _) => await RunHostAsync("tick", isLoop: false);
-        _startLoop.Click += async (_, _) => await RunHostAsync("loop", isLoop: true);
+        _startLoop.Click += async (_, _) => await RunHostAsync("autostart", isLoop: true);
         _stop.Click += (_, _) => StopLoop();
         _refresh.Click += (_, _) => RefreshStatus();
         _timer.Tick += (_, _) => RefreshStatus();
         _timer.Start();
         FormClosing += (_, _) => StopLoop();
 
-        Append("Titan COS ready. Step 1: Check In / Verify. Step 2: Start Live CRM Loop.");
+        Append("Titan COS launching — Verify and the live loop start by themselves. Sign in in Chrome only if asked.");
         RefreshStatus();
+        Shown += async (_, _) => await RunHostAsync("autostart", isLoop: true);
     }
 
     private static string HostExe()
@@ -93,7 +94,7 @@ public sealed class MainForm : Form
 
             _status.Text = verified
                 ? $"● VERIFIED — Bordine, Glenn on rooftop {rooftop} ({state})"
-                : "○ Not verified yet — click Check In / Verify, sign in, then click it again";
+                : "○ Waiting for sign-in in Chrome — the loop starts by itself once you are in";
             _detail.Text = $"ET now {et:ddd HH:mm} • SMS window {(smsOpen ? "OPEN 09:00–19:00" : "closed (email-only ticks)")} • Loop: {(_loopProcess is { HasExited: false } ? "RUNNING" : "stopped")} • Host: {HostExe()}";
         }
         catch (Exception ex)

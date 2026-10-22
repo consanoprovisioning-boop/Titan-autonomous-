@@ -20,6 +20,7 @@ return verb switch
     "verify" => RejectVerifyWord(),
     "tick" => await TickAsync(),
     "loop" => await LoopAsync(),
+    "autostart" => await AutoStartAsync(),
     "report" => Report(),
     "stop" => Stop(),
     _ => Usage()
@@ -227,6 +228,52 @@ async Task<int> TickAsync()
     return 0;
 }
 
+async Task<int> AutoStartAsync()
+{
+    // One double-click, fully operational: checkin (opens Chrome if needed),
+    // wait for Glenn's own sign-in if the login page is showing, Verify,
+    // then immediately run the live loop. No buttons, no second double-click.
+    var waitBudget = TimeSpan.FromSeconds(ReadIntOverride(args, "--wait-seconds") ?? (int)AutoLaunch.DefaultWait.TotalSeconds);
+    var poll = TimeSpan.FromSeconds(ReadIntOverride(args, "--poll-seconds") ?? (int)AutoLaunch.DefaultPoll.TotalSeconds);
+    var started = DateTimeOffset.UtcNow;
+    var announced = false;
+
+    Console.WriteLine("Titan Autonomous COS autostart: Verify, then live loop. Just sign in in Chrome if asked.");
+
+    while (true)
+    {
+        var code = await CheckInAsync();
+        if (code != 0 && code != 6)
+        {
+            // Cloud refusal, kill switch, lock, or Chrome failure is not a
+            // sign-in wait. Fail fast instead of polling for ten minutes.
+            return code;
+        }
+
+        var waited = DateTimeOffset.UtcNow - started;
+        var step = AutoLaunch.Decide(code == 0, waited, waitBudget);
+        if (step == AutoLaunchStep.StartLoop)
+        {
+            Console.WriteLine("Verified. Starting live CRM loop now.");
+            return await LoopAsync();
+        }
+
+        if (step == AutoLaunchStep.GiveUp)
+        {
+            Console.WriteLine("Not signed in yet, so the loop did not start. Sign in in the Chrome window Titan opened, then launch Titan COS again.");
+            return code;
+        }
+
+        if (!announced)
+        {
+            announced = true;
+            Console.WriteLine("Chrome is open to Eleads. Sign in as Bordine, Glenn (28206 or 28546) — Titan waits and starts by itself, nothing else to click.");
+        }
+
+        await Task.Delay(poll);
+    }
+}
+
 async Task<int> LoopAsync()
 {
     // Local live loop: the Alienware program Glenn runs on the PC itself.
@@ -312,7 +359,8 @@ int Stop()
 int Usage()
 {
     Console.WriteLine("Titan.ChiefOfStaff — Alienware local host");
-    Console.WriteLine("verbs: install | status | checkin | tick | loop | report | stop");
+    Console.WriteLine("verbs: install | status | checkin | tick | loop | autostart | report | stop");
+    Console.WriteLine("autostart: Verify (waiting for Glenn's sign-in if needed), then loop. Options: --wait-seconds N, --poll-seconds N");
     Console.WriteLine("loop options: --cycles N (0 = until stopped), --minutes N (override pace)");
     Console.WriteLine("In Command Prompt, do not type verify by itself. Run CHECKIN.cmd");
     Console.WriteLine("Rooftops 28206 and 28546 only. Never 6220.");

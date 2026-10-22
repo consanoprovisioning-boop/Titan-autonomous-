@@ -1,27 +1,18 @@
-Titan Autonomous COS — Alienware 18 (local program + home-screen app)
+Titan Autonomous COS — Alienware 18
 
-Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+FAST AND SIMPLE: ONE DOUBLE-CLICK
 
-INSTALL ONCE
-1. Double-click INSTALL.cmd once if TitanChief is not installed yet.
-   INSTALL.cmd copies the program to %LOCALAPPDATA%\TitanChief\app and arms
-   kill.switch. It does not open Eleads and does not type a password.
-2. Double-click CREATE-HOME-SCREEN-APP.cmd once. It puts a "Titan COS" app
-   on your Desktop (home screen).
+First time only:
+  Double-click INSTALL.cmd. It installs Titan, puts the "Titan COS" app
+  on your Desktop, and launches it. Done.
 
-EVERY DAY — LAUNCH FROM THE HOME SCREEN
-3. Double-click the "Titan COS" app on the Desktop.
-4. In the app, click "1 Check In / Verify". Chrome opens to Eleads.
-   Sign in yourself as Bordine, Glenn on store 28206 or 28546.
-5. Click "1 Check In / Verify" again in the app. That second run is Verify.
-   The app status must say VERIFIED. Leave Chrome open.
-6. Click "2 Start Live CRM Loop". Titan now works the live CRM loop locally
-   on this PC: work order 0 first (inbound replies + Bordine new leads),
-   then Daily Organizer Open/All. Pace: 15 min in SMS hours (9-7 ET),
-   30 min evenings, 45 min overnight. Click Stop Loop or Ctrl+C to stop.
-   "Tick Once" runs a single cycle instead.
+Every day:
+  Double-click "Titan COS" on the Desktop. That's it.
+  The app Verifies and starts the live CRM loop by itself.
+  If Chrome asks you to sign in, sign in as Bordine, Glenn on store
+  28206 or 28546 — Titan waits, Verifies, and starts on its own.
+  Leave Chrome open. To stop, click Stop Loop in the app.
 
-Do not type Titan.cmd from C:\Windows\system32.
+Titan never types your password. Rooftops 28206 and 28546 only.
+Never TKO Autogroup 6220. Do not type Titan.cmd from C:\Windows\system32.
 Needs the .NET 8 desktop runtime and Google Chrome.
-INSTALL.cmd is not send authorization. Titan never types the password.
-Rooftops 28206 and 28546 only. Never TKO Autogroup 6220.

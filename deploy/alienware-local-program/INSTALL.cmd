@@ -1,8 +1,9 @@
 @echo off
 setlocal
-REM Alienware 18 local install. cmd.exe only. No PowerShell. No execution-policy Bypass.
-REM Copies files and arms the kill switch. Does not start Titan.ChiefOfStaff.exe.
-REM Does not open Eleads. Does not type a password.
+REM Alienware 18 one-double-click setup. cmd.exe only. No PowerShell.
+REM Copies files, arms kill switch, creates the Desktop "Titan COS" app,
+REM then launches it. The app Verifies and starts the live loop by itself.
+REM Titan does not type the Eleads password; Glenn signs in in Chrome.
 
 set "SRC=%~1"
 if "%SRC%"=="" set "SRC=%~dp0"
@@ -19,13 +20,13 @@ mkdir "%APP%" 2>nul
 mkdir "%ROOT%" 2>nul
 xcopy /E /I /Y "%SRC%\*" "%APP%\"
 echo armed>"%ROOT%\kill.switch"
-type "%ROOT%\kill.switch"
 certutil -hashfile "%APP%\Titan.ChiefOfStaff.exe" SHA256
 echo.
 echo Installed to %APP%
-echo kill.switch is armed. This is not Verify and not send authorization.
-echo Next: double-click CREATE-HOME-SCREEN-APP.cmd once for the Desktop app,
-echo then launch Titan COS from the Desktop: 1 Check In / Verify, 2 Start Live CRM Loop.
-echo Do not type verify by itself. Command Prompt owns that word.
+
+REM Home-screen app, created automatically (Glenn: fast and simple).
+if exist "%APP%\CREATE-HOME-SCREEN-APP.cmd" call "%APP%\CREATE-HOME-SCREEN-APP.cmd" nopause
+
+echo Launching Titan COS now. Sign in in Chrome if asked - the loop starts by itself.
+if exist "%APP%\Titan COS.exe" start "" "%APP%\Titan COS.exe"
 endlocal
-pause

@@ -26,8 +26,8 @@ That copies into `%LOCALAPPDATA%\TitanChief\app\` and arms `kill.switch`. It doe
 
 Titan operates two ways from the same install in `%LOCALAPPDATA%\TitanChief\app`:
 
-1. **Local program** — `Titan.ChiefOfStaff.exe` with verbs `checkin`, `tick`, and `loop`. `loop` is the live CRM loop: it repeats `tick` against Glenn's verified Chrome (CDP 9222) at the operating-law pace (`LoopPace`: 15 min while SMS is open 09:00–19:00 ET, 30 min evenings, 45 min overnight), stops on Ctrl+C or when Verify is lost, and never types a password.
-2. **Home-screen app** — `Titan COS.exe` (`src/Titan.Launcher`), a Windows window with **1 Check In / Verify**, **2 Start Live CRM Loop**, **Tick Once**, and **Stop Loop**. Run `CREATE-HOME-SCREEN-APP.cmd` once after install to put a `Titan COS` app on the Desktop. Double-clicking it is the daily launch: Verify in the app, then Start Live CRM Loop.
+1. **Local program** — `Titan.ChiefOfStaff.exe` with verbs `checkin`, `tick`, `loop`, and `autostart`. `autostart` is the one-double-click path: Verify (waiting for Glenn's own sign-in if Chrome shows the login page), then run the live loop. `loop` repeats `tick` against Glenn's verified Chrome (CDP 9222) at the operating-law pace (`LoopPace`: 15 min while SMS is open 09:00–19:00 ET, 30 min evenings, 45 min overnight), stops on Ctrl+C or when Verify is lost, and never types a password.
+2. **Home-screen app** — `Titan COS.exe` (`src/Titan.Launcher`), a single-file Windows app. `INSTALL.cmd` puts it on the Desktop and launches it automatically; double-clicking the Desktop app runs `autostart` with no further clicks. Manual Check In / Verify, Tick Once, Restart, and Stop buttons remain in the window.
 
 `LOOP.cmd` runs the same console loop without the window. `Titan COS.cmd` opens the app window and is the fallback copied to the Desktop if shortcut creation fails.
 
