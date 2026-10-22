@@ -95,6 +95,29 @@ public class HostSecurityTests
     }
 
     [Fact]
+    public void Organizer_row_that_mentions_password_is_logged_as_a_seal()
+    {
+        var raw = "New lead password reset for the customer portal";
+        var root = Path.Combine(Path.GetTempPath(), "titan-row-pwd-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            store.Log("NewLeads", "qualified", "no send from a list row", "28206", raw);
+            var line = Assert.Single(store.RecentLogs(1));
+            Assert.Contains(CustomerSeal.FromVisibleText(raw), line, StringComparison.Ordinal);
+            Assert.DoesNotContain("password", line, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Fact]
     public void Host_store_refuses_a_password_field()
     {
         var root = Path.Combine(Path.GetTempPath(), "titan-pwd-" + Guid.NewGuid().ToString("n"));
