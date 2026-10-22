@@ -24,7 +24,8 @@ certutil -hashfile "%APP%\Titan.ChiefOfStaff.exe" SHA256
 echo.
 echo Installed to %APP%
 echo kill.switch is armed. This is not Verify and not send authorization.
-echo Next: double-click CHECKIN.cmd
+echo Next: double-click CREATE-HOME-SCREEN-APP.cmd once for the Desktop app,
+echo then launch Titan COS from the Desktop: 1 Check In / Verify, 2 Start Live CRM Loop.
 echo Do not type verify by itself. Command Prompt owns that word.
 endlocal
 pause

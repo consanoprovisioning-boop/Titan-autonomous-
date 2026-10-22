@@ -19,6 +19,7 @@ return verb switch
     "checkin" => await CheckInAsync(),
     "verify" => RejectVerifyWord(),
     "tick" => await TickAsync(),
+    "loop" => await LoopAsync(),
     "report" => Report(),
     "stop" => Stop(),
     _ => Usage()
@@ -226,6 +227,64 @@ async Task<int> TickAsync()
     return 0;
 }
 
+async Task<int> LoopAsync()
+{
+    // Local live loop: the Alienware program Glenn runs on the PC itself.
+    // One tick per cycle against the already-verified Chrome (CDP 9222).
+    // Never opens Eleads from scratch, never types a password, and stops
+    // the moment Verify is lost or the kill switch trips.
+    var maxCycles = ReadIntOverride(args, "--cycles") ?? 0; // 0 = until stopped
+    var overrideMinutes = ReadIntOverride(args, "--minutes");
+
+    using var cts = new CancellationTokenSource();
+    Console.CancelKeyPress += (_, e) =>
+    {
+        e.Cancel = true;
+        cts.Cancel();
+        Console.WriteLine("Stopping Titan COS loop after this cycle (Ctrl+C)...");
+    };
+
+    Console.WriteLine("Titan Autonomous COS — local live CRM loop");
+    Console.WriteLine($"Identity {Policy.Identity}. Rooftops 28206, 28546 only. Never 6220.");
+    Console.WriteLine("Work order 0 first: inbound replies and Bordine new leads, then Daily Organizer Open/All.");
+    Console.WriteLine("Stop any time with Ctrl+C, the app Stop button, or by tripping kill.switch.");
+
+    var cycle = 0;
+    while (!cts.IsCancellationRequested)
+    {
+        cycle++;
+        var et = EasternClock.Now();
+        Console.WriteLine($"--- Loop cycle {cycle} at {et:yyyy-MM-dd HH:mm:ss} ET, pace {LoopPace.Describe(et)} ---");
+
+        var code = await TickAsync();
+        if (code != 0)
+        {
+            Console.WriteLine($"Loop stopped: tick returned {code}. Sign in and run CHECKIN.cmd again if Verify was lost.");
+            return code;
+        }
+
+        if (maxCycles > 0 && cycle >= maxCycles)
+        {
+            Console.WriteLine($"Loop finished {cycle} cycle(s). Chrome left open.");
+            return 0;
+        }
+
+        var wait = overrideMinutes is > 0 ? TimeSpan.FromMinutes(overrideMinutes.Value) : LoopPace.Interval(EasternClock.Now());
+        Console.WriteLine($"Next cycle in {(int)wait.TotalMinutes} min. Leave Chrome open.");
+        try
+        {
+            await Task.Delay(wait, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            break;
+        }
+    }
+
+    Console.WriteLine("Titan COS loop stopped. Chrome left open.");
+    return 0;
+}
+
 int Report()
 {
     paths.EnsureDataTree();
@@ -253,11 +312,18 @@ int Stop()
 int Usage()
 {
     Console.WriteLine("Titan.ChiefOfStaff — Alienware local host");
-    Console.WriteLine("verbs: install | status | checkin | tick | report | stop");
+    Console.WriteLine("verbs: install | status | checkin | tick | loop | report | stop");
+    Console.WriteLine("loop options: --cycles N (0 = until stopped), --minutes N (override pace)");
     Console.WriteLine("In Command Prompt, do not type verify by itself. Run CHECKIN.cmd");
     Console.WriteLine("Rooftops 28206 and 28546 only. Never 6220.");
     Console.WriteLine("Titan never stores or types the Eleads password.");
     return 1;
+}
+
+static int? ReadIntOverride(string[] args, string name)
+{
+    var raw = ReadOverride(args, name);
+    return int.TryParse(raw, out var value) ? value : null;
 }
 
 static string? ReadOverride(string[] args, string name)
