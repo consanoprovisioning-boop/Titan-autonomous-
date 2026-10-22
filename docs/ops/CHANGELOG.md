@@ -1,5 +1,18 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-22 — One double-click launch (Glenn: fast and simple)
+
+`autostart` verb Verifies (polling every 5s for up to 10 min while Glenn signs in himself), then starts the live loop automatically. The `Titan COS` app runs `autostart` on open — no button sequence. `INSTALL.cmd` now creates the Desktop app and launches it, so first setup and daily launch are each a single double-click. The launcher publishes as one self-contained-file `Titan COS.exe` (framework-dependent; .NET 8 desktop runtime still required).
+
+## 2026-10-22 — Titan COS as a local program, live loop, and home-screen app (Glenn)
+
+Glenn directed that Titan Autonomous COS operate as a local program on Alienware-18, run the live CRM loop locally, and be launchable from an app on the home screen.
+
+- `Titan.ChiefOfStaff.exe loop` repeats the verified `tick` cycle locally (`LoopPace`: 15 min in the 09:00–19:00 ET SMS window, 30 min evenings, 45 min overnight; `--cycles`/`--minutes` override). It stops on Ctrl+C or when Verify is lost and never types a password.
+- `src/Titan.Launcher` publishes `Titan COS.exe`, a Windows app window (Check In / Verify, Start Live CRM Loop, Tick Once, Stop Loop, live verify/rooftop/SMS status from `%LOCALAPPDATA%\TitanChief\verify.json`).
+- `CREATE-HOME-SCREEN-APP.cmd` puts the `Titan COS` app on the Desktop. This Glenn-requested home-screen app supersedes the earlier install-without-launch no-shortcut note for this launcher only; `INSTALL.cmd` still creates no shortcuts.
+- No preserved check changed: 28206/28546 only, never 6220, Bordine Glenn, consent/DNC, 72h/96h, 180-day screen, day+time before Appointment Set, CRM history is proof. A tick still sends nothing from a list row alone.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

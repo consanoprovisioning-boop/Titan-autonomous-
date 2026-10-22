@@ -1,16 +1,18 @@
-Titan Chief of Staff — Alienware 18
+Titan Autonomous COS — Alienware 18
 
-Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+FAST AND SIMPLE: ONE DOUBLE-CLICK
 
-1. On this PC, start the Cursor worker and leave it running: cursor worker start
-2. Double-click INSTALL.cmd once if TitanChief is not installed yet.
-   INSTALL.cmd does not start the program and does not open Eleads.
-3. Close every Chrome window and the tray icon.
-4. Double-click CHECKIN.cmd.
-5. Sign into Eleads in that Chrome window as Bordine, Glenn on store 28206 or 28546.
-6. Double-click CHECKIN.cmd again. That second run is Verify. Leave Chrome open.
-7. The cloud COS loop attaches after Verify. Do not type Titan.cmd from C:\Windows\system32.
+First time only:
+  Double-click INSTALL.cmd. It installs Titan, puts the "Titan COS" app
+  on your Desktop, and launches it. Done.
 
+Every day:
+  Double-click "Titan COS" on the Desktop. That's it.
+  The app Verifies and starts the live CRM loop by itself.
+  If Chrome asks you to sign in, sign in as Bordine, Glenn on store
+  28206 or 28546 — Titan waits, Verifies, and starts on its own.
+  Leave Chrome open. To stop, click Stop Loop in the app.
+
+Titan never types your password. Rooftops 28206 and 28546 only.
+Never TKO Autogroup 6220. Do not type Titan.cmd from C:\Windows\system32.
 Needs the .NET 8 desktop runtime and Google Chrome.
-INSTALL.cmd is not send authorization. Titan never types the password.
-

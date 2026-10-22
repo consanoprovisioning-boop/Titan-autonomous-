@@ -55,7 +55,7 @@ Expected: a line that is `armed`.
 certutil -hashfile "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" SHA256
 ```
 
-Expected launch exe SHA-256: `84ce4d54d1419f9ccaf0342e0360316eeb7dfea8788c9cee29f0f35ec37280cb`
+Expected launch exe SHA-256: see the first line of `SHA256SUMS.txt` in the publish folder (regenerated on every publish; the 2026-10-22 autostart publish is `46a2ff4ac85b3e39a3f4b34ab567c37940d1fb8635c3e50573980520708fa00b`)
 
 That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt`. Do not compare the launch exe to the archived incomplete-drop hash.
 
@@ -84,11 +84,10 @@ Alienware-18, Glenn:
 
 1. Leave `agent worker start --verbose` running. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Do not pass `--name`. The Windows `cursor` command does not start this worker.
 2. If the app is not installed, double-click `INSTALL.cmd` once (from `dist\titan-chief-win-x64\`, or `deploy\alienware-local-program\INSTALL.cmd` with that folder as the argument).
-3. Close every Chrome window and the tray icon.
-4. Double-click `CHECKIN.cmd`.
-5. Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546. Titan never types the password.
-6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify` by itself — Command Prompt owns that word.
-7. Leave Chrome open on CDP 9222.
+3. That same `INSTALL.cmd` double-click automatically creates the Desktop `Titan COS` app and launches it. Glenn (2026-10-22) asked for fast, simple, one-double-click launch, so the app supersedes the install-without-launch no-shortcut note.
+4. From then on: double-click the `Titan COS` app on the Desktop. Nothing else. It runs `autostart`: Verify, wait for sign-in if Chrome shows the login page, then start the live loop by itself.
+5. Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546 only if asked. Titan never types the password, and Glenn does not click Verify or Start again — the app Verifies and starts when sign-in lands.
+6. Leave Chrome open on CDP 9222. The loop repeats ticks locally at 15/30/45-minute pace by ET window and stops from the app's Stop Loop button (or Ctrl+C in `LOOP.cmd`).
 
 Cloud Cursor agent:
 
