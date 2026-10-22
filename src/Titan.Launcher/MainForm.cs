@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Titan.ChiefOfStaff;
 
 namespace Titan.Launcher;
 
@@ -174,7 +175,7 @@ public sealed class MainForm : Form
         {
             if (_loopProcess is { HasExited: false })
             {
-                _loopProcess.Kill(entireProcessTree: true);
+                LoopStop.StopHost(_loopProcess);
                 Append("Loop stopped. Chrome left open (Titan never closes your signed-in window).");
             }
         }
