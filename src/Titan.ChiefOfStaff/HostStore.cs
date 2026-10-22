@@ -76,8 +76,11 @@ public sealed class HostStore : IDisposable
 
     public void Log(string queue, string action, string result, string? rooftop = null, string? customerKey = null)
     {
-        RefusePassword(queue, action, result, rooftop, customerKey);
+        // The visible organizer line is the customer key. Seal it before the
+        // password gate: a CRM row that mentions "password" must not crash the
+        // tick, and the raw line is never what gets stored.
         var sealedCustomer = string.IsNullOrWhiteSpace(customerKey) ? null : CustomerSeal.FromVisibleText(customerKey);
+        RefusePassword(queue, action, result, rooftop, sealedCustomer);
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
             INSERT INTO work_log (at_et, rooftop, customer_key, queue, action, result)
