@@ -46,6 +46,20 @@ public class LaunchGuardTests
             ModelYear: 2019);
         Assert.Contains("180-day", WorkOrder.HoldReason(held, now) ?? "");
         Assert.Null(WorkOrder.HoldReason(held with { RecentInquiry = true }, now));
+
+        var unproven = new OrganizerRow(
+            "equity Jane",
+            "Bordine, Glenn",
+            WorkQueue.Database,
+            null,
+            null,
+            true,
+            "Customer asked about equity.",
+            PurchasedAt: null,
+            RecentInquiry: false);
+        Assert.Contains("unproven", WorkOrder.HoldReason(unproven, now) ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.Null(WorkOrder.HoldReason(unproven with { RecentInquiry = true }, now));
+        Assert.Null(WorkOrder.HoldReason(unproven with { PurchasedAt = now.AddDays(-30) }, now));
     }
 
     [Fact]

@@ -9,8 +9,7 @@ public static class AutonomousWork
     public static readonly string[] ComposerSelectors =
     [
         "textarea",
-        "[contenteditable='true']",
-        "input[type='text']"
+        "[contenteditable='true']"
     ];
 
     public static readonly string[] SendLabels =
@@ -113,6 +112,7 @@ public static class AutonomousWork
             return new WorkOutcome(1, 0, 0, "No live composer. Eligible work still needs a profile composer and CRM history under Bordine, Glenn.", []);
         }
 
+        var beforeSend = await SafeBodyAsync(page);
         var sent = await ClickSendAsync(page, learning, draft.Channel);
         if (!sent)
         {
@@ -122,10 +122,10 @@ public static class AutonomousWork
 
         await page.WaitForTimeoutAsync(800);
         var proofBody = await SafeBodyAsync(page);
-        if (!LooksLikeSendProof(proofBody, draft.Channel))
+        if (!LooksLikeNewSendProof(beforeSend, proofBody, draft.Channel))
         {
-            store.Log(row.Queue.ToString(), "proof", "CRM history did not confirm the send", rooftop, row.CustomerKey);
-            return new WorkOutcome(1, 0, 0, "Clicked Send but CRM history did not confirm it. Not counted.", []);
+            store.Log(row.Queue.ToString(), "proof", "CRM history did not confirm a new send", rooftop, row.CustomerKey);
+            return new WorkOutcome(1, 0, 0, "Clicked Send but CRM history did not confirm a new completion. Not counted.", []);
         }
 
         var note = draft.Channel == "SMS"
@@ -137,24 +137,49 @@ public static class AutonomousWork
     }
 
     public static bool LooksLikeSendProof(string history, string channel)
+        => LooksLikeNewSendProof("", history, channel);
+
+    public static bool LooksLikeNewSendProof(string? before, string? after, string channel)
     {
-        if (string.IsNullOrWhiteSpace(history) || Policy.IsForbiddenRooftop(history))
+        if (string.IsNullOrWhiteSpace(after) || Policy.IsForbiddenRooftop(after))
         {
             return false;
         }
 
-        if (!history.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
-            && !history.Contains("Glenn", StringComparison.OrdinalIgnoreCase))
+        if (!after.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
+            && !after.Contains("Glenn", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        if (channel.Equals("SMS", StringComparison.OrdinalIgnoreCase))
+        var phrase = channel.Equals("SMS", StringComparison.OrdinalIgnoreCase)
+            ? "SMS text completed via system"
+            : "Manual email completed via system";
+        return CountPhrase(after, phrase) > CountPhrase(before ?? "", phrase);
+    }
+
+    public static int CountPhrase(string text, string phrase)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(phrase))
         {
-            return Contains(history, "sms", "text completed", "sms text completed via system");
+            return 0;
         }
 
-        return Contains(history, "email", "manual email completed via system", "e-mail");
+        var count = 0;
+        var start = 0;
+        while (start < text.Length)
+        {
+            var found = text.IndexOf(phrase, start, StringComparison.OrdinalIgnoreCase);
+            if (found < 0)
+            {
+                return count;
+            }
+
+            count++;
+            start = found + phrase.Length;
+        }
+
+        return count;
     }
 
     private static async Task<bool> OpenRowAsync(IPage page, LearningStore learning, string customerKey)
@@ -193,7 +218,7 @@ public static class AutonomousWork
             try
             {
                 var matches = page.Locator(selector);
-                if (await matches.CountAsync() == 0)
+                if (await matches.CountAsync() != 1)
                 {
                     learning.RememberSelector(selector, false);
                     continue;
@@ -221,8 +246,8 @@ public static class AutonomousWork
         {
             try
             {
-                var button = page.GetByText(label, new PageGetByTextOptions { Exact = false });
-                if (await button.CountAsync() == 0)
+                var button = page.GetByText(label, new PageGetByTextOptions { Exact = true });
+                if (await button.CountAsync() != 1)
                 {
                     learning.RememberSelector("send:" + label, false);
                     continue;
@@ -252,7 +277,4 @@ public static class AutonomousWork
             return page.Url;
         }
     }
-
-    private static bool Contains(string text, params string[] needles)
-        => needles.Any(n => text.Contains(n, StringComparison.OrdinalIgnoreCase));
 }
