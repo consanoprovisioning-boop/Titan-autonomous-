@@ -48,6 +48,11 @@ public static class WorkOrder
             return ownership;
         }
 
+        if (row.Queue == WorkQueue.Database && row.PurchasedAt is null && !row.RecentInquiry)
+        {
+            return "Ownership duration unproven for a database row.";
+        }
+
         if (IsGlennAssigned(row.AssignedTo))
         {
             return null;
