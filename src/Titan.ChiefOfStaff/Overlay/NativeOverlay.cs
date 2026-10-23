@@ -8,6 +8,7 @@ public sealed class NativeOverlay : IOverlay
     private readonly FileOverlay _file;
     private readonly Thread? _thread;
     private readonly CancellationTokenSource _cts = new();
+    private WndProc? _wndProc;
     private nint _hwnd;
     private OverlayState _state;
 
@@ -24,6 +25,7 @@ public sealed class NativeOverlay : IOverlay
             return;
         }
 
+        _wndProc = WindowProc;
         _thread = new Thread(MessagePump)
         {
             IsBackground = true,
@@ -57,16 +59,35 @@ public sealed class NativeOverlay : IOverlay
             PostMessage(_hwnd, WM_CLOSE, nint.Zero, nint.Zero);
         }
 
+        if (_thread is not null)
+        {
+            try
+            {
+                _thread.Join(TimeSpan.FromSeconds(2));
+            }
+            catch (ThreadStateException)
+            {
+            }
+        }
+
         _file.Dispose();
-        _cts.Dispose();
+        if (_thread is null || !_thread.IsAlive)
+        {
+            _cts.Dispose();
+        }
     }
 
     private void MessagePump()
     {
+        var wndProc = _wndProc;
         try
         {
+            if (wndProc is null)
+            {
+                return;
+            }
+
             var className = "TitanCosHud";
-            var wndProc = new WndProc(WindowProc);
             var wc = new WNDCLASSEX
             {
                 cbSize = Marshal.SizeOf<WNDCLASSEX>(),
@@ -76,7 +97,6 @@ public sealed class NativeOverlay : IOverlay
                 hbrBackground = GetStockObject(4),
                 hCursor = LoadCursor(nint.Zero, 32512)
             };
-            GC.KeepAlive(wndProc);
             RegisterClassEx(ref wc);
             var width = 440;
             var height = 260;
@@ -112,6 +132,10 @@ public sealed class NativeOverlay : IOverlay
         catch
         {
             // File overlay remains the live HUD if Win32 create fails.
+        }
+        finally
+        {
+            GC.KeepAlive(wndProc);
         }
 
         Closed = true;
