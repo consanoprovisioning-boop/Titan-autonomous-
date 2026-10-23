@@ -11,16 +11,37 @@ public static class SelfInstall
         paths.EnsureDataTree();
         var copied = SyncAppFiles(sourceDir, paths.AppDir);
         var kill = new KillSwitch(paths);
-        if (!kill.IsArmed())
-        {
-            kill.Arm();
-        }
+        var armed = ArmIfFirstInstall(paths, kill);
 
         var shortcut = TryWriteDesktopShortcut(paths.AppDir);
-        var summary = copied
-            ? "self-install copied files and armed kill.switch — not Verify, not send authorization"
-            : "kill.switch armed — app already in place. not Verify, not send authorization";
-        return new SelfInstallResult(paths.AppDir, copied, kill.IsArmed(), shortcut, summary);
+        var summary = armed
+            ? copied
+                ? "self-install copied files and armed kill.switch — not Verify, not send authorization"
+                : "kill.switch armed — app already in place. not Verify, not send authorization"
+            : "kill.switch left tripped — launch will not re-arm it. not Verify, not send authorization";
+        return new SelfInstallResult(paths.AppDir, copied, armed, shortcut, summary);
+    }
+
+    public static bool ArmIfFirstInstall(HostPaths paths, KillSwitch kill)
+    {
+        if (kill.IsArmed())
+        {
+            return true;
+        }
+
+        if (File.Exists(paths.KillSwitch))
+        {
+            return false;
+        }
+
+        using var store = new HostStore(paths);
+        if (!string.Equals(store.ReadHeartbeat().State, nameof(HostState.AwaitingInstall), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        kill.Arm();
+        return true;
     }
 
     public static bool AlreadyInstalledHere(HostPaths paths, string sourceDir)
