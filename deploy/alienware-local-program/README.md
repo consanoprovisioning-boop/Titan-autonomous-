@@ -4,34 +4,22 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 
 ## Need on the PC
 
-- .NET 8 desktop runtime
+- Windows 10 or Windows 11
 - Google Chrome
-- Cursor worker: `agent worker start --verbose` (id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`)
+- The published `dist\titan-chief-win-x64` folder (self-contained — no extra .NET install)
 
-This cloud agent cannot copy files onto the Alienware.
+## Launch
 
-## Install
+Double-click `TitanCOS.exe`. That is the whole launch.
 
-Build with `scripts/publish-win-x64.sh` or, on the Alienware, `scripts\publish-win-x64.cmd`. Then in cmd.exe:
+Chrome opens on this PC. If Eleads asks, sign in as Bordine, Glenn on 28206 or 28546. Titan never types the password. The overlay stays on screen and COS works both rooftops in a continuous local loop. No cloud tokens.
 
-```bat
-deploy\alienware-local-program\INSTALL.cmd C:\path\to\dist\titan-chief-win-x64
-```
+`COS.cmd` is the same one-click start.
 
-Or double-click `INSTALL.cmd` inside `dist\titan-chief-win-x64\`.
+First double-click also copies the program into `%LOCALAPPDATA%\TitanChief\app\` and arms `kill.switch`. `INSTALL.cmd` does that copy without starting COS if you want the files in place first.
 
-That copies into `%LOCALAPPDATA%\TitanChief\app\` and arms `kill.switch`. It does not start the host, does not open Eleads, and does not type a password.
+## Older CHECKIN path
 
-## Check in
+`CHECKIN.cmd` still attaches and writes Verify. It is not required once `TitanCOS.exe` is running. Do not type `verify` by itself. Command Prompt owns that word. Do not type `Titan.cmd` from `C:\Windows\system32`.
 
-Command Prompt’s own command is named `verify`. Typing `verify` by itself never starts Titan.
-
-After install, close every Chrome window and the tray icon, then double-click `CHECKIN.cmd` next to `Titan.ChiefOfStaff.exe`.
-
-Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546. Leave Chrome open. Double-click `CHECKIN.cmd` again. That second run is Verify.
-
-Do not type `Titan.cmd` from `C:\Windows\system32`. Another program on this PC uses that name.
-
-The cloud loop then attaches with `scripts/launch-eleads-cos-loop.sh`. `tick` on the Alienware attaches to that same Chrome and does not close it.
-
-`INSTALL.cmd` and `kill.switch=armed` are not Verify and not send authorization.
+The cloud Linux attach script still refuses to open Eleads and still must not start this exe.

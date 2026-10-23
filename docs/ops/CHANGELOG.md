@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-10-22 — One-click local overlay (`TitanCOS.exe`)
+
+**Decision (Glenn):** Titan COS must launch from a single double-click on Windows 10/11, live locally on the PC, work both rooftops without cloud tokens, and keep the continuous loop running.
+
+**Effect:** `TitanCOS.exe` is the launch app. First double-click self-installs into `%LOCALAPPDATA%\TitanChief\`, arms `kill.switch`, opens the always-on overlay, starts Chrome on CDP 9222, waits for Bordine, Glenn to sign in if needed, then loops both 28206 and 28546. Drafts come only from a local fact ledger. CRM history is still the only send count. Titan still never types the password.
+
+`CHECKIN.cmd` remains. Cloud/Linux agents still must not open Eleads or start the Windows exe. Consent, rooftop, identity, 72h/96h, day-and-time, and the 180-day ownership screen are unchanged.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

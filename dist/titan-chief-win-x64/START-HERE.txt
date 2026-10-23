@@ -1,16 +1,18 @@
-Titan Chief of Staff — Alienware 18
+Titan Chief of Staff — Windows 10/11 local overlay
 
-Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+Double-click TitanCOS.exe. That is the whole launch.
 
-1. On this PC, start the Cursor worker and leave it running: cursor worker start
-2. Double-click INSTALL.cmd once if TitanChief is not installed yet.
-   INSTALL.cmd does not start the program and does not open Eleads.
-3. Close every Chrome window and the tray icon.
-4. Double-click CHECKIN.cmd.
-5. Sign into Eleads in that Chrome window as Bordine, Glenn on store 28206 or 28546.
-6. Double-click CHECKIN.cmd again. That second run is Verify. Leave Chrome open.
-7. The cloud COS loop attaches after Verify. Do not type Titan.cmd from C:\Windows\system32.
+Chrome opens. If Eleads asks, sign in as Bordine, Glenn on 28206 or 28546.
+Titan never types the password. After that session is live, the overlay stays on
+screen and COS works both rooftops in a continuous local loop. No cloud tokens.
 
-Needs the .NET 8 desktop runtime and Google Chrome.
-INSTALL.cmd is not send authorization. Titan never types the password.
+COS.cmd does the same one-click start if you prefer a script.
 
+Optional older path (not required once TitanCOS.exe is on the PC):
+  INSTALL.cmd copies files into %LOCALAPPDATA%\TitanChief\app and arms kill.switch.
+  TitanCOS.exe also self-installs on first double-click.
+
+Do not type verify by itself. Command Prompt owns that word.
+Do not type Titan.cmd from C:\Windows\system32.
+Rooftops 28206 and 28546 only. Never 6220.
+Needs Google Chrome. The published folder is self-contained — no extra .NET install.

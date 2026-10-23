@@ -4,7 +4,7 @@ namespace Titan.ChiefOfStaff.Eleads;
 
 public sealed class WorkTick
 {
-    public async Task<string> RunAsync(IPage page, HostStore store, string rooftop, DateTimeOffset nowEt)
+    public async Task<string> RunAsync(IPage page, HostStore store, LearningStore learning, string rooftop, DateTimeOffset nowEt)
     {
         if (Policy.IsForbiddenRooftop(rooftop) || !Policy.IsAllowedRooftop(rooftop))
         {
@@ -24,35 +24,60 @@ public sealed class WorkTick
         if (organizer is null)
         {
             store.Log("organizer", "open", "not visible", rooftop);
-            return "Daily Organizer is not visible. In Eleads set status Open and contact type All, then tick again. No send was made.";
+            return "Daily Organizer is not visible. In Eleads set status Open and contact type All, then the next cycle retries. No send was made.";
         }
 
-        var smsOpen = Policy.SmsOpen(nowEt);
+        var started = Environment.TickCount;
         var seen = 0;
         var held = 0;
         var ready = 0;
+        var sent = 0;
+        var proof = new List<string>();
+        string? workedQueue = null;
         foreach (var queue in WorkOrder.MandatoryOrder)
         {
             store.WriteHeartbeat(store.ReadHeartbeat() with { State = "Tick" + queue });
             var rows = ParseVisibleRows(organizer, queue);
+            var unfinished = rows.Where(row => WorkOrder.HoldReason(row, nowEt) is null).ToArray();
             foreach (var row in rows)
             {
                 seen++;
-                var hold = WorkOrder.HoldReason(row, nowEt);
-                if (hold is not null)
+                if (WorkOrder.HoldReason(row, nowEt) is not null)
                 {
                     held++;
-                    store.Log(queue.ToString(), "hold", hold, rooftop, row.CustomerKey);
-                    continue;
                 }
-
-                ready++;
-                var channel = smsOpen ? "SMS+email window" : "email-only window";
-                store.Log(queue.ToString(), "qualified", $"{channel}; no send from a list row. Eligible work still needs consent, identity, and CRM history under Bordine, Glenn.", rooftop, row.CustomerKey);
+                else
+                {
+                    ready++;
+                }
             }
+
+            if (unfinished.Length == 0)
+            {
+                learning.RecordExperience(rooftop, queue.ToString(), 0, 0, 0, rows.Count, "rank empty");
+                continue;
+            }
+
+            workedQueue = queue.ToString();
+            var outcome = await AutonomousWork.TryFirstEligibleAsync(page, store, learning, rooftop, nowEt, unfinished);
+            sent += outcome.Sent;
+            proof.AddRange(outcome.Proof);
+            var drafts = unfinished.Select(row =>
+            {
+                var ledger = FactLedger.FromHistory(row.HistoryText, rooftop, row.AssignedTo);
+                return Policy.SmsOpen(nowEt)
+                    ? GroundedDraft.Sms(ledger, nowEt, row.HistoryText)
+                    : GroundedDraft.Email(ledger, nowEt, row.HistoryText);
+            }).ToArray();
+            var specialists = SpecialistCore.Run(rooftop, rows, nowEt, drafts, proof);
+            store.Log(queue.ToString(), "specialists", string.Join(",", specialists.Select(s => s.Specialist + ":" + s.Status)), rooftop);
+            learning.RecordExperience(rooftop, queue.ToString(), Environment.TickCount - started, outcome.Qualified, outcome.Sent, outcome.Held, outcome.Summary);
+            var smsOpen = Policy.SmsOpen(nowEt);
+            return $"Tick {rooftop} {queue}: {seen} visible, {ready} qualified, {held} held, {sent} CRM-proven send(s). SMS {(smsOpen ? "open" : "closed")}. {outcome.Summary}";
         }
 
-        return $"Tick {rooftop}: {seen} visible rows, {ready} qualified, {held} held. Sends only after a live composer is filled from the profile and CRM history shows the completed activity. SMS {(smsOpen ? "open" : "closed")}.";
+        learning.RecordExperience(rooftop, workedQueue ?? "none", Environment.TickCount - started, ready, sent, held, "all ranks clear");
+        return $"Tick {rooftop}: {seen} visible rows, {ready} qualified, {held} held, {sent} CRM-proven send(s). All ranks clear this pass. SMS {(Policy.SmsOpen(nowEt) ? "open" : "closed")}.";
     }
 
     public static IReadOnlyList<OrganizerRow> ParseVisibleRows(string organizerText, WorkQueue queue)

@@ -1,94 +1,55 @@
-# Alienware-18 — Titan.ChiefOfStaff install-without-launch
+# Alienware-18 — Titan COS local overlay
 
-Glenn-approved signed-install copy only. **NO launch. NO live Eleads.**
+This is the source runbook for the self-contained `win-x64` Release publish of Titan COS (`net8.0`). Windows 10 and Windows 11. No extra .NET install.
 
-This is the source runbook for the framework-dependent `win-x64` Release publish of `Titan.ChiefOfStaff` (`net8.0`). The Alienware host must already have the .NET 8 runtime (or .NET 8 desktop runtime) installed.
+The launch publish is `dist/titan-chief-win-x64/`, produced by `scripts/publish-win-x64.sh` or `scripts/publish-win-x64.cmd`. **On the PC, double-click `TitanCOS.exe`.** That one click self-installs if needed, opens the overlay, starts Chrome, and puts COS to work once Bordine, Glenn is signed in. Titan never types the password.
 
-The launch publish is `dist/titan-chief-win-x64/`, produced by `scripts/publish-win-x64.sh` on a build machine or `scripts/publish-win-x64.cmd` on the Alienware. Install with `deploy/alienware-local-program/INSTALL.cmd` (also copied into the publish folder). `INSTALL.cmd` does not start `Titan.ChiefOfStaff.exe` and does not open Eleads. An earlier incomplete signed folder is archived at `deploy/archive/incomplete-signed-drop/`. Do not use PowerShell self-extractors. Do not set execution policy to bypass. Do not create Desktop or Start Menu shortcuts.
+`INSTALL.cmd` still copies files and arms `kill.switch` without starting COS if you want the files in place first. It does not open Eleads. An earlier incomplete signed folder is archived at `deploy/archive/incomplete-signed-drop/`. Do not use PowerShell self-extractors. Do not set execution policy to bypass.
 
 ## Destinations
 
 | Role | Path |
 | --- | --- |
 | Binary / app files | `%LOCALAPPDATA%\TitanChief\app\` |
-| Data root (stores, heartbeat, locks) | `%LOCALAPPDATA%\TitanChief\` |
+| Data root (stores, heartbeat, locks, overlay, learning) | `%LOCALAPPDATA%\TitanChief\` |
 | Kill switch | `%LOCALAPPDATA%\TitanChief\kill.switch` |
-| Browser profile (do not create or use now) | `%LOCALAPPDATA%\TitanChief\browser` |
+| Browser profile (Titan COS Chrome) | `%LOCALAPPDATA%\TitanChief\browser` |
 
 Do not use `ProgramData`. Do not read or write any prior agent data tree under `%LOCALAPPDATA%`.
 
-## Copy steps (Windows Command Prompt)
+## Copy steps (optional)
 
-Do this in `cmd.exe`. Do not use a script that launches the host.
+`TitanCOS.exe` self-installs on first double-click. If you want a manual copy first, do this in `cmd.exe`:
 
 1. Review `dist/titan-chief-win-x64/` and `SHA256SUMS.txt` on a trusted machine. The incomplete archive under `deploy/archive/incomplete-signed-drop/` is not the launch build. Its old exe hash `82c2a986af7473244fdb57be971e7448b2ae14a8f010b04a74402ed96332ee82` is history only.
-2. Create the app directory:
+2. Double-click `INSTALL.cmd` inside the publish folder, or:
 
 ```bat
 mkdir "%LOCALAPPDATA%\TitanChief\app"
-```
-
-3. Copy every file from the complete publish folder into the app directory (adjust the source path to the folder you received):
-
-```bat
 xcopy /E /I /Y "Z:\path\to\dist\titan-chief-win-x64\*" "%LOCALAPPDATA%\TitanChief\app\"
-```
-
-4. Arm the kill switch with exactly the payload `armed` (creates the data root if needed):
-
-```bat
-mkdir "%LOCALAPPDATA%\TitanChief"
 echo armed>"%LOCALAPPDATA%\TitanChief\kill.switch"
+certutil -hashfile "%LOCALAPPDATA%\TitanChief\app\TitanCOS.exe" SHA256
 ```
 
-5. Confirm the kill file is `armed` only:
-
-```bat
-type "%LOCALAPPDATA%\TitanChief\kill.switch"
-```
-
-Expected: a line that is `armed`.
-
-6. Optional: verify `Titan.ChiefOfStaff.exe` SHA-256 against `SHA256SUMS.txt` (CertUtil, no start):
-
-```bat
-certutil -hashfile "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" SHA256
-```
-
-Expected launch exe SHA-256: `84ce4d54d1419f9ccaf0342e0360316eeb7dfea8788c9cee29f0f35ec37280cb`
-
-That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt`. Do not compare the launch exe to the archived incomplete-drop hash.
-
-## STOP
-
-- Do **not** start `Titan.ChiefOfStaff.exe`.
-- Do **not** run `dotnet`, `dotnet run`, or any host command.
-- Do **not** open Eleads.
-- Do **not** create Desktop or Start Menu shortcuts.
-- Do **not** use a PowerShell self-extractor.
-- Do **not** set execution policy to bypass.
-- Do **not** type an Eleads password (Titan never stores it and never types it).
-- Reset of a tripped kill switch later still requires Glenn to write `armed` and a new successful Verify. This install step only copies files and arms the switch. It is not Verify and not a send authorization.
+Hash `TitanCOS.exe` against `SHA256SUMS.txt` after each publish.
 
 ## Cloud / Linux agents
 
-This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `eleadcrm.com` from a cloud agent to “stand in” for Titan. One live Eleads session belongs to the Alienware Titan host after Glenn Verify, not to Cursor Playwright.
+This publish is `win-x64`. Do not install it on a Linux cloud VM. Do not open `eleadcrm.com` from a cloud agent to stand in for Titan. Do not start `TitanCOS.exe` or `Titan.ChiefOfStaff.exe` from this cloud host. One live Eleads session belongs to the Alienware Titan host after Glenn Verify.
 
 ## Local program (this repo)
 
-The host source is `src/Titan.ChiefOfStaff/`. The win-x64 publish is `dist/titan-chief-win-x64/`.
+The host source is `src/Titan.ChiefOfStaff/` plus `src/TitanCOS/`. The win-x64 publish is `dist/titan-chief-win-x64/`.
 
 ## Launch sequence
 
 Alienware-18, Glenn:
 
-1. Leave `agent worker start --verbose` running. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`. Do not pass `--name`. The Windows `cursor` command does not start this worker.
-2. If the app is not installed, double-click `INSTALL.cmd` once (from `dist\titan-chief-win-x64\`, or `deploy\alienware-local-program\INSTALL.cmd` with that folder as the argument).
-3. Close every Chrome window and the tray icon.
-4. Double-click `CHECKIN.cmd`.
-5. Sign into Eleads in that Chrome window as Bordine, Glenn on 28206 or 28546. Titan never types the password.
-6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify` by itself — Command Prompt owns that word.
-7. Leave Chrome open on CDP 9222.
+1. Double-click `TitanCOS.exe` (from the published folder, or from `%LOCALAPPDATA%\TitanChief\app\` after the first run).
+2. If Eleads asks, sign in as Bordine, Glenn on 28206 or 28546. Titan never types the password.
+3. Leave the overlay and that Chrome window up. COS works both rooftops in a continuous local loop.
+
+`COS.cmd` is the same one-click start. `CHECKIN.cmd` remains as the older attach path. Do not type `verify` by itself. Do not type `Titan.cmd` from `C:\Windows\system32`.
 
 Cloud Cursor agent:
 
@@ -96,4 +57,4 @@ Cloud Cursor agent:
 scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
 ```
 
-Refresh `worker-snapshot.json` from `list-self-hosted-workers` `scope=all` `status=all` immediately before that command. The script does not open Eleads. Exit 3 records a blocked cycle. Exit 0 means the worker is online and Verify is on file.
+Refresh `worker-snapshot.json` from `list-self-hosted-workers` `scope=all` `status=all` immediately before that command. The script does not open Eleads and does not start the Windows exe. Exit 3 records a blocked cycle. Exit 0 means the worker is online and Verify is on file.

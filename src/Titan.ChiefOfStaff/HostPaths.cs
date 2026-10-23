@@ -10,6 +10,10 @@ public sealed class HostPaths
     public string Heartbeat { get; }
     public string VerifyMarker { get; }
     public string SessionLock { get; }
+    public string OverlayJson { get; }
+    public string OverlayText { get; }
+    public string LearningDatabase { get; }
+    public string StopFlag { get; }
 
     public HostPaths(string? dataRoot = null)
     {
@@ -27,6 +31,10 @@ public sealed class HostPaths
         Heartbeat = Path.Combine(DataRoot, "heartbeat.json");
         VerifyMarker = Path.Combine(DataRoot, "verify.json");
         SessionLock = Path.Combine(DataRoot, "session.lock");
+        OverlayJson = Path.Combine(DataRoot, "overlay.json");
+        OverlayText = Path.Combine(DataRoot, "overlay.txt");
+        LearningDatabase = Path.Combine(DataRoot, "learning.sqlite");
+        StopFlag = Path.Combine(DataRoot, "stop.flag");
     }
 
     public void EnsureDataTree()
