@@ -24,6 +24,63 @@ public class LocalCosTests
     }
 
     [Fact]
+    public void Launch_prepare_does_not_rearm_a_tripped_kill_switch()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-trip-" + Guid.NewGuid().ToString("n"));
+        var paths = new HostPaths(root);
+        paths.EnsureDataTree();
+        File.WriteAllText(paths.KillSwitch, "tripped" + Environment.NewLine);
+        using (var store = new HostStore(paths))
+        {
+            store.WriteHeartbeat(new Heartbeat(nameof(HostState.VerifiedIdle), "28206", null, null, null, false));
+        }
+
+        var kill = new KillSwitch(paths);
+        var result = LaunchHost.Prepare(paths, kill, root);
+        Assert.False(result.Armed);
+        Assert.Equal("tripped", kill.Read());
+        Assert.Contains("tripped", result.Summary, StringComparison.OrdinalIgnoreCase);
+        Directory.Delete(root, recursive: true);
+    }
+
+    [Fact]
+    public void Launch_prepare_does_not_recreate_a_deleted_kill_switch()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-delkill-" + Guid.NewGuid().ToString("n"));
+        var paths = new HostPaths(root);
+        using (var store = new HostStore(paths))
+        {
+            store.WriteHeartbeat(new Heartbeat(nameof(HostState.AwaitingVerify), null, null, null, "stopped", false));
+        }
+
+        var kill = new KillSwitch(paths);
+        var result = LaunchHost.Prepare(paths, kill, root);
+        Assert.False(File.Exists(paths.KillSwitch));
+        Assert.False(result.Armed);
+        Assert.Equal("missing", kill.Read());
+        Directory.Delete(root, recursive: true);
+    }
+
+    [Fact]
+    public void Explicit_install_still_rearms_a_tripped_switch()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-rearm-" + Guid.NewGuid().ToString("n"));
+        var paths = new HostPaths(root);
+        paths.EnsureDataTree();
+        File.WriteAllText(paths.KillSwitch, "tripped" + Environment.NewLine);
+        using (var store = new HostStore(paths))
+        {
+            store.WriteHeartbeat(new Heartbeat(nameof(HostState.VerifiedIdle), "28206", null, null, null, false));
+        }
+
+        var kill = new KillSwitch(paths);
+        Assert.False(SelfInstall.ArmIfFirstInstall(paths, kill));
+        Assert.Equal(HostState.AwaitingVerify, HostStateMachine.AfterInstall(kill));
+        Assert.Equal("armed", kill.Read());
+        Directory.Delete(root, recursive: true);
+    }
+
+    [Fact]
     public void Launch_prepare_writes_overlay_without_chrome()
     {
         var root = Path.Combine(Path.GetTempPath(), "titan-prep-" + Guid.NewGuid().ToString("n"));
@@ -155,9 +212,18 @@ public class LocalCosTests
     {
         Assert.False(AutonomousWork.LooksLikeSendProof("preview only", "email"));
         Assert.False(AutonomousWork.LooksLikeSendProof("Email queued", "email"));
+        Assert.False(AutonomousWork.LooksLikeSendProof("Bordine, Glenn\nSend Email", "email"));
+        Assert.False(AutonomousWork.LooksLikeSendProof("Glenn\nSend SMS", "SMS"));
         Assert.True(AutonomousWork.LooksLikeSendProof("Bordine, Glenn\nManual email completed via system.", "email"));
         Assert.True(AutonomousWork.LooksLikeSendProof("Glenn\nSMS text completed via system.", "SMS"));
         Assert.False(AutonomousWork.LooksLikeSendProof("The TKO Autogroup (6220) email", "email"));
+
+        var prior = "Bordine, Glenn\nManual email completed via system.\nSend Email";
+        Assert.False(AutonomousWork.LooksLikeNewSendProof(prior, prior, "email"));
+        Assert.True(AutonomousWork.LooksLikeNewSendProof(prior, prior + "\nManual email completed via system.", "email"));
+        var priorSms = "Glenn\nSMS text completed via system.";
+        Assert.False(AutonomousWork.LooksLikeNewSendProof(priorSms, priorSms + "\nSend SMS", "SMS"));
+        Assert.True(AutonomousWork.LooksLikeNewSendProof(priorSms, priorSms + "\nSMS text completed via system.", "SMS"));
     }
 
     [Fact]
