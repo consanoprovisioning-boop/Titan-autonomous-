@@ -27,7 +27,7 @@ Preserved checks, never skipped:
 - No invented facts. CRM history is proof
 - This cloud Linux agent must not open `eleadcrm.com`
 
-Do not type or store the Eleads password. Do not start `Titan.ChiefOfStaff.exe`. `INSTALL.cmd` and `kill.switch=armed` are not Verify.
+Do not type or store the Eleads password. Do not start `Titan.ChiefOfStaff.exe` or `TitanCOS.exe` from this cloud host. `INSTALL.cmd` and `kill.switch=armed` are not Verify.
 
 ## Where you run
 
@@ -48,13 +48,11 @@ One sequence. The cloud command refuses to open Eleads and records ready or bloc
 
 On Alienware-18, Glenn:
 
-1. Leave a terminal open on `agent worker start --verbose`. Worker id `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`.
-2. If `%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe` is missing, double-click `dist\titan-chief-win-x64\INSTALL.cmd` once. That copies files and arms `kill.switch`. It does not start the host and it does not open Eleads.
-3. Close every Chrome window, including the tray icon.
-4. Double-click `CHECKIN.cmd` beside the host executable.
-5. Sign in as Bordine, Glenn on 28206 or 28546. The host does not type the password.
-6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify`.
-7. Leave that Chrome window open on CDP 9222.
+1. Double-click `TitanCOS.exe` (from `dist\titan-chief-win-x64\` or `%LOCALAPPDATA%\TitanChief\app\`). That is the full launch.
+2. If Eleads asks, sign in as Bordine, Glenn on 28206 or 28546. The host does not type the password.
+3. Leave the overlay and that Chrome window open. COS works both rooftops in a continuous local loop. No cloud tokens.
+
+`CHECKIN.cmd` remains as the older attach path. Do not type `verify`. Do not start `TitanCOS.exe` from this cloud Linux host.
 
 On this cloud Linux agent, after that session exists (and on every attach while it does not):
 

@@ -14,7 +14,7 @@ Source packet (preserved as filed, not rewritten): Customer Traffic and Appointm
 
 Glenn’s Oct 5, 2026 written direction “include autonomous workflow no approvals required” is Version 1.1. It replaces per-message / per-batch / per-task / per-appointment exact-draft pauses in this live law.
 
-After a **live Glenn-verified Eleads session** exists (Alienware-18, `CHECKIN.cmd`, Verify complete, Chrome CDP 9222), execute automatically:
+After a **live Glenn-verified Eleads session** exists (Alienware-18, `TitanCOS.exe` or `CHECKIN.cmd`, Verify complete, Chrome CDP 9222), execute automatically:
 
 - Routine eligible email and SMS
 - CRM notes
@@ -41,16 +41,16 @@ Still required before any send or appointment save:
 
 ## Host boundary
 
-One live Eleads session belongs to the **Alienware Titan.ChiefOfStaff** host after Glenn Verify. Titan never stores or types the Eleads password.
+One live Eleads session belongs to the **Alienware Titan COS** host after Glenn Verify. Titan never stores or types the Eleads password. On that PC, double-click `TitanCOS.exe` is the full launch.
 
 This Linux cloud agent must not:
 
 - open `eleadcrm.com`
-- start `Titan.ChiefOfStaff.exe`
+- start `Titan.ChiefOfStaff.exe` or `TitanCOS.exe`
 - run PowerShell self-extractors or `Set-ExecutionPolicy Bypass`
 - type an Eleads password
 
-If Alienware-18 is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach.
+If Alienware-18 is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to double-click `TitanCOS.exe` (not `verify`, not `C:\Windows\system32\Titan.cmd`), sign in as Bordine, Glenn if Eleads asks, and leave the overlay up. Then attach.
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 

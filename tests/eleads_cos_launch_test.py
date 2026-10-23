@@ -54,7 +54,7 @@ class LaunchGuardTests(unittest.TestCase):
     def test_cloud_host_refuses_to_open_eleads(self) -> None:
         source = (ROOT / "scripts" / "eleads_cos_cloud_launch.py").read_text(encoding="utf-8")
         wrapper = (ROOT / "scripts" / "launch-eleads-cos-loop.sh").read_text(encoding="utf-8")
-        for banned in ("urlopen", "webbrowser", "xdg-open", "curl ", "Titan.ChiefOfStaff.exe"):
+        for banned in ("urlopen", "webbrowser", "xdg-open", "curl ", "Titan.ChiefOfStaff.exe", "TitanCOS.exe"):
             self.assertNotIn(banned, source)
             self.assertNotIn(banned, wrapper)
         with self.assertRaises(launch.EleadsOpenRefused):

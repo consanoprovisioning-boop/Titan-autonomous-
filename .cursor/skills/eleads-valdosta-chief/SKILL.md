@@ -23,14 +23,14 @@ Exact-draft is **not** a hard stop under V1.1. The original PDF/RTF/source packe
 
 - Rooftops: **28206** and **28546** only. Never **6220**.
 - Identity: **Bordine, Glenn** on every CRM action.
-- Cloud/Linux agent: do **not** open Eleads, do **not** type the Eleads password, do **not** run PowerShell self-extractors, do **not** start `Titan.ChiefOfStaff.exe`.
+- Cloud/Linux agent: do **not** open Eleads, do **not** type the Eleads password, do **not** run PowerShell self-extractors, do **not** start `Titan.ChiefOfStaff.exe` or `TitanCOS.exe`.
 - One live Eleads session: Alienware Chrome on CDP 9222 after Glenn double-clicks `CHECKIN.cmd` (not verify, not `C:\Windows\system32\Titan.cmd`) and completes Verify. Do not tell him to type `verify` — Command Prompt owns that word. Leave Chrome open. `tick` attaches and must not kill Chrome.
 - `INSTALL.cmd` and `kill.switch=armed` are not Verify and not send authorization.
 - Titan never stores or types the password.
 
 If Alienware-18 is offline or not Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
 
-Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It checks the worker snapshot, refuses to open Eleads, and records ready or blocked.
+Launch path: double-click `TitanCOS.exe` on Alienware-18 (`docs/deploy/alienware-18.md`). Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It checks the worker snapshot, refuses to open Eleads, and records ready or blocked. Do not start `TitanCOS.exe` from this cloud Linux host.
 
 ## Work order (while session live)
 
