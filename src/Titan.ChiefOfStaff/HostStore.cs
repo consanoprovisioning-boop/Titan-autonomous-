@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 
 namespace Titan.ChiefOfStaff;
@@ -73,20 +74,54 @@ public sealed class HostStore : IDisposable
         cmd.ExecuteNonQuery();
     }
 
-    public void Log(string queue, string action, string result, string? rooftop = null, string? customerKey = null)
+    public void Log(string queue, string action, string result, string? rooftop = null, string? customerKey = null, DateTimeOffset? at = null)
     {
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
             INSERT INTO work_log (at_et, rooftop, customer_key, queue, action, result)
             VALUES ($at, $rooftop, $customer, $queue, $action, $result)
             """;
-        cmd.Parameters.AddWithValue("$at", EasternClock.Now().ToString("o"));
+        cmd.Parameters.AddWithValue("$at", (at ?? EasternClock.Now()).ToString("o"));
         cmd.Parameters.AddWithValue("$rooftop", (object?)rooftop ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$customer", (object?)customerKey ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$queue", queue);
         cmd.Parameters.AddWithValue("$action", action);
         cmd.Parameters.AddWithValue("$result", result);
         cmd.ExecuteNonQuery();
+    }
+
+    public DateTimeOffset? LatestSendAttemptAt(string? rooftop, string? customerKey)
+    {
+        if (string.IsNullOrWhiteSpace(rooftop) || string.IsNullOrWhiteSpace(customerKey))
+        {
+            return null;
+        }
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = """
+            SELECT at_et FROM work_log
+            WHERE rooftop = $rooftop AND customer_key = $customer
+              AND (
+                    action = 'send-attempt'
+                    OR (action = 'send' AND result IN (
+                        'SMS text completed via system.',
+                        'Manual email completed via system.'))
+                  )
+            ORDER BY id DESC
+            LIMIT 1
+            """;
+        cmd.Parameters.AddWithValue("$rooftop", rooftop);
+        cmd.Parameters.AddWithValue("$customer", customerKey);
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        var text = reader.GetString(0);
+        return DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var at)
+            ? at
+            : DateTimeOffset.MaxValue;
     }
 
     public IReadOnlyList<string> RecentLogs(int take)

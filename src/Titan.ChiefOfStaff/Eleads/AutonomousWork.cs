@@ -20,6 +20,18 @@ public static class AutonomousWork
         "Send"
     ];
 
+    public static readonly TimeSpan OwnCustomerMinInterval = TimeSpan.FromHours(12);
+
+    public static string? RecentSendSkip(DateTimeOffset? lastAttemptAt, DateTimeOffset nowEt)
+    {
+        if (lastAttemptAt is null || nowEt - lastAttemptAt.Value >= OwnCustomerMinInterval)
+        {
+            return null;
+        }
+
+        return "12h spacing — this customer already has a send attempt. Not clicking Send again.";
+    }
+
     public static async Task<WorkOutcome> TryFirstEligibleAsync(
         IPage page,
         HostStore store,
@@ -37,6 +49,14 @@ public static class AutonomousWork
             {
                 held++;
                 store.Log(row.Queue.ToString(), "hold", hold, rooftop, row.CustomerKey);
+                continue;
+            }
+
+            var spacing = RecentSendSkip(store.LatestSendAttemptAt(rooftop, row.CustomerKey), nowEt);
+            if (spacing is not null)
+            {
+                held++;
+                store.Log(row.Queue.ToString(), "hold", spacing, rooftop, row.CustomerKey);
                 continue;
             }
 
@@ -120,6 +140,7 @@ public static class AutonomousWork
             return new WorkOutcome(1, 0, 0, "Send control not found. No send counted.", []);
         }
 
+        store.Log(row.Queue.ToString(), "send-attempt", "Send clicked; CRM proof still required", rooftop, row.CustomerKey);
         await page.WaitForTimeoutAsync(800);
         var proofBody = await SafeBodyAsync(page);
         if (!LooksLikeNewSendProof(beforeSend, proofBody, draft.Channel))
