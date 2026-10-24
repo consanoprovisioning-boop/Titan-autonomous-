@@ -265,4 +265,36 @@ public class LocalCosTests
             Directory.Delete(root, recursive: true);
         }
     }
+
+    [Fact]
+    public void Recent_send_attempt_blocks_another_click_for_12_hours()
+    {
+        var now = EasternClock.AtLocal(2026, 10, 16, 10, 0);
+        Assert.Null(AutonomousWork.RecentSendSkip(null, now));
+        Assert.Null(AutonomousWork.RecentSendSkip(now.AddHours(-12), now));
+        Assert.NotNull(AutonomousWork.RecentSendSkip(now.AddHours(-12).AddMinutes(1), now));
+        Assert.NotNull(AutonomousWork.RecentSendSkip(now.AddMinutes(-15), now));
+
+        var root = Path.Combine(Path.GetTempPath(), "titan-spacing-" + Guid.NewGuid().ToString("n"));
+        var paths = new HostPaths(root);
+        using (var store = new HostStore(paths))
+        {
+            store.Log("NewLeads", "send", "Send control not found — no send counted", "28206", "Pat new lead", now.AddMinutes(-10));
+            store.Log("NewLeads", "hold", "12h spacing — this customer already has a send attempt. Not clicking Send again.", "28206", "Pat new lead", now.AddMinutes(-5));
+            Assert.Null(store.LatestSendAttemptAt("28206", "Pat new lead"));
+
+            store.Log("NewLeads", "send", "Manual email completed via system.", "28206", "Pat new lead", now.AddHours(-13));
+            Assert.Null(AutonomousWork.RecentSendSkip(store.LatestSendAttemptAt("28206", "Pat new lead"), now));
+
+            store.Log("NewLeads", "send-attempt", "Send clicked; CRM proof still required", "28206", "Pat new lead", now.AddMinutes(-15));
+            Assert.NotNull(AutonomousWork.RecentSendSkip(store.LatestSendAttemptAt("28206", "Pat new lead"), now));
+
+            store.Log("NewLeads", "send", "SMS text completed via system.", "28206", "Other customer", now.AddMinutes(-5));
+            Assert.Null(store.LatestSendAttemptAt("28546", "Pat new lead"));
+            Assert.NotNull(AutonomousWork.RecentSendSkip(store.LatestSendAttemptAt("28206", "Other customer"), now));
+            Assert.NotNull(AutonomousWork.RecentSendSkip(store.LatestSendAttemptAt("28206", "Pat new lead"), now));
+        }
+
+        Directory.Delete(root, recursive: true);
+    }
 }
