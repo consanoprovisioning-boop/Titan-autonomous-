@@ -122,4 +122,23 @@ public class PolicyTests
         var glenn = new OrganizerRow("Pat", "Bordine, Glenn", WorkQueue.NewLeads, now.AddHours(-2), now, false, "note yesterday");
         Assert.Null(WorkOrder.HoldReason(glenn, now));
     }
+
+    [Fact]
+    public void Nissan_Titan_vehicle_does_not_skip_the_other_consultant_hold()
+    {
+        var now = new DateTimeOffset(2026, 10, 16, 10, 0, 0, TimeSpan.FromHours(-4));
+        var other = WorkTick.ParseVisibleRows(
+            "Internet new lead Nissan Titan assigned to Smith, Pat",
+            WorkQueue.NewLeads);
+        var row = Assert.Single(other);
+        Assert.False(row.TitanTouched);
+        Assert.Contains("96h", WorkOrder.HoldReason(row, now) ?? "");
+
+        var own = WorkTick.ParseVisibleRows(
+            "Internet new lead Nissan Titan assigned to Bordine, Glenn",
+            WorkQueue.NewLeads);
+        var glenn = Assert.Single(own);
+        Assert.False(glenn.TitanTouched);
+        Assert.Null(WorkOrder.HoldReason(glenn, now));
+    }
 }

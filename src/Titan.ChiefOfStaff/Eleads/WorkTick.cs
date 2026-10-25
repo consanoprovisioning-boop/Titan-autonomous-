@@ -96,7 +96,8 @@ public sealed class WorkTick
                 Queue: queue,
                 LastContact: null,
                 OpenedAt: null,
-                TitanTouched: raw.Contains("Titan", StringComparison.OrdinalIgnoreCase),
+                // "Titan" is the Nissan truck. The raw line is not proof this agent already worked the lead.
+                TitanTouched: false,
                 HistoryText: raw));
         }
 
