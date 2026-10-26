@@ -139,26 +139,98 @@ public sealed class FactLedger
 
     public static string? QuoteDayAndTime(string history)
     {
-        if (!Policy.HasCustomerDayAndTime(history))
+        if (string.IsNullOrWhiteSpace(history) || !Policy.HasCustomerDayAndTime(history))
         {
             return null;
         }
 
-        var day = Regex.Match(
-            history,
-            @"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b",
-            RegexOptions.IgnoreCase);
-        var time = Regex.Match(
-            history,
-            @"\b(?:[01]?\d|2[0-3]):[0-5]\d\b|\b(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b",
-            RegexOptions.IgnoreCase);
-        if (!day.Success || !time.Success)
+        // The first date on a CRM page and the first clock time are not one appointment.
+        // Confirm only a day and a time the customer wrote in the same short phrase.
+        string? quoted = null;
+        var quotedAt = -1;
+        foreach (Match day in DayToken.Matches(history))
         {
-            return null;
+            foreach (Match time in TimeToken.Matches(history))
+            {
+                if (!TryLinkedSpan(history, day, time, out var start, out var end))
+                {
+                    continue;
+                }
+
+                if (HoursLabel.IsMatch(Window(history, start, end)))
+                {
+                    continue;
+                }
+
+                if (start < quotedAt)
+                {
+                    continue;
+                }
+
+                quoted = $"{day.Value} {time.Value}";
+                quotedAt = start;
+            }
         }
 
-        return $"{day.Value} {time.Value}";
+        return quoted;
     }
+
+    private static bool TryLinkedSpan(string history, Match day, Match time, out int start, out int end)
+    {
+        start = 0;
+        end = 0;
+        int betweenStart;
+        int betweenEnd;
+        if (day.Index + day.Length <= time.Index)
+        {
+            betweenStart = day.Index + day.Length;
+            betweenEnd = time.Index;
+            start = day.Index;
+            end = time.Index + time.Length;
+        }
+        else if (time.Index + time.Length <= day.Index)
+        {
+            betweenStart = time.Index + time.Length;
+            betweenEnd = day.Index;
+            start = time.Index;
+            end = day.Index + day.Length;
+        }
+        else
+        {
+            return false;
+        }
+
+        if (betweenEnd - betweenStart > 24)
+        {
+            return false;
+        }
+
+        var between = history.Substring(betweenStart, betweenEnd - betweenStart);
+        return DayTimeLink.IsMatch(between);
+    }
+
+    private static string Window(string history, int start, int end)
+    {
+        var from = Math.Max(0, start - 40);
+        var to = Math.Min(history.Length, end + 40);
+        return history.Substring(from, to - from);
+    }
+
+    private static readonly Regex DayToken = new(
+        @"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    private static readonly Regex TimeToken = new(
+        @"\b(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b|\b(?:[01]?\d|2[0-3]):[0-5]\d\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    private static readonly Regex DayTimeLink = new(
+        @"\b(?:at|on|around)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    private static readonly Regex HoursLabel = new(
+        @"\bhours\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     private static bool IsGeneric(string name)
         => name.Equals("Customer", StringComparison.OrdinalIgnoreCase)

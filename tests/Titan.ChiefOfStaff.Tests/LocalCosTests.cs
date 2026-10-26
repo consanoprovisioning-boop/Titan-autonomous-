@@ -149,6 +149,38 @@ public class LocalCosTests
     }
 
     [Fact]
+    public void Draft_confirms_only_a_day_and_time_the_customer_wrote_together()
+    {
+        var now = EasternClock.AtLocal(2026, 10, 16, 10, 0);
+        var asked = "Customer: Pat asked about a Sentra. Saturday at 10:30 AM?";
+        var askedLedger = FactLedger.FromHistory(asked, "28206", "Bordine, Glenn");
+        Assert.Equal("Saturday 10:30 AM", askedLedger.Get("customerDayTime"));
+        var confirm = GroundedDraft.Sms(askedLedger, now, asked);
+        Assert.True(confirm.Ok);
+        Assert.Contains("I have you down for Saturday 10:30 AM", confirm.Body);
+
+        Assert.Equal("Friday 3:00 PM", FactLedger.QuoteDayAndTime("She can do 3:00 PM on Friday."));
+
+        var activity = """
+            Valdosta Nissan
+            Bordine, Glenn
+            Monday, October 26, 2026
+            10/26/2026 2:30 PM Phone call
+            Store hours 9:00 AM - 6:30 PM
+            Customer: Pat asked about a Sentra.
+            """;
+        Assert.Null(FactLedger.QuoteDayAndTime(activity));
+        Assert.Null(FactLedger.QuoteDayAndTime("Called Monday about the Sentra.\nLeft a voicemail at 2:30 PM."));
+        var ledger = FactLedger.FromHistory(activity, "28206", "Bordine, Glenn");
+        Assert.Null(ledger.Get("customerDayTime"));
+        var email = GroundedDraft.Email(ledger, now, activity);
+        Assert.True(email.Ok);
+        Assert.DoesNotContain("I have you down", email.Body);
+        Assert.Contains("Pat", email.Body);
+        Assert.Contains("Sentra", email.Body);
+    }
+
+    [Fact]
     public void Grounded_draft_blocks_missing_history_and_forbidden_copy()
     {
         var now = EasternClock.AtLocal(2026, 10, 16, 10, 0);
