@@ -140,5 +140,17 @@ public class PolicyTests
         var glenn = Assert.Single(own);
         Assert.False(glenn.TitanTouched);
         Assert.Null(WorkOrder.HoldReason(glenn, now));
+
+        var customerNamedGlenn = WorkTick.ParseVisibleRows(
+            "Internet new lead Glenn Harris assigned to Smith, Pat",
+            WorkQueue.NewLeads);
+        var otherGlenn = Assert.Single(customerNamedGlenn);
+        Assert.Contains("96h", WorkOrder.HoldReason(otherGlenn, now) ?? "");
+
+        var storeNamedBordine = WorkTick.ParseVisibleRows(
+            "Internet new lead Bordine Nissan assigned to Smith, Pat",
+            WorkQueue.NewLeads);
+        var otherStore = Assert.Single(storeNamedBordine);
+        Assert.Contains("96h", WorkOrder.HoldReason(otherStore, now) ?? "");
     }
 }

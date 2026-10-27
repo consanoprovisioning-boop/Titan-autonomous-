@@ -31,8 +31,21 @@ public static class WorkOrder
     ];
 
     public static bool IsGlennAssigned(string assignedTo)
-        => assignedTo.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
-           || assignedTo.Contains("Glenn", StringComparison.OrdinalIgnoreCase);
+    {
+        if (string.IsNullOrWhiteSpace(assignedTo))
+        {
+            return false;
+        }
+
+        // Organizer rows are the whole visible line. "Glenn" in the customer
+        // name, or "Bordine" in the store name, is not the assignee. When the
+        // line names who it is assigned to, only that clause can pass the hold.
+        const string marker = "assigned to ";
+        var at = assignedTo.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        var subject = at >= 0 ? assignedTo[(at + marker.Length)..] : assignedTo;
+        return subject.Contains("Bordine", StringComparison.OrdinalIgnoreCase)
+            || subject.Contains("Glenn", StringComparison.OrdinalIgnoreCase);
+    }
 
     public static string? HoldReason(OrganizerRow row, DateTimeOffset nowEt)
     {
