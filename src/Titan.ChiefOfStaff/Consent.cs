@@ -16,15 +16,14 @@ public static class Consent
         }
 
         if (Contains(text, "do not text", "dnt", "opt-out", "opt out", "unsubscribe", "hard bounce")
+            || WrittenChannelClosed(text)
             || System.Text.RegularExpressions.Regex.IsMatch(text, @"\bstop\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
         {
             return "SMS/email consent block (DNT, Stop, opt-out, or bounce).";
         }
 
-        if (Contains(text, "do not call", "dnc"))
-        {
-            return "Do-not-call. Phone is closed. Email/SMS still require their own permission.";
-        }
+        // DNC closes the phone channel only. Callers treat any reason as a full
+        // email and SMS hold, and this host does not place calls.
 
         if (Contains(text, "bought elsewhere", "not in the market", "no further contact", "do not contact"))
         {
@@ -49,6 +48,17 @@ public static class Consent
 
         return Contains(text, "you are approved", "you're approved", "$", "/mo", "per month", "apr ", " at apr", "rebate of", "i can get you", "guaranteed payment", "we will pay");
     }
+
+    private static bool WrittenChannelClosed(string text)
+        => Contains(
+            text,
+            "do not email",
+            "do not e-mail",
+            "don't email",
+            "do not call or email",
+            "do not call or text",
+            "don't call or email",
+            "don't call or text");
 
     private static bool Contains(string text, params string[] needles)
         => needles.Any(n => text.Contains(n, StringComparison.OrdinalIgnoreCase));

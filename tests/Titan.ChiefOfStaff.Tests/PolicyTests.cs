@@ -109,6 +109,10 @@ public class PolicyTests
         Assert.Contains("consent", Consent.BlockReason("Customer replied STOP") ?? "", StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Funding", Consent.BlockReason("unable to obtain funding") ?? "");
         Assert.Null(Consent.BlockReason("Called yesterday. Interested in a Sentra."));
+        Assert.Null(Consent.BlockReason("DNC. Do not call. Interested in a Sentra."));
+        Assert.Contains("consent", Consent.BlockReason("Do not call or email.") ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("consent", Consent.BlockReason("Do not call or text.") ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("off", Consent.BlockReason("DNC. Do not contact.") ?? "", StringComparison.OrdinalIgnoreCase);
         Assert.True(Consent.PromisesForbiddenTerms("I can get you $299/mo at 1.9 APR"));
         Assert.False(Consent.PromisesForbiddenTerms("Come see us for all possible qualifying incentives, rebates, and special manufacturer APR programs. Wednesday at 10?"));
     }
@@ -121,5 +125,8 @@ public class PolicyTests
         Assert.Contains("72h", WorkOrder.HoldReason(other, now) ?? "");
         var glenn = new OrganizerRow("Pat", "Bordine, Glenn", WorkQueue.NewLeads, now.AddHours(-2), now, false, "note yesterday");
         Assert.Null(WorkOrder.HoldReason(glenn, now));
+        var phoneOnly = glenn with { HistoryText = "DNC. Do not call. Interested in a Sentra." };
+        Assert.Null(WorkOrder.HoldReason(phoneOnly, now));
+        Assert.NotNull(WorkOrder.HoldReason(phoneOnly with { HistoryText = "Do not call or email." }, now));
     }
 }
