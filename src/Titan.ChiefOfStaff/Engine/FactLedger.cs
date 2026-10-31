@@ -206,7 +206,23 @@ public sealed class FactLedger
         }
 
         var between = history.Substring(betweenStart, betweenEnd - betweenStart);
-        return DayTimeLink.IsMatch(between);
+        // "Saturday at 10:30" is one commitment. "Saturday. We open at 9:00"
+        // only shares the word "at" with the store clock, so it is not.
+        if (!DayTimeLink.IsMatch(between))
+        {
+            return false;
+        }
+
+        var remainder = DayTimeLink.Replace(between, "");
+        foreach (var ch in remainder)
+        {
+            if (char.IsLetterOrDigit(ch))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static string Window(string history, int start, int end)

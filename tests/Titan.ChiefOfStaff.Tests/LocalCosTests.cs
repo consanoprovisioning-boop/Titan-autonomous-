@@ -171,6 +171,12 @@ public class LocalCosTests
             """;
         Assert.Null(FactLedger.QuoteDayAndTime(activity));
         Assert.Null(FactLedger.QuoteDayAndTime("Called Monday about the Sentra.\nLeft a voicemail at 2:30 PM."));
+        var storeHours = "Customer asked about Saturday. We open at 9:00 AM.";
+        Assert.Null(FactLedger.QuoteDayAndTime(storeHours));
+        var storeLedger = FactLedger.FromHistory(storeHours, "28206", "Bordine, Glenn");
+        var storeDraft = GroundedDraft.Sms(storeLedger, now, storeHours);
+        Assert.True(storeDraft.Ok);
+        Assert.DoesNotContain("I have you down", storeDraft.Body);
         var ledger = FactLedger.FromHistory(activity, "28206", "Bordine, Glenn");
         Assert.Null(ledger.Get("customerDayTime"));
         var email = GroundedDraft.Email(ledger, now, activity);
