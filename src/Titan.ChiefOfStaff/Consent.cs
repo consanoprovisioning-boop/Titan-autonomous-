@@ -16,7 +16,7 @@ public static class Consent
         }
 
         if (Contains(text, "do not text", "dnt", "opt-out", "opt out", "unsubscribe", "hard bounce")
-            || System.Text.RegularExpressions.Regex.IsMatch(text, @"\bstop\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            || IsSmsStop(text))
         {
             return "SMS/email consent block (DNT, Stop, opt-out, or bounce).";
         }
@@ -49,6 +49,15 @@ public static class Consent
 
         return Contains(text, "you are approved", "you're approved", "$", "/mo", "per month", "apr ", " at apr", "rebate of", "i can get you", "guaranteed payment", "we will pay");
     }
+
+    // "STOP" is the opt-out keyword. "stop by", "stop in", "stop over", and
+    // "stop at 4" are visit times, not a request to end texts.
+    private static bool IsSmsStop(string text)
+        => System.Text.RegularExpressions.Regex.IsMatch(
+            text,
+            @"\bstop\b(?!\s+(?:by|in|over|at)\b)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static bool Contains(string text, params string[] needles)
         => needles.Any(n => text.Contains(n, StringComparison.OrdinalIgnoreCase));
