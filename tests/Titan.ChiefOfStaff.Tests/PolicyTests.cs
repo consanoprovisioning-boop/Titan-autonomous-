@@ -114,6 +114,27 @@ public class PolicyTests
     }
 
     [Fact]
+    public void Visit_wording_stop_by_is_not_an_sms_opt_out()
+    {
+        var now = EasternClock.AtLocal(2026, 10, 16, 10, 0);
+        const string visit = "Customer: Pat can stop by Saturday at 10:30 AM.";
+        Assert.Null(Consent.BlockReason(visit));
+        Assert.Null(Consent.BlockReason("I will stop in on Saturday at 10:30 AM."));
+        Assert.Null(Consent.BlockReason("I can stop over Saturday at 10:30 AM."));
+        Assert.Null(Consent.BlockReason("I can stop at 4 on Saturday."));
+        Assert.Contains("consent", Consent.BlockReason("Customer replied STOP") ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("consent", Consent.BlockReason("Please stop texting me") ?? "", StringComparison.OrdinalIgnoreCase);
+
+        var row = new OrganizerRow(visit, "Bordine, Glenn", WorkQueue.NewLeads, null, null, false, visit);
+        Assert.Null(WorkOrder.HoldReason(row, now));
+
+        var ledger = FactLedger.FromHistory(visit, "28206", "Bordine, Glenn");
+        var sms = GroundedDraft.Sms(ledger, now, visit);
+        Assert.True(sms.Ok);
+        Assert.Contains("I have you down for Saturday 10:30 AM", sms.Body);
+    }
+
+    [Fact]
     public void Work_order_holds_other_consultants()
     {
         var now = new DateTimeOffset(2026, 9, 25, 12, 0, 0, TimeSpan.FromHours(-4));
