@@ -12,6 +12,7 @@ public sealed class HostPaths
     public string SessionLock { get; }
     public string NodeMarker { get; }
     public string ClusterLeases { get; }
+    public string ClusterMode { get; }
 
     public HostPaths(string? dataRoot = null)
     {
@@ -31,6 +32,7 @@ public sealed class HostPaths
         SessionLock = Path.Combine(DataRoot, "session.lock");
         NodeMarker = Path.Combine(DataRoot, "node.json");
         ClusterLeases = Path.Combine(DataRoot, "cluster-leases.json");
+        ClusterMode = Path.Combine(DataRoot, "cluster-mode.json");
     }
 
     public void EnsureDataTree()
@@ -40,16 +42,55 @@ public sealed class HostPaths
     }
 
     public string? ReadEnrolledNodeId()
+        => ReadJsonString(NodeMarker, "nodeId");
+
+    public bool ReadScaleOutMode()
     {
-        if (!File.Exists(NodeMarker))
+        var shared = Environment.GetEnvironmentVariable("TITAN_LEASE_DIR");
+        if (!string.IsNullOrWhiteSpace(shared))
+        {
+            var sharedMode = Path.Combine(shared.Trim(), "cluster-mode.json");
+            if (ReadJsonBool(sharedMode, "scaleOut") == true)
+            {
+                return true;
+            }
+        }
+
+        return ReadJsonBool(ClusterMode, "scaleOut") == true
+               || ClusterPartition.IsOverflowNode(ReadEnrolledNodeId());
+    }
+
+    private static string? ReadJsonString(string path, string property)
+    {
+        if (!File.Exists(path))
         {
             return null;
         }
 
         try
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(NodeMarker));
-            return doc.RootElement.TryGetProperty("nodeId", out var id) ? id.GetString() : null;
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            return doc.RootElement.TryGetProperty(property, out var value) ? value.GetString() : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static bool? ReadJsonBool(string path, string property)
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            return doc.RootElement.TryGetProperty(property, out var value) && value.ValueKind is System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False
+                ? value.GetBoolean()
+                : null;
         }
         catch (System.Text.Json.JsonException)
         {

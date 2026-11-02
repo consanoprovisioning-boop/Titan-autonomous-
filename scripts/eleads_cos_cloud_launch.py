@@ -42,6 +42,30 @@ CLUSTER_NODES = (
         "lane": "P2P3DatabaseUpgrade",
         "hostnameHints": ("Node4",),
     },
+    {
+        "nodeId": "Node5",
+        "rooftop": "28206",
+        "lane": "P1Call",
+        "hostnameHints": ("Node5",),
+    },
+    {
+        "nodeId": "Node6",
+        "rooftop": "28546",
+        "lane": "P1Call",
+        "hostnameHints": ("Node6",),
+    },
+    {
+        "nodeId": "Node7",
+        "rooftop": "28206+28546",
+        "lane": "SmsInWindow",
+        "hostnameHints": ("Node7",),
+    },
+    {
+        "nodeId": "Node8",
+        "rooftop": "28206+28546",
+        "lane": "AppointmentCommit",
+        "hostnameHints": ("Node8",),
+    },
 )
 OWNERSHIP_SCREEN_DAYS = 180
 NY = ZoneInfo("America/New_York")

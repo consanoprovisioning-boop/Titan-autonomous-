@@ -1,5 +1,11 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-02 — 8-PC scale-out overlay TITAN-CHANGE-MULTIAGENT-001 v0.5.1
+
+**Decision (Glenn):** four more PCs are coming (eight total). Keep the 4-PC go-live. Add overflow lanes: P1 Nissan email, P1 Mitsubishi email, P1 Nissan calls, P1 Mitsubishi calls, Nissan P2/P3, Mitsubishi P2/P3, SMS-in-window, appointment-commit.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md`. Playbook: `docs/deploy/cluster-8pc.md`. Customer lease stays exclusive at eight nodes (`TITAN_LEASE_DIR` required when scale-out is on). Cloud Linux still does not open Eleads. This entry does not claim Node5–Node8 are online.
+
 ## 2026-11-02 — 4-PC cluster overlay TITAN-CHANGE-MULTIAGENT-001 v0.5.0
 
 **Decision (Glenn):** Titan Autonomous and Titan COS live on all four local PCs. Desktop3 is the named clone target. Specialist jobs are delegated by rooftop and lane so work can reach or surpass the 60 actions/hour floor without double-sends.

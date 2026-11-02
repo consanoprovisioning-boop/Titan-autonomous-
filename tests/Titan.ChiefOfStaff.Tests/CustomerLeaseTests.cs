@@ -45,4 +45,21 @@ public class CustomerLeaseTests
         Assert.Null(store.TryAcquire("Node3", "28206", "Pat", "Database", Now.AddMinutes(2)));
         Assert.NotNull(store.TryAcquire("Node3", "28206", "Pat", "Database", Now.AddMinutes(6)));
     }
+
+    [Fact]
+    public void Eight_nodes_cannot_lease_the_same_customer()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "titan-lease-" + Guid.NewGuid().ToString("n"), "cluster-leases.json");
+        var store = new CustomerLeaseStore(path);
+        var winner = store.TryAcquire("Alienware-18", "28206", "Kim Cole", "P1Email", Now);
+        Assert.NotNull(winner);
+
+        foreach (var other in new[] { "Desktop3", "Node3", "Node4", "Node5", "Node6", "Node7", "Node8" })
+        {
+            Assert.Null(store.TryAcquire(other, "28206", "Kim Cole", "any-job", Now));
+        }
+
+        Assert.True(store.Release("Alienware-18", "28206", "Kim Cole", Now));
+        Assert.NotNull(store.TryAcquire("Node8", "28206", "Kim Cole", "AppointmentCommit", Now));
+    }
 }

@@ -111,11 +111,13 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertTrue(all(row["status"] == "not-run" for row in data["specialistResults"]))
         self.assertIn("offline", data["blockers"][0])
         self.assertIn(launch.ALIENWARE_WORKER_ID, data["blockers"][0])
-        self.assertEqual(4, len(data["cluster"]))
+        self.assertEqual(8, len(data["cluster"]))
         self.assertEqual(0, data["clusterOnlineCount"])
         self.assertTrue(all(node["status"] == "missing" and node["fabricated"] is False for node in data["cluster"]))
         self.assertEqual("Desktop3", data["cluster"][1]["nodeId"])
         self.assertEqual("missing", data["cluster"][1]["status"])
+        self.assertEqual("Node8", data["cluster"][7]["nodeId"])
+        self.assertEqual("missing", data["cluster"][7]["status"])
         text = ticklog.read_text(encoding="utf-8")
         self.assertIn("not a numbered tick", text)
         self.assertNotIn("tick 1", text.lower())
@@ -136,8 +138,16 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertIn('cd /d "%USERPROFILE%"', starter)
         self.assertIn("Desktop3", starter)
         self.assertNotIn("eleadcrm.com", starter)
-        self.assertNotIn("Titan.ChiefOfStaff.exe", starter)
+        self.assertIn("does NOT start Titan.ChiefOfStaff.exe", starter)
         self.assertIn("system32", starter.lower())
+
+    def test_scale_out_script_does_not_open_eleads(self) -> None:
+        scale = (ROOT / "deploy/cluster-node/SCALE-OUT-8.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        enroll = (ROOT / "deploy/cluster-node/ENROLL-NODE.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        self.assertIn("Node8", enroll)
+        self.assertNotIn("eleadcrm.com", scale)
+        self.assertNotIn("Titan.ChiefOfStaff.exe", scale)
+        self.assertIn("scaleOut", scale)
 
     def test_checkin_cmd_does_not_type_verify(self) -> None:
         checkin = (ROOT / "deploy/alienware-local-program/CHECKIN.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
@@ -193,7 +203,10 @@ class LaunchGuardTests(unittest.TestCase):
 
     def test_cluster_inventory_does_not_fabricate_desktop3(self) -> None:
         empty = launch.inventory_cluster({"workers": []})
-        self.assertEqual(["Alienware-18", "Desktop3", "Node3", "Node4"], [n["nodeId"] for n in empty])
+        self.assertEqual(
+            ["Alienware-18", "Desktop3", "Node3", "Node4", "Node5", "Node6", "Node7", "Node8"],
+            [n["nodeId"] for n in empty],
+        )
         self.assertTrue(all(n["status"] == "missing" and n["fabricated"] is False for n in empty))
 
         live = launch.inventory_cluster({

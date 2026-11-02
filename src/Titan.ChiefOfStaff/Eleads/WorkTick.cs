@@ -42,14 +42,19 @@ public sealed class WorkTick
         var ready = 0;
         var skippedLane = 0;
         var leased = 0;
+        var scaleOut = ClusterPartition.IsScaleOut(
+            presentNodeIds: paths?.ReadEnrolledNodeId() is { } self ? [self] : null,
+            clusterSizeEnv: Environment.GetEnvironmentVariable("TITAN_CLUSTER_SIZE"),
+            modeFileScaleOut: paths?.ReadScaleOutMode() == true);
         var node = ClusterPartition.Resolve(
             Environment.MachineName,
             Environment.GetEnvironmentVariable("TITAN_NODE_NAME"),
-            paths?.ReadEnrolledNodeId());
+            paths?.ReadEnrolledNodeId(),
+            scaleOut);
         if (node is not null && !ClusterPartition.MayWorkRooftop(node, rooftop))
         {
             store.Log("cluster", "rooftop", $"{node.DisplayName} does not own {rooftop}. No send.", rooftop);
-            return $"Tick {rooftop}: {node.DisplayName} is assigned {node.RooftopId} only. No send.";
+            return $"Tick {rooftop}: {node.DisplayName} is assigned {string.Join("/", node.AllowedRooftops)} only. No send.";
         }
 
         CustomerLeaseStore? leases = paths is null ? null : new CustomerLeaseStore(CustomerLeaseStore.ResolveLeasePath(paths));
@@ -77,6 +82,15 @@ public sealed class WorkTick
                 {
                     held++;
                     store.Log(queue.ToString(), "hold", hold, rooftop, row.CustomerKey);
+                    continue;
+                }
+
+                if (node is not null
+                    && queue != WorkQueue.Database
+                    && !ClusterPartition.MayWorkTaskKind(node, ClusterPartition.GuessTaskKind(row.CustomerKey)))
+                {
+                    skippedLane++;
+                    store.Log(queue.ToString(), "lane-task", $"{node.DisplayName} does not own this task kind. No send.", rooftop, row.CustomerKey);
                     continue;
                 }
 

@@ -5,7 +5,7 @@ description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of st
 
 # Running the Eleads COS loop
 
-Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Four-PC cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`. Cluster overlay: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md`.
+Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`. Cluster overlays: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC).
 
 This is live rooftop work for **Bordine, Glenn**. Ban the words pilot, MVP, and prototype for the Valdosta loop. The governance record’s own “pilot” wording is historical Titan SDK scope (local Draft/Blocked connectors). It is not a label for this loop.
 

@@ -1,13 +1,13 @@
 ---
 name: titan-cos-multiagent-cluster
-description: Run Titan Chief of Staff on the 4-PC Valdosta cluster (Alienware-18, Desktop3, Node3, Node4). Delegate specialist jobs by rooftop and lane, comb the database after P1, and push toward 60 actions/hour without double-sends. Never TKO 6220.
+description: Run Titan Chief of Staff on the Valdosta cluster (4-PC go-live plus ready 8-PC scale-out). Delegate specialist jobs by rooftop and lane, comb the database after P1, and push toward 60 actions/hour without double-sends. Never TKO 6220.
 ---
 
-# Titan COS multi-agent 4-PC cluster
+# Titan COS multi-agent cluster (4 live, 8 ready)
 
-Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3, comb the database, or raise throughput toward 60 actions/hour.
+Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3, add more PCs, comb the database, or raise throughput toward 60 actions/hour.
 
-Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (overlay) and `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
+Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
 
 Ban the words pilot, MVP, and prototype for the Valdosta loop.
 
@@ -27,11 +27,11 @@ Call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. 
 scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
 ```
 
-Label each node online or missing from that snapshot. Do not invent Desktop3, Node3, or Node4. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
+Label each node online or missing from that snapshot. Do not invent Desktop3 or Node3–Node8. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
 
 Known Alienware ids (historical): wrong-directory `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`; verified `%USERPROFILE%` `e630caf9-875d-4439-ab1a-3e6c386f6c0f`. Treat them as offline when the live list is empty.
 
-## One Core, seven specialists, four PCs
+## One Core, seven specialists, four or eight PCs
 
 Do not spawn 51 agents. Core persists and sends. Specialists return typed results.
 
@@ -62,20 +62,33 @@ Do not spawn 51 agents. Core persists and sends. Specialists return typed result
 
 ## Partition (do not double-send)
 
+Live **4-PC** (run today):
+
 | Node | Rooftop | Lane | Do this |
 | --- | --- | --- | --- |
-| Alienware-18 | 28206 | P1 | Overdue emails, reschedule overdue calls, organizer remainder, SMS 08:00–21:00 ET |
-| Desktop3 | 28546 | P1 | Same P1 jobs on Mitsubishi |
+| Alienware-18 | 28206 | P1 bundled | Overdue emails, reschedule overdue calls, organizer remainder, SMS 08:00–21:00 ET |
+| Desktop3 | 28546 | P1 bundled | Same P1 jobs on Mitsubishi |
 | Node3 | 28206 | P2/P3 | Comb DB, then tailored upgrades, only after Nissan P1 is clear |
 | Node4 | 28546 | P2/P3 | Comb DB, then tailored upgrades, only after Mitsubishi P1 is clear |
 
-Appointment-commit fast path preempts the assigned rooftop’s lane.
+Ready **8-PC** after `SCALE-OUT-8.cmd` (PC1/PC2 narrow to email):
 
-Lease: `CustomerLease` (15 min). Optional shared folder `TITAN_LEASE_DIR`. Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Worker start must `cd /d %USERPROFILE%`.
+| Node | Rooftop | Lane |
+| --- | --- | --- |
+| Alienware-18 | 28206 | P1 email |
+| Desktop3 | 28546 | P1 email |
+| Node3 | 28206 | P2/P3 |
+| Node4 | 28546 | P2/P3 |
+| Node5 | 28206 | P1 calls |
+| Node6 | 28546 | P1 calls |
+| Node7 | both allowed | SMS in window |
+| Node8 | both allowed | Appointment-commit |
+
+Lease: `CustomerLease` (15 min), fingerprint rooftop + customer, exclusive across all eight. Shared folder `TITAN_LEASE_DIR` is required at eight PCs. Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Worker start must `cd /d %USERPROFILE%`.
 
 ## High-velocity job (60/hour needle)
 
-P1 overdue email completion + overdue call reschedule. Emails need no approval after Verify. Do not start P2/P3 on a rooftop until that rooftop’s P1 is clear. Do not claim 60/hour while workers are offline.
+P1 overdue email completion + overdue call reschedule. At eight PCs those split across four machines. Emails need no approval after Verify. Do not start P2/P3 on a rooftop until that rooftop’s P1 is clear. Do not claim 60/hour while workers are offline.
 
 ## Desktop3
 

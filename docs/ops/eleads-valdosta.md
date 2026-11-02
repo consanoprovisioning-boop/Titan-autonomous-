@@ -8,7 +8,7 @@ Source packet (preserved as filed, not rewritten): Customer Traffic and Appointm
 
 **Ownership screen (live):** 180 days (Glenn 2026-10-16). A recent inquiry overrides. Model year never proves duration.
 
-**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. Four-PC cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md` and `docs/deploy/cluster-4pc.md`. This file is the long law.
+**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. Cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md` (live four), `docs/deploy/cluster-8pc.md` (ready eight). This file is the long law.
 
 ## Version 1.1 standing authorization
 

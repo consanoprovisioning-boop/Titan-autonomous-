@@ -48,4 +48,5 @@ What still blocks live sending:
 
 Alienware-18 detail: `docs/deploy/alienware-18.md`.  
 Desktop3 clone: `docs/deploy/desktop3.md`.  
-Unnamed PCs: `docs/deploy/node-onboarding.md`.
+Unnamed PCs (Node3–Node8): `docs/deploy/node-onboarding.md`.  
+When four more PCs arrive, keep this 4-PC go-live and follow `docs/deploy/cluster-8pc.md`. Do not redesign the first four nodes.

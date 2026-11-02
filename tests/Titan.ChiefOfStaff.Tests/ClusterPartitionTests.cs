@@ -73,4 +73,53 @@ public class ClusterPartitionTests
         Assert.False(DailyUpgradeQueue.CanStart(DailyUpgradePhase.CustomerDatabaseStudy, nissanOnly));
         Assert.False(DailyUpgradeQueue.CanStartOnRooftop(DailyUpgradePhase.CustomerDatabaseStudy, "6220", nissanOnly));
     }
+
+    [Fact]
+    public void Go_live_stays_four_nodes_until_scale_out()
+    {
+        Assert.Equal(4, ClusterPartition.Nodes.Count);
+        Assert.Equal(8, ClusterPartition.ScaleOutNodes.Count);
+        Assert.Equal(4, ClusterPartition.OverflowNodes.Count);
+        Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Node4"]));
+        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Node5"]));
+        Assert.True(ClusterPartition.IsScaleOut(clusterSizeEnv: "8"));
+        Assert.True(ClusterPartition.IsScaleOut(modeFileScaleOut: true));
+        Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.EffectiveSpec("Alienware-18", scaleOut: false)!.Lane);
+        Assert.Equal(ClusterLane.P1Email, ClusterPartition.EffectiveSpec("Alienware-18", scaleOut: true)!.Lane);
+        Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, ClusterPartition.EffectiveSpec("Node3", scaleOut: true)!.Lane);
+    }
+
+    [Fact]
+    public void Eight_node_overflow_lanes_do_not_share_a_send_job()
+    {
+        var eight = ClusterPartition.ScaleOutNodes;
+        Assert.Equal("Node5", eight[4].NodeId);
+        Assert.Equal(ClusterLane.P1Call, eight[4].Lane);
+        Assert.Equal(Policy.NissanId, eight[4].RooftopId);
+        Assert.Equal(ClusterLane.P1Call, eight[5].Lane);
+        Assert.Equal(Policy.MitsubishiId, eight[5].RooftopId);
+        Assert.Equal(ClusterLane.SmsInWindow, eight[6].Lane);
+        Assert.True(eight[6].OwnsRooftop("28206"));
+        Assert.True(eight[6].OwnsRooftop("28546"));
+        Assert.Equal(ClusterLane.AppointmentCommit, eight[7].Lane);
+        Assert.False(eight[6].OwnsRooftop("6220"));
+
+        var nissanEmail = eight[0];
+        var nissanCall = eight[4];
+        Assert.True(ClusterPartition.MayWorkTaskKind(nissanEmail, OverdueTaskKind.Email));
+        Assert.False(ClusterPartition.MayWorkTaskKind(nissanEmail, OverdueTaskKind.Call));
+        Assert.True(ClusterPartition.MayWorkTaskKind(nissanCall, OverdueTaskKind.Call));
+        Assert.False(ClusterPartition.MayWorkTaskKind(nissanCall, OverdueTaskKind.Email));
+        Assert.False(ClusterPartition.MayWorkTaskKind(eight[7], OverdueTaskKind.Email));
+        Assert.Equal(OverdueTaskKind.Call, ClusterPartition.GuessTaskKind("Overdue phone call"));
+        Assert.Equal(OverdueTaskKind.Sms, ClusterPartition.GuessTaskKind("SMS follow-up"));
+    }
+
+    [Fact]
+    public void Resolve_finds_overflow_nodes_without_dropping_go_live()
+    {
+        Assert.Equal("Node5", ClusterPartition.Resolve(null, null, "Node5")?.NodeId);
+        Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: false)!.Lane);
+        Assert.Equal(ClusterLane.P1Email, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: true)!.Lane);
+    }
 }
