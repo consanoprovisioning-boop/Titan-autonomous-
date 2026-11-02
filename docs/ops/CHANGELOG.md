@@ -1,5 +1,15 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-02 — 4-PC cluster overlay TITAN-CHANGE-MULTIAGENT-001 v0.5.0
+
+**Decision (Glenn):** Titan Autonomous and Titan COS live on all four local PCs. Desktop3 is the named clone target. Specialist jobs are delegated by rooftop and lane so work can reach or surpass the 60 actions/hour floor without double-sends.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (overlay; v0.4.0 and the Eleads source packet are not rewritten). Skill: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`. Playbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/node-onboarding.md`.
+
+**Partition:** Alienware-18 = Nissan 28206 P1; Desktop3 = Mitsubishi 28546 P1; Node3 = Nissan P2/P3; Node4 = Mitsubishi P2/P3. P1 overdue email + call reschedule is the high-velocity job. Database comb is P2 and does not send. Cloud Linux still does not open Eleads. `sends=[]` while workers are offline.
+
+**Clone:** Cloud writes the playbook. Glenn (or a local worker on that PC) clones Desktop3. This entry does not claim Desktop3 is online.
+
 ## 2026-10-17 — SMS window 8:00 AM–9:00 PM ET (Glenn directive)
 
 **Decision (Glenn, Sat Oct 17 2026):** live SMS window is **8:00 AM–9:00 PM America/New_York (08:00–21:00)**, replacing 9:00 AM–7:00 PM ET for live work. Updated live rules in `.cursor/skills/eleads-valdosta-chief/SKILL.md`, `.cursor/skills/running-eleads-cos-loop/SKILL.md`, and `docs/ops/eleads-valdosta.md`. Dated historical entries below that record the old window are preserved as history and are not rewritten; the filed source packet at `docs/ops/sources/` is unchanged.

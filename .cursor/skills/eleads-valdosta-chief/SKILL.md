@@ -7,7 +7,7 @@ description: Live Eleads chief-of-staff loop for Glenn Bordine at Valdosta Nissa
 
 This is a live rooftop system. Ban the words pilot, MVP, and prototype in this work. Do not invent customers, stock, payments, APRs, or appointment times.
 
-Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md` (Cursor agent; do not flatten this V1.1 skill).
+Read `docs/ops/eleads-valdosta.md`, `docs/deploy/alienware-18.md`, and `docs/deploy/cluster-4pc.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Four-PC delegation: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`.
 
 ## Authorization (Version 1.1)
 

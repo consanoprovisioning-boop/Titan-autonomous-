@@ -111,6 +111,11 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertTrue(all(row["status"] == "not-run" for row in data["specialistResults"]))
         self.assertIn("offline", data["blockers"][0])
         self.assertIn(launch.ALIENWARE_WORKER_ID, data["blockers"][0])
+        self.assertEqual(4, len(data["cluster"]))
+        self.assertEqual(0, data["clusterOnlineCount"])
+        self.assertTrue(all(node["status"] == "missing" and node["fabricated"] is False for node in data["cluster"]))
+        self.assertEqual("Desktop3", data["cluster"][1]["nodeId"])
+        self.assertEqual("missing", data["cluster"][1]["status"])
         text = ticklog.read_text(encoding="utf-8")
         self.assertIn("not a numbered tick", text)
         self.assertNotIn("tick 1", text.lower())
@@ -125,6 +130,14 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual(3, again)
         self.assertEqual(text, ticklog.read_text(encoding="utf-8"))
         self.assertEqual(data["cycleId"], json.loads(state_path.read_text(encoding="utf-8"))["cycleId"])
+
+    def test_desktop3_worker_starts_from_userprofile(self) -> None:
+        starter = (ROOT / "deploy/desktop3/START-WORKER.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        self.assertIn('cd /d "%USERPROFILE%"', starter)
+        self.assertIn("Desktop3", starter)
+        self.assertNotIn("eleadcrm.com", starter)
+        self.assertNotIn("Titan.ChiefOfStaff.exe", starter)
+        self.assertIn("system32", starter.lower())
 
     def test_checkin_cmd_does_not_type_verify(self) -> None:
         checkin = (ROOT / "deploy/alienware-local-program/CHECKIN.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
@@ -177,6 +190,22 @@ class LaunchGuardTests(unittest.TestCase):
             "rooftop": "6220",
             "identity": "Bordine, Glenn",
         }))
+
+    def test_cluster_inventory_does_not_fabricate_desktop3(self) -> None:
+        empty = launch.inventory_cluster({"workers": []})
+        self.assertEqual(["Alienware-18", "Desktop3", "Node3", "Node4"], [n["nodeId"] for n in empty])
+        self.assertTrue(all(n["status"] == "missing" and n["fabricated"] is False for n in empty))
+
+        live = launch.inventory_cluster({
+            "workers": [{
+                "workerId": "abc",
+                "machineDisplayName": "Alienware-18",
+                "displayName": "Alienware-18#C:\\Users\\Glenn R Bordine",
+            }]
+        })
+        self.assertEqual("online", live[0]["status"])
+        self.assertEqual("missing", live[1]["status"])
+        self.assertEqual("Desktop3", live[1]["nodeId"])
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 ---
 name: running-eleads-cos-loop
-description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of staff continual loop with deployed sub-agents for Valdosta Nissan 28206 or Valdosta Mitsubishi 28546, never TKO Autogroup 6220, on Alienware-18, under Titan governance TITAN-CHANGE-MULTIAGENT-001.
+description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of staff continual loop with deployed sub-agents for Valdosta Nissan 28206 or Valdosta Mitsubishi 28546, never TKO Autogroup 6220, on the 4-PC cluster (Alienware-18, Desktop3, Node3, Node4), under Titan governance TITAN-CHANGE-MULTIAGENT-001.
 ---
 
 # Running the Eleads COS loop
 
-Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`.
+Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Four-PC cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`. Cluster overlay: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md`.
 
 This is live rooftop work for **Bordine, Glenn**. Ban the words pilot, MVP, and prototype for the Valdosta loop. The governance record’s own “pilot” wording is historical Titan SDK scope (local Draft/Blocked connectors). It is not a label for this loop.
 

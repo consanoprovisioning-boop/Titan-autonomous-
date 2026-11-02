@@ -8,7 +8,7 @@ Source packet (preserved as filed, not rewritten): Customer Traffic and Appointm
 
 **Ownership screen (live):** 180 days (Glenn 2026-10-16). A recent inquiry overrides. Model year never proves duration.
 
-**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. This file is the long law.
+**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. Four-PC cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md` and `docs/deploy/cluster-4pc.md`. This file is the long law.
 
 ## Version 1.1 standing authorization
 
@@ -50,7 +50,7 @@ This Linux cloud agent must not:
 - run PowerShell self-extractors or `Set-ExecutionPolicy Bypass`
 - type an Eleads password
 
-If Alienware-18 is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach.
+If every cluster node is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to start that PC’s worker from `%USERPROFILE%`, double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach. Do not invent a Desktop3 worker.
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 

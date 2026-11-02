@@ -10,6 +10,8 @@ public sealed class HostPaths
     public string Heartbeat { get; }
     public string VerifyMarker { get; }
     public string SessionLock { get; }
+    public string NodeMarker { get; }
+    public string ClusterLeases { get; }
 
     public HostPaths(string? dataRoot = null)
     {
@@ -27,11 +29,31 @@ public sealed class HostPaths
         Heartbeat = Path.Combine(DataRoot, "heartbeat.json");
         VerifyMarker = Path.Combine(DataRoot, "verify.json");
         SessionLock = Path.Combine(DataRoot, "session.lock");
+        NodeMarker = Path.Combine(DataRoot, "node.json");
+        ClusterLeases = Path.Combine(DataRoot, "cluster-leases.json");
     }
 
     public void EnsureDataTree()
     {
         Directory.CreateDirectory(DataRoot);
         Directory.CreateDirectory(AppDir);
+    }
+
+    public string? ReadEnrolledNodeId()
+    {
+        if (!File.Exists(NodeMarker))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(NodeMarker));
+            return doc.RootElement.TryGetProperty("nodeId", out var id) ? id.GetString() : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
     }
 }

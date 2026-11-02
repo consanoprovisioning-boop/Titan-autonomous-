@@ -5,6 +5,15 @@ namespace Titan.ChiefOfStaff.Eleads;
 public sealed class WorkTick
 {
     public async Task<string> RunAsync(IPage page, HostStore store, string rooftop, DateTimeOffset nowEt)
+        => await RunAsync(page, store, rooftop, nowEt, paths: null, progress: DailyUpgradeProgress.Empty);
+
+    public async Task<string> RunAsync(
+        IPage page,
+        HostStore store,
+        string rooftop,
+        DateTimeOffset nowEt,
+        HostPaths? paths,
+        DailyUpgradeProgress? progress)
     {
         if (Policy.IsForbiddenRooftop(rooftop) || !Policy.IsAllowedRooftop(rooftop))
         {
@@ -31,8 +40,33 @@ public sealed class WorkTick
         var seen = 0;
         var held = 0;
         var ready = 0;
+        var skippedLane = 0;
+        var leased = 0;
+        var node = ClusterPartition.Resolve(
+            Environment.MachineName,
+            Environment.GetEnvironmentVariable("TITAN_NODE_NAME"),
+            paths?.ReadEnrolledNodeId());
+        if (node is not null && !ClusterPartition.MayWorkRooftop(node, rooftop))
+        {
+            store.Log("cluster", "rooftop", $"{node.DisplayName} does not own {rooftop}. No send.", rooftop);
+            return $"Tick {rooftop}: {node.DisplayName} is assigned {node.RooftopId} only. No send.";
+        }
+
+        CustomerLeaseStore? leases = paths is null ? null : new CustomerLeaseStore(CustomerLeaseStore.ResolveLeasePath(paths));
+        var gate = progress ?? DailyUpgradeProgress.Empty;
         foreach (var queue in WorkOrder.MandatoryOrder)
         {
+            if (node is not null)
+            {
+                var laneBlock = ClusterPartition.LaneBlockReason(node, queue, gate);
+                if (laneBlock is not null)
+                {
+                    skippedLane++;
+                    store.Log(queue.ToString(), "lane", laneBlock, rooftop);
+                    continue;
+                }
+            }
+
             store.WriteHeartbeat(store.ReadHeartbeat() with { State = "Tick" + queue });
             var rows = ParseVisibleRows(organizer, queue);
             foreach (var row in rows)
@@ -46,13 +80,27 @@ public sealed class WorkTick
                     continue;
                 }
 
+                if (leases is not null && node is not null)
+                {
+                    var lease = leases.TryAcquire(node.NodeId, rooftop, row.CustomerKey, queue.ToString(), nowEt);
+                    if (lease is null)
+                    {
+                        held++;
+                        store.Log(queue.ToString(), "lease", "Another cluster node holds this customer. No double-send.", rooftop, row.CustomerKey);
+                        continue;
+                    }
+
+                    leased++;
+                }
+
                 ready++;
                 var channel = smsOpen ? "SMS+email window" : "email-only window";
                 store.Log(queue.ToString(), "qualified", $"{channel}; no send from a list row. Eligible work still needs consent, identity, and CRM history under Bordine, Glenn.", rooftop, row.CustomerKey);
             }
         }
 
-        return $"Tick {rooftop}: {seen} visible rows, {ready} qualified, {held} held. Sends only after a live composer is filled from the profile and CRM history shows the completed activity. SMS {(smsOpen ? "open" : "closed")}.";
+        var nodeLabel = node?.DisplayName ?? "unenrolled-node";
+        return $"Tick {rooftop} {nodeLabel}: {seen} visible rows, {ready} qualified, {held} held, {skippedLane} other-lane queues skipped, {leased} leases. Sends only after a live composer is filled from the profile and CRM history shows the completed activity. SMS {(smsOpen ? "open" : "closed")}.";
     }
 
     public static IReadOnlyList<OrganizerRow> ParseVisibleRows(string organizerText, WorkQueue queue)

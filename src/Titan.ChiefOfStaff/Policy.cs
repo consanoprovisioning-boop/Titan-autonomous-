@@ -39,10 +39,29 @@ public static class Policy
             || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
     }
 
+    // Live SMS window (Glenn 2026-10-17): 08:00-21:00 America/New_York.
+    public const int SmsStartHourEt = 8;
+    public const int SmsEndHourEt = 21;
+
+    public const string AppointmentSetStatusLabel = "Appointment Set";
+
+    public static string RooftopDisplayName(string? rooftopId) => rooftopId?.Trim() switch
+    {
+        NissanId => "Valdosta Nissan",
+        MitsubishiId => "Valdosta Mitsubishi",
+        _ => "Valdosta"
+    };
+
     public static bool SmsOpen(DateTimeOffset nowEt)
     {
         var tod = nowEt.TimeOfDay;
-        return tod >= TimeSpan.FromHours(8) && tod < TimeSpan.FromHours(21);
+        return tod >= TimeSpan.FromHours(SmsStartHourEt) && tod < TimeSpan.FromHours(SmsEndHourEt);
+    }
+
+    public static DateTimeOffset NextSmsOpen(DateTimeOffset nowEt)
+    {
+        var openToday = new DateTimeOffset(nowEt.Date.AddHours(SmsStartHourEt), nowEt.Offset);
+        return nowEt.TimeOfDay < TimeSpan.FromHours(SmsStartHourEt) ? openToday : openToday.AddDays(1);
     }
 
     public static bool SmsOpenEastern(DateTimeOffset instant)

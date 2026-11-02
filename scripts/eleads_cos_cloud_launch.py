@@ -16,6 +16,33 @@ from zoneinfo import ZoneInfo
 
 ALIENWARE_WORKER_ID = "1a1f1f15-72c4-4334-ad8b-f87d54efe73a"
 RETIRED_ALIENWARE_WORKER_IDS = frozenset({"2bd89263-dc03-4936-9b04-6bc709799f66"})
+VERIFIED_USERPROFILE_WORKER_ID = "e630caf9-875d-4439-ab1a-3e6c386f6c0f"
+CLUSTER_NODES = (
+    {
+        "nodeId": "Alienware-18",
+        "rooftop": "28206",
+        "lane": "P1Organizer",
+        "hostnameHints": ("Alienware-18", "Alienware18"),
+    },
+    {
+        "nodeId": "Desktop3",
+        "rooftop": "28546",
+        "lane": "P1Organizer",
+        "hostnameHints": ("Desktop3", "DESKTOP3"),
+    },
+    {
+        "nodeId": "Node3",
+        "rooftop": "28206",
+        "lane": "P2P3DatabaseUpgrade",
+        "hostnameHints": ("Node3",),
+    },
+    {
+        "nodeId": "Node4",
+        "rooftop": "28546",
+        "lane": "P2P3DatabaseUpgrade",
+        "hostnameHints": ("Node4",),
+    },
+)
 OWNERSHIP_SCREEN_DAYS = 180
 NY = ZoneInfo("America/New_York")
 IDENTITY = "Bordine, Glenn"
@@ -97,6 +124,58 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
+def _worker_blob(row: dict) -> str:
+    return " ".join(
+        str(row.get(key) or "")
+        for key in ("machineDisplayName", "displayName", "hostname", "workerName")
+    )
+
+
+def match_cluster_node(row: dict) -> dict | None:
+    blob = _worker_blob(row)
+    for node in CLUSTER_NODES:
+        if any(hint in blob for hint in node["hostnameHints"]):
+            return node
+    return None
+
+
+def inventory_cluster(snapshot: dict) -> list[dict]:
+    workers = snapshot.get("workers") or []
+    if not isinstance(workers, list):
+        workers = []
+    found: dict[str, dict] = {}
+    for row in workers:
+        if not isinstance(row, dict):
+            continue
+        node = match_cluster_node(row)
+        if node is None:
+            continue
+        found[node["nodeId"]] = {
+            "nodeId": node["nodeId"],
+            "rooftop": node["rooftop"],
+            "lane": node["lane"],
+            "status": "online",
+            "workerId": str(row.get("workerId") or ""),
+            "directoryLooksSystem32": worker_directory_is_system32(row),
+            "fabricated": False,
+        }
+    inventory = []
+    for node in CLUSTER_NODES:
+        if node["nodeId"] in found:
+            inventory.append(found[node["nodeId"]])
+            continue
+        inventory.append({
+            "nodeId": node["nodeId"],
+            "rooftop": node["rooftop"],
+            "lane": node["lane"],
+            "status": "missing",
+            "workerId": None,
+            "directoryLooksSystem32": False,
+            "fabricated": False,
+        })
+    return inventory
+
+
 def alienware_worker(snapshot: dict) -> dict | None:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
@@ -107,11 +186,10 @@ def alienware_worker(snapshot: dict) -> dict | None:
         worker_id = str(row.get("workerId") or "")
         if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
             return row
-        labels = " ".join(
-            str(row.get(key) or "")
-            for key in ("machineDisplayName", "displayName", "hostname")
-        )
+        labels = _worker_blob(row)
         if labels.startswith("Alienware-18") or "Alienware-18" in labels:
+            return row
+        if str(row.get("workerId") or "") == VERIFIED_USERPROFILE_WORKER_ID:
             return row
     return None
 
@@ -210,6 +288,7 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         session = ELEADS_SESSION_NONE
 
     stamp = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    cluster = inventory_cluster(snapshot)
     return {
         "cycleId": f"{'ready' if verified else 'blocked'}-{stamp}",
         "openedAtUtc": stamp,
@@ -237,6 +316,8 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "workerOnline": online,
         "timerTick": None,
         "openedFromThisProcess": False,
+        "cluster": cluster,
+        "clusterOnlineCount": sum(1 for n in cluster if n["status"] == "online"),
     }
 
 

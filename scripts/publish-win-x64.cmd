@@ -14,6 +14,10 @@ copy /Y deploy\alienware-local-program\TICK.cmd dist\titan-chief-win-x64\TICK.cm
 copy /Y deploy\alienware-local-program\Titan.cmd dist\titan-chief-win-x64\Titan.cmd
 copy /Y deploy\alienware-local-program\START-HERE.txt dist\titan-chief-win-x64\START-HERE.txt
 copy /Y deploy\alienware-local-program\START-WORKER.cmd dist\titan-chief-win-x64\START-WORKER.cmd
+mkdir dist\titan-chief-win-x64\cluster-node 2>nul
+mkdir dist\titan-chief-win-x64\desktop3 2>nul
+copy /Y deploy\cluster-node\*.* dist\titan-chief-win-x64\cluster-node\
+copy /Y deploy\desktop3\*.* dist\titan-chief-win-x64\desktop3\
 echo Published dist\titan-chief-win-x64
 echo Hash the exe with certutil. Do not start it from a cloud Linux host.
 certutil -hashfile dist\titan-chief-win-x64\Titan.ChiefOfStaff.exe SHA256
