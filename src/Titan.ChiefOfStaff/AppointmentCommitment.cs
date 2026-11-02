@@ -192,6 +192,12 @@ public static class AppointmentCommitment
     private static bool IsOptOut(string text)
         => Regex.IsMatch(text, @"\bstop\b|\bunsubscribe\b|opt[\s-]?out|do not (text|contact|call)|no further contact|leave me alone", RegexOptions.IgnoreCase);
 
+    private static bool IsStoreHoursQuestion(string text)
+        => Regex.IsMatch(
+            text,
+            @"\b(?:are you|do you|when do you|what time do you|what time are you)\s+(?:open|close|closed|closing|opening)\b|\b(?:store|business|dealership|shop)\s+hours\b|\bwhat are your hours\b",
+            RegexOptions.IgnoreCase);
+
     private static bool IsCommitment(string text, out string reason)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -222,6 +228,18 @@ public static class AppointmentCommitment
         {
             reason = "Customer proposes a specific day/time.";
             return true;
+        }
+
+        // "Yes" plus a clock is not attendance. "Yes, are you open Saturday at 10am?"
+        // used to book that clock (or a previously proposed slot) and text "You're set".
+        if (IsStoreHoursQuestion(text)
+            && !Regex.IsMatch(
+                text,
+                @"\b(i'?ll be there|i will be there|see you|book it|schedule it|i can (?:come|make it)|i'?ll come|come in|be there|count me in|that works|works for me|sounds good)\b",
+                RegexOptions.IgnoreCase))
+        {
+            reason = "Question about store hours, not a commitment to attend. No booking.";
+            return false;
         }
 
         var commitment = Regex.IsMatch(text,

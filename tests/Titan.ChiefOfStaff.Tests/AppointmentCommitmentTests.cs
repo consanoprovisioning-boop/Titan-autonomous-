@@ -47,6 +47,14 @@ public class AppointmentCommitmentTests
         var proposal = Eval("How about Monday at 11am?");
         Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, proposal.Action);
         Assert.Equal(new DateTimeOffset(2026, 9, 28, 11, 0, 0, TimeSpan.FromHours(-4)), proposal.SlotEt);
+
+        var affirmed = Eval("Yes, Saturday at 10am");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, affirmed.Action);
+        Assert.Equal(Sat10, affirmed.SlotEt);
+
+        var attendingDespiteHoursQuestion = Eval("See you Saturday at 10am, what time do you close?");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, attendingDespiteHoursQuestion.Action);
+        Assert.Equal(Sat10, attendingDespiteHoursQuestion.SlotEt);
     }
 
     [Fact]
@@ -67,6 +75,10 @@ public class AppointmentCommitmentTests
     [InlineData("I can't come in Saturday at 10am")]
     [InlineData("I cannot make it Saturday at 10am")]
     [InlineData("I won't be there Saturday at 10am")]
+    [InlineData("Yes, are you open Saturday at 10am?")]
+    [InlineData("Yes are you open Saturday at 10am")]
+    [InlineData("Yes, what time do you close on Saturday?")]
+    [InlineData("Ok, do you close at 6 on Saturday?")]
     public void Question_or_soft_interest_does_not_trigger(string text)
     {
         var d = Eval(text, proposed: Sat10);
