@@ -135,9 +135,14 @@ class LaunchGuardTests(unittest.TestCase):
 
     def test_desktop3_worker_starts_from_userprofile(self) -> None:
         starter = (ROOT / "deploy/desktop3/START-WORKER.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        executable = "\n".join(
+            line for line in starter.splitlines()
+            if not line.lstrip().upper().startswith("REM ")
+        )
         self.assertIn('cd /d "%USERPROFILE%"', starter)
         self.assertIn("Desktop3", starter)
-        self.assertNotIn("eleadcrm.com", starter)
+        self.assertNotIn("eleadcrm.com", executable)
+        self.assertNotIn("Titan.ChiefOfStaff.exe", executable)
         self.assertIn("does NOT start Titan.ChiefOfStaff.exe", starter)
         self.assertIn("system32", starter.lower())
 

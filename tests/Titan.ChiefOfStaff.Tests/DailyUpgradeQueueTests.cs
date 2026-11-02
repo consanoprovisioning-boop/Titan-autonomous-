@@ -184,4 +184,20 @@ public class DailyUpgradeQueueTests
         Assert.Equal(TailoredUpgradeDisposition.Blocked, decision.Disposition);
         Assert.Null(decision.Body);
     }
+
+    [Fact]
+    public void Load_reads_allowed_rooftops_and_drops_tko()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-progress-" + Guid.NewGuid().ToString("n"));
+        var paths = new HostPaths(root);
+        paths.EnsureDataTree();
+        File.WriteAllText(
+            paths.UpgradeProgress,
+            """{"dailyOrganizerScheduledEmailsCompleteRooftops":["28206","6220"],"customerDatabaseStudyCompleteRooftops":["28546"]}""");
+
+        var loaded = DailyUpgradeQueue.Load(paths);
+        Assert.Equal(["28206"], loaded.DailyOrganizerScheduledEmailsCompleteRooftops);
+        Assert.Equal(["28546"], loaded.CustomerDatabaseStudyCompleteRooftops);
+        Assert.Equal(DailyUpgradeProgress.Empty, DailyUpgradeQueue.Load(new HostPaths(Path.Combine(root, "missing"))));
+    }
 }

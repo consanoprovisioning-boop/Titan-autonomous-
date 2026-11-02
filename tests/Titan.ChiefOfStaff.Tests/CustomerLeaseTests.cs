@@ -62,4 +62,17 @@ public class CustomerLeaseTests
         Assert.True(store.Release("Alienware-18", "28206", "Kim Cole", Now));
         Assert.NotNull(store.TryAcquire("Node8", "28206", "Kim Cole", "AppointmentCommit", Now));
     }
+
+    [Fact]
+    public void Two_stores_on_the_same_file_are_exclusive()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "titan-lease-" + Guid.NewGuid().ToString("n"), "cluster-leases.json");
+        var left = new CustomerLeaseStore(path);
+        var right = new CustomerLeaseStore(path);
+        var first = left.TryAcquire("Alienware-18", "28206", "Lee Park", "P1Email", Now);
+        var second = right.TryAcquire("Desktop3", "28206", "Lee Park", "P1Call", Now);
+        Assert.NotNull(first);
+        Assert.Null(second);
+        Assert.Equal("Alienware-18", right.Peek("28206", "Lee Park", Now)?.NodeId);
+    }
 }

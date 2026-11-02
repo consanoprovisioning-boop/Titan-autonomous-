@@ -206,6 +206,15 @@ public static class AppointmentCommitment
             return false;
         }
 
+        if (Regex.IsMatch(
+                text,
+                @"\b(?:can'?t|cannot|won'?t|will not|not going to|unable to)\s+(?:come|make(?:\s+it)?|be there|do)\b|\b(?:cancel|cancelled|canceled)\b",
+                RegexOptions.IgnoreCase))
+        {
+            reason = "Customer declined or cancelled attendance. Follow-up only; do not book.";
+            return false;
+        }
+
         var hasSlot = Policy.HasCustomerDayAndTime(text);
 
         // A proposal of a specific slot counts as commitment even phrased as a question.

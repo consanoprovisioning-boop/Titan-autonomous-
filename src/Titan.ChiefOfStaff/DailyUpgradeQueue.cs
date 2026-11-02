@@ -124,6 +124,42 @@ public static class DailyUpgradeQueue
         return null;
     }
 
+    public static DailyUpgradeProgress Load(HostPaths paths)
+    {
+        var path = paths.UpgradeProgress;
+        if (!File.Exists(path))
+        {
+            return DailyUpgradeProgress.Empty;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            return new DailyUpgradeProgress(
+                ReadRooftops(doc.RootElement, "dailyOrganizerScheduledEmailsCompleteRooftops"),
+                ReadRooftops(doc.RootElement, "customerDatabaseStudyCompleteRooftops"));
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return DailyUpgradeProgress.Empty;
+        }
+    }
+
+    private static IReadOnlyCollection<string> ReadRooftops(System.Text.Json.JsonElement root, string property)
+    {
+        if (!root.TryGetProperty(property, out var value) || value.ValueKind != System.Text.Json.JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        return value.EnumerateArray()
+            .Select(item => item.GetString())
+            .Where(id => Policy.IsAllowedRooftop(id))
+            .Select(id => id!.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+    }
+
     private static bool ContainsRooftop(IReadOnlyCollection<string> completedRooftops, string rooftop)
         => completedRooftops.Any(c => string.Equals(c.Trim(), rooftop, StringComparison.Ordinal));
 

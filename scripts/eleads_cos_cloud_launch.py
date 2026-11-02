@@ -14,9 +14,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-ALIENWARE_WORKER_ID = "1a1f1f15-72c4-4334-ad8b-f87d54efe73a"
+ALIENWARE_WORKER_ID = "e630caf9-875d-4439-ab1a-3e6c386f6c0f"
+WRONG_DIRECTORY_WORKER_IDS = frozenset({"1a1f1f15-72c4-4334-ad8b-f87d54efe73a"})
 RETIRED_ALIENWARE_WORKER_IDS = frozenset({"2bd89263-dc03-4936-9b04-6bc709799f66"})
-VERIFIED_USERPROFILE_WORKER_ID = "e630caf9-875d-4439-ab1a-3e6c386f6c0f"
+VERIFIED_USERPROFILE_WORKER_ID = ALIENWARE_WORKER_ID
 CLUSTER_NODES = (
     {
         "nodeId": "Alienware-18",
@@ -210,10 +211,12 @@ def alienware_worker(snapshot: dict) -> dict | None:
         worker_id = str(row.get("workerId") or "")
         if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
             return row
+        if worker_id in WRONG_DIRECTORY_WORKER_IDS:
+            return row
         labels = _worker_blob(row)
         if labels.startswith("Alienware-18") or "Alienware-18" in labels:
             return row
-        if str(row.get("workerId") or "") == VERIFIED_USERPROFILE_WORKER_ID:
+        if worker_id == VERIFIED_USERPROFILE_WORKER_ID:
             return row
     return None
 
@@ -303,8 +306,12 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     else:
         shown = "workers=[]" if worker_count == 0 else f"workers={worker_count}"
         blockers = [
-            f"Alienware-18 worker {ALIENWARE_WORKER_ID} is offline ({shown}). "
-            "Start it on the Alienware with agent worker start --verbose and leave that window open. "
+            f"Alienware-18 worker {ALIENWARE_WORKER_ID} (%USERPROFILE%) is offline ({shown}). "
+            "On Alienware-18, double-click START-WORKER.cmd from %USERPROFILE% "
+            "(deploy\\alienware-local-program or dist\\titan-chief-win-x64) and leave that window open. "
+            "Directory must show %USERPROFILE%, never C:\\Windows\\system32. "
+            "Then CHECKIN.cmd, sign in as Bordine, Glenn on 28206, CHECKIN.cmd again, leave Chrome on 9222. "
+            "Desktop3 still needs the local clone in docs/deploy/desktop3.md. "
             "This cloud host will not open Eleads."
         ]
         host = "cloud-linux"

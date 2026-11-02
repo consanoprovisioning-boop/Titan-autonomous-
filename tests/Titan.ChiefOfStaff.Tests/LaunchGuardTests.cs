@@ -115,4 +115,19 @@ public class LaunchGuardTests
             EleadsOpenGuard.NavigationTarget(isCloudLinux: false, allowNavigate: true, currentUrl: "about:blank"));
         Assert.Null(EleadsOpenGuard.NavigationTarget(isCloudLinux: false, allowNavigate: false, currentUrl: "about:blank"));
     }
+
+    [Fact]
+    public void Production_tick_passes_host_paths_and_upgrade_progress()
+    {
+        var program = File.ReadAllText(RepoPath("src", "Titan.ChiefOfStaff", "Program.cs"));
+        Assert.Contains("DailyUpgradeQueue.Load(paths)", program, StringComparison.Ordinal);
+        Assert.Contains("RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et, paths, progress)", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);", program, StringComparison.Ordinal);
+    }
+
+    private static string RepoPath(params string[] parts)
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+        return Path.Combine([root, .. parts]);
+    }
 }

@@ -78,6 +78,12 @@ public sealed class CustomerLeaseStore
             nowEt.Add(ttl ?? DefaultTtl),
             job);
 
+        using var fileLock = TryLock();
+        if (fileLock is null)
+        {
+            return null;
+        }
+
         lock (_gate)
         {
             var live = Load(nowEt);
@@ -101,6 +107,12 @@ public sealed class CustomerLeaseStore
         }
 
         var fingerprint = CustomerLease.FingerprintOf(rooftopId!, customerKey);
+        using var fileLock = TryLock();
+        if (fileLock is null)
+        {
+            return false;
+        }
+
         lock (_gate)
         {
             var live = Load(nowEt);
@@ -127,6 +139,12 @@ public sealed class CustomerLeaseStore
             return null;
         }
 
+        using var fileLock = TryLock();
+        if (fileLock is null)
+        {
+            return null;
+        }
+
         lock (_gate)
         {
             Load(nowEt).TryGetValue(CustomerLease.FingerprintOf(rooftopId!, customerKey), out var held);
@@ -136,10 +154,44 @@ public sealed class CustomerLeaseStore
 
     public IReadOnlyList<CustomerLease> Snapshot(DateTimeOffset nowEt)
     {
+        using var fileLock = TryLock();
+        if (fileLock is null)
+        {
+            return [];
+        }
+
         lock (_gate)
         {
             return Load(nowEt).Values.OrderBy(v => v.Fingerprint).ToArray();
         }
+    }
+
+    private FileStream? TryLock()
+    {
+        var lockPath = _path + ".lock";
+        var dir = Path.GetDirectoryName(lockPath);
+        if (!string.IsNullOrWhiteSpace(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            try
+            {
+                return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException) when (attempt < 39)
+            {
+                Thread.Sleep(25);
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     private Dictionary<string, CustomerLease> Load(DateTimeOffset nowEt)

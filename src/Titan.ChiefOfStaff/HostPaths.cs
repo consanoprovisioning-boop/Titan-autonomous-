@@ -13,6 +13,7 @@ public sealed class HostPaths
     public string NodeMarker { get; }
     public string ClusterLeases { get; }
     public string ClusterMode { get; }
+    public string UpgradeProgress { get; }
 
     public HostPaths(string? dataRoot = null)
     {
@@ -33,6 +34,7 @@ public sealed class HostPaths
         NodeMarker = Path.Combine(DataRoot, "node.json");
         ClusterLeases = Path.Combine(DataRoot, "cluster-leases.json");
         ClusterMode = Path.Combine(DataRoot, "cluster-mode.json");
+        UpgradeProgress = Path.Combine(DataRoot, "upgrade-progress.json");
     }
 
     public void EnsureDataTree()
