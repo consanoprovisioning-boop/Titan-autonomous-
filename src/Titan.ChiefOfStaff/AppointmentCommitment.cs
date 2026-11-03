@@ -208,10 +208,10 @@ public static class AppointmentCommitment
 
         if (Regex.IsMatch(
                 text,
-                @"\b(?:can'?t|cannot|won'?t|will not|not going to|unable to)\s+(?:come|make(?:\s+it)?|be there|do)\b|\b(?:cancel|cancelled|canceled)\b",
+                @"\b(?:can'?t|cannot|won'?t|will not|not going to|unable to)\s+(?:come|make(?:\s+it)?|be there|do)\b|\b(?:cancel|cancelled|canceled)\b|\b(?:won'?t|will not|doesn'?t|does not|can'?t|cannot|isn'?t|is not|not going to|isn'?t going to|is not going to)\s+work\b",
                 RegexOptions.IgnoreCase))
         {
-            reason = "Customer declined or cancelled attendance. Follow-up only; do not book.";
+            reason = "Customer declined or cancelled attendance, or said the time will not work. Follow-up only; do not book.";
             return false;
         }
 

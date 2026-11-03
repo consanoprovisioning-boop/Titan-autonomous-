@@ -67,6 +67,11 @@ public class AppointmentCommitmentTests
     [InlineData("I can't come in Saturday at 10am")]
     [InlineData("I cannot make it Saturday at 10am")]
     [InlineData("I won't be there Saturday at 10am")]
+    [InlineData("Yeah, that won't work")]
+    [InlineData("Yeah, Saturday at 2 won't work for me")]
+    [InlineData("Ok, Saturday at 10 doesn't work")]
+    [InlineData("Sure, Saturday at 10am is not going to work")]
+    [InlineData("Saturday at 10 won't work, how about Monday at 11am?")]
     public void Question_or_soft_interest_does_not_trigger(string text)
     {
         var d = Eval(text, proposed: Sat10);
