@@ -255,13 +255,22 @@ public static class AppointmentCommitment
         DateTime date;
         var lower = text.ToLowerInvariant();
 
-        var monthDay = Regex.Match(lower, @"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?\b");
+        // Month tokens are whole words. A prefix plus [a-z]* treated "decided 2"
+        // as December 2 and "mark 10" as March 10, then booked that date.
+        var monthDay = Regex.Match(
+            lower,
+            @"\b(january|february|march|april|may|june|july|august|september|sept|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})(?:st|nd|rd|th)?\b");
         var numeric = Regex.Match(lower, @"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b");
 
         if (monthDay.Success)
         {
             var month = MonthNumber(monthDay.Groups[1].Value);
             var day = int.Parse(monthDay.Groups[2].Value, CultureInfo.InvariantCulture);
+            if (month == 0)
+            {
+                return null;
+            }
+
             date = ResolveDated(nowEt.Date, month, day);
         }
         else if (numeric.Success)
@@ -304,11 +313,21 @@ public static class AppointmentCommitment
         return candidate < today ? candidate.AddYears(1) : candidate;
     }
 
-    private static int MonthNumber(string prefix) => prefix switch
+    private static int MonthNumber(string token) => token switch
     {
-        "jan" => 1, "feb" => 2, "mar" => 3, "apr" => 4, "may" => 5, "jun" => 6,
-        "jul" => 7, "aug" => 8, "sep" or "sept" => 9, "oct" => 10, "nov" => 11, "dec" => 12,
-        _ => 1
+        "jan" or "january" => 1,
+        "feb" or "february" => 2,
+        "mar" or "march" => 3,
+        "apr" or "april" => 4,
+        "may" => 5,
+        "jun" or "june" => 6,
+        "jul" or "july" => 7,
+        "aug" or "august" => 8,
+        "sep" or "sept" or "september" => 9,
+        "oct" or "october" => 10,
+        "nov" or "november" => 11,
+        "dec" or "december" => 12,
+        _ => 0
     };
 
     private static DayOfWeek? WeekdayMatch(string lower)
