@@ -87,6 +87,11 @@ public sealed class CustomerLeaseStore
         lock (_gate)
         {
             var live = Load(nowEt);
+            if (live is null)
+            {
+                return null;
+            }
+
             if (live.TryGetValue(lease.Fingerprint, out var held)
                 && !string.Equals(held.NodeId, nodeId, StringComparison.OrdinalIgnoreCase))
             {
@@ -116,7 +121,7 @@ public sealed class CustomerLeaseStore
         lock (_gate)
         {
             var live = Load(nowEt);
-            if (!live.TryGetValue(fingerprint, out var held))
+            if (live is null || !live.TryGetValue(fingerprint, out var held))
             {
                 return false;
             }
@@ -147,7 +152,13 @@ public sealed class CustomerLeaseStore
 
         lock (_gate)
         {
-            Load(nowEt).TryGetValue(CustomerLease.FingerprintOf(rooftopId!, customerKey), out var held);
+            var live = Load(nowEt);
+            if (live is null)
+            {
+                return null;
+            }
+
+            live.TryGetValue(CustomerLease.FingerprintOf(rooftopId!, customerKey), out var held);
             return held;
         }
     }
@@ -162,7 +173,13 @@ public sealed class CustomerLeaseStore
 
         lock (_gate)
         {
-            return Load(nowEt).Values.OrderBy(v => v.Fingerprint).ToArray();
+            var live = Load(nowEt);
+            if (live is null)
+            {
+                return [];
+            }
+
+            return live.Values.OrderBy(v => v.Fingerprint).ToArray();
         }
     }
 
@@ -194,38 +211,64 @@ public sealed class CustomerLeaseStore
         return null;
     }
 
-    private Dictionary<string, CustomerLease> Load(DateTimeOffset nowEt)
+    /// <summary>
+    /// Missing file means there are no holders. Unreadable JSON does not:
+    /// a torn write is not an empty set, and saving over it would drop every
+    /// other node's lease so a second PC could message the same customer.
+    /// </summary>
+    private Dictionary<string, CustomerLease>? Load(DateTimeOffset nowEt)
     {
-        var live = new Dictionary<string, CustomerLease>(StringComparer.Ordinal);
         if (!File.Exists(_path))
         {
-            return live;
+            return new Dictionary<string, CustomerLease>(StringComparer.Ordinal);
+        }
+
+        string json;
+        try
+        {
+            json = File.ReadAllText(_path);
+        }
+        catch (IOException)
+        {
+            return null;
         }
 
         try
         {
-            var rows = JsonSerializer.Deserialize<List<CustomerLease>>(File.ReadAllText(_path)) ?? [];
+            var rows = JsonSerializer.Deserialize<List<CustomerLease>>(json);
+            if (rows is null)
+            {
+                return null;
+            }
+
+            var live = new Dictionary<string, CustomerLease>(StringComparer.Ordinal);
             foreach (var row in rows)
             {
-                if (!Policy.IsAllowedRooftop(row.RooftopId) || row.ExpiresAtEt <= nowEt)
+                if (row is null
+                    || string.IsNullOrWhiteSpace(row.NodeId)
+                    || string.IsNullOrWhiteSpace(row.CustomerKey)
+                    || !Policy.IsAllowedRooftop(row.RooftopId)
+                    || row.ExpiresAtEt <= nowEt)
                 {
                     continue;
                 }
 
                 live[row.Fingerprint] = row;
             }
+
+            return live;
         }
         catch (JsonException)
         {
-            return live;
+            return null;
         }
-
-        return live;
     }
 
     private void Save(Dictionary<string, CustomerLease> live)
     {
         var json = JsonSerializer.Serialize(live.Values.ToArray(), new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(_path, json + Environment.NewLine);
+        var temporary = _path + ".tmp";
+        File.WriteAllText(temporary, json + Environment.NewLine);
+        File.Move(temporary, _path, overwrite: true);
     }
 }
