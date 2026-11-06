@@ -1,0 +1,42 @@
+Titan Chief of Staff — Desktop4 (PC4 / provisional Node4)
+
+This PC is released to join the cluster. Cloud did not copy files onto Desktop4.
+Preferred source: Alienware-18 (the MAIN computer). GitHub is fallback.
+Desktop5 and Desktop6 stay install-only until Glenn says so.
+
+Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+Never start from C:\Windows\system32. This installer requires %USERPROFILE%.
+
+ONE-SHOT (install, then Glenn runs START-WORKER):
+
+  \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+
+If the repo is already under %USERPROFILE%\Titan-autonomous- :
+
+  %USERPROFILE%\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+
+INSTALL-COS.cmd clones from Alienware-18 if missing, checks out
+cursor/eleads-cluster-4pc-7dfe, copies or publishes dist\titan-chief-win-x64,
+runs INSTALL.cmd, runs ENROLL-NODE.cmd Desktop4, prints
+INSTALLED. DESKTOP4 RELEASED TO JOIN, and STOPS. It does not start the worker.
+
+THEN, from %USERPROFILE%:
+
+  %USERPROFILE%\Titan-autonomous-\deploy\desktop4\START-WORKER.cmd
+
+Leave that window open. CHECKIN.cmd twice as Bordine, Glenn on 28546.
+Leave Chrome on CDP 9222. Do not type verify. Never C:\Windows\system32\Titan.cmd.
+
+If the Alienware share does not have INSTALL-COS.cmd yet:
+
+  cd /d "%USERPROFILE%"
+  git clone --branch cursor/eleads-cluster-4pc-7dfe https://github.com/consanoprovisioning-boop/Titan-autonomous-.git Titan-autonomous-
+  "%USERPROFILE%\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd"
+
+Manual steps: docs\deploy\desktop4.md
+Alienware-18 is coordinator, clone source, and lease host. Desktop4 is not the coordinator.
+Provisional job: Mitsubishi 28546 P2/P3 after Desktop3 P1 is clear.
+Needs the .NET 8 desktop runtime and Google Chrome.
+INSTALL.cmd is not send authorization. Titan never types the password.
+Never 6220. Identity Bordine, Glenn.
+clusterHoldLaunch remains true for unreleased nodes.

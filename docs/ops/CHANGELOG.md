@@ -1,5 +1,65 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-06 — Desktop4 per-node release to join cluster TITAN-CHANGE-MULTIAGENT-001 v0.5.5
+
+**Decision (Glenn, this PC = Desktop4 / DeskTop4):** “finish setup and launch COS to add this PC to cluster.” Overrides the previous all-PCs-ready hold **for Desktop4 only**. Desktop5 and Desktop6 stay install-only.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.5.md`. `cluster-hold.json` keeps `"holdLaunch": true` (clusterHoldLaunch remains for unreleased nodes) and adds `"releasedNodes": ["Desktop4"]`. `HOLD-LAUNCH.cmd` allows `START-WORKER` when the node is in `releasedNodes`. v0.5.0–v0.5.4 are not rewritten.
+
+**This cloud inventory:** `list-self-hosted-workers scope=all status=all` → `workers=[]`. COS was **not** placed and **not** launched. `sends=[]`. Cloud Linux did not open Eleads. Glenn must run INSTALL-COS (if needed) then START-WORKER.cmd from `%USERPROFILE%` on Desktop4, then CHECKIN.cmd twice as Bordine, Glenn on 28546.
+
+## 2026-11-06 — Desktop5 and Desktop6 named overflow INSTALL-COS (install only) TITAN-CHANGE-MULTIAGENT-001 v0.5.4
+
+**Decision (Glenn):** DeskTop4, DeskTop5, and DeskTop6 are connected to the WiFi network. Treat them as named cluster nodes on the LAN. This is not “all PCs ready, launch.”
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md`. Playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. One-shots: `deploy/desktop5/INSTALL-COS.cmd`, `deploy/desktop6/INSTALL-COS.cmd` (same install-only pattern as Desktop4). v0.5.0–v0.5.3 are not rewritten.
+
+**Partition (provisional):** Desktop4 stays Mitsubishi 28546 P2/P3 (Node4). Desktop5 ≈ Node5 Nissan 28206 P1 calls (8-PC overflow). Desktop6 ≈ Node6 Mitsubishi 28546 P1 calls (8-PC overflow). Final COS tasks wait for Glenn’s per-PC study. `holdLaunch` stays `true`. Alienware-18 stays MAIN. WiFi connected is not a Cursor worker. Cloud Linux did not run the Windows installer. `sends=[]`.
+
+## 2026-11-06 — Desktop4 one-shot INSTALL-COS (install only)
+
+**Decision (Glenn):** “install Titan COS now” on Desktop4 means clone/install/enroll, not launch. Cluster setup is still in progress.
+
+**Filed:** `deploy/desktop4/INSTALL-COS.cmd`. Playbook: `docs/deploy/desktop4.md`. `holdLaunch` stays `true`. The one-shot refuses `START-WORKER`, requires `%USERPROFILE%`, never starts from `C:\Windows\system32`, and STOPS after `INSTALL.cmd` + `ENROLL-NODE.cmd Desktop4`. Cloud Linux did not run the Windows installer. `sends=[]`.
+
+## 2026-11-06 — Hold launch; Alienware-18 MAIN TITAN-CHANGE-MULTIAGENT-001 v0.5.3
+
+**Decision (Glenn):** the PC cluster is still being set up. He will say when it is complete. Then study each PC’s devices/ability and assign best-fit COS tasks. Not now. Install on Desktop4 is allowed. Do not launch (`START-WORKER`, COS placement, CHECKIN-to-send) until all PCs are ready and online. Alienware-18 is the MAIN computer (coordinator, clone source, lease host). Desktop4 is not the coordinator. Desktop4 = Mitsubishi 28546 P2/P3 remains **provisional**.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md`. v0.5.0–v0.5.2 are not rewritten. `START-WORKER.cmd` and the cloud launcher fail-closed while `clusterHoldLaunch=true`. Cloud Linux still does not open Eleads. This entry does not claim any worker is online.
+
+## 2026-11-06 — Desktop4 named Node4 TITAN-CHANGE-MULTIAGENT-001 v0.5.2
+
+**Decision (Glenn):** PC # DeskTop4 of the new PC cluster installs Titan Clone from Alienware-18. Desktop4 is a first-class named cluster node (like Desktop3) occupying the Node4 slot.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md`. Playbook: `docs/deploy/desktop4.md`. v0.5.0 and v0.5.1 are not rewritten.
+
+**Partition:** Alienware-18 = Nissan 28206 P1; Desktop3 = Mitsubishi 28546 P1; Node3 = Nissan P2/P3; Desktop4 (Node4) = Mitsubishi 28546 P2/P3. Enroll `Desktop4` or `Node4`. Preferred clone is the Alienware-18 working copy on the LAN; GitHub checkout of `cursor/eleads-cluster-4pc-7dfe` is fallback. Cloud Linux still does not open Eleads and cannot copy files onto Desktop4. `sends=[]` while workers are offline. This entry does not claim Desktop4 is online.
+
+## 2026-11-02 — 8-PC scale-out overlay TITAN-CHANGE-MULTIAGENT-001 v0.5.1
+
+**Decision (Glenn):** four more PCs are coming (eight total). Keep the 4-PC go-live. Add overflow lanes: P1 Nissan email, P1 Mitsubishi email, P1 Nissan calls, P1 Mitsubishi calls, Nissan P2/P3, Mitsubishi P2/P3, SMS-in-window, appointment-commit.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md`. Playbook: `docs/deploy/cluster-8pc.md`. Customer lease stays exclusive at eight nodes (`TITAN_LEASE_DIR` required when scale-out is on). Cloud Linux still does not open Eleads. This entry does not claim Node5–Node8 are online.
+
+## 2026-11-02 — 4-PC cluster overlay TITAN-CHANGE-MULTIAGENT-001 v0.5.0
+
+**Decision (Glenn):** Titan Autonomous and Titan COS live on all four local PCs. Desktop3 is the named clone target. Specialist jobs are delegated by rooftop and lane so work can reach or surpass the 60 actions/hour floor without double-sends.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (overlay; v0.4.0 and the Eleads source packet are not rewritten). Skill: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`. Playbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/node-onboarding.md`.
+
+**Partition:** Alienware-18 = Nissan 28206 P1; Desktop3 = Mitsubishi 28546 P1; Node3 = Nissan P2/P3; Node4 = Mitsubishi P2/P3. P1 overdue email + call reschedule is the high-velocity job. Database comb is P2 and does not send. Cloud Linux still does not open Eleads. `sends=[]` while workers are offline.
+
+**Clone:** Cloud writes the playbook. Glenn (or a local worker on that PC) clones Desktop3. This entry does not claim Desktop3 is online.
+
+## 2026-10-17 — SMS window 8:00 AM–9:00 PM ET (Glenn directive)
+
+**Decision (Glenn, Sat Oct 17 2026):** live SMS window is **8:00 AM–9:00 PM America/New_York (08:00–21:00)**, replacing 9:00 AM–7:00 PM ET for live work. Updated live rules in `.cursor/skills/eleads-valdosta-chief/SKILL.md`, `.cursor/skills/running-eleads-cos-loop/SKILL.md`, and `docs/ops/eleads-valdosta.md`. Dated historical entries below that record the old window are preserved as history and are not rewritten; the filed source packet at `docs/ops/sources/` is unchanged.
+
+**Confirmed live (no change):** emails require no approval — Version 1.1 standing authorization is live. Ownership screen is **180 days**.
+
+This is a docs sync only. It does not open Eleads, claim CRM work, or unblock the Alienware host (Alienware worker is offline).
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

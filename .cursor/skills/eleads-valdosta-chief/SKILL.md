@@ -7,7 +7,7 @@ description: Live Eleads chief-of-staff loop for Glenn Bordine at Valdosta Nissa
 
 This is a live rooftop system. Ban the words pilot, MVP, and prototype in this work. Do not invent customers, stock, payments, APRs, or appointment times.
 
-Read `docs/ops/eleads-valdosta.md` and `docs/deploy/alienware-18.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md` (Cursor agent; do not flatten this V1.1 skill).
+Read `docs/ops/eleads-valdosta.md`, `docs/deploy/alienware-18.md`, and `docs/deploy/cluster-4pc.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cluster delegation: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`. Desktop5/Desktop6 install-only playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. Desktop4 is released to join; other nodes stay held.
 
 ## Authorization (Version 1.1)
 
@@ -30,11 +30,11 @@ Exact-draft is **not** a hard stop under V1.1. The original PDF/RTF/source packe
 
 If Alienware-18 is offline or not Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
 
-Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It checks the worker snapshot, refuses to open Eleads, and records ready or blocked.
+Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It refuses to open Eleads and records ready or blocked. Alienware-18 is MAIN. Desktop4 may START-WORKER / CHECKIN. Desktop5 and Desktop6 stay install-only.
 
 ## Work order (while session live)
 
-0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.
+0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 8:00–21:00 ET. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.
 1. Daily Organizer status **Open**, contact type **All** (planner / overdue / Glenn-assigned first).
 2. Appraisal / trade / lease maturity / missed appointment / recent inquiry.
 3. Qualified dormant new/used.
@@ -51,7 +51,7 @@ Cadence: prefer the verified customer-requested next action or existing dealersh
 
 ## Windows (America/New_York)
 
-- SMS: 9:00 AM–7:00 PM only (narrower than PDF).
+- SMS: 8:00 AM–9:00 PM America/New_York only.
 - Email: any hour after a live verified session.
 - Customer appointment offers: Mon/Wed/Thu/Fri 9:00–6:30; Sat 9:00–5:30; never Sunday; Tuesday only if the customer asks. Dealership closed Sunday.
 - Follow-up task scheduling hours: Mon–Fri 9:00 AM–7:00 PM; Sat 9:00 AM–6:00 PM.

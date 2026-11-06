@@ -8,7 +8,7 @@ Source packet (preserved as filed, not rewritten): Customer Traffic and Appointm
 
 **Ownership screen (live):** 180 days (Glenn 2026-10-16). A recent inquiry overrides. Model year never proves duration.
 
-**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. This file is the long law.
+**Continual loop:** Cursor agent skill `.cursor/skills/running-eleads-cos-loop/SKILL.md` deploys the small specialist set under one Core. Cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md` (live four), `docs/deploy/cluster-8pc.md` (ready eight). This file is the long law.
 
 ## Version 1.1 standing authorization
 
@@ -50,7 +50,7 @@ This Linux cloud agent must not:
 - run PowerShell self-extractors or `Set-ExecutionPolicy Bypass`
 - type an Eleads password
 
-If Alienware-18 is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach.
+If cluster launch is held (`clusterHoldLaunch=true`) on unreleased nodes, or every cluster node is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Desktop4 is in `releasedNodes` and may START-WORKER / CHECKIN. Desktop5 and Desktop6 stay install-only. Alienware-18 is MAIN. Do not invent a Desktop3, Desktop4, Desktop5, or Desktop6 worker. WiFi on the LAN is not a Cursor worker. `workers=[]` means COS is not live.
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 
@@ -79,7 +79,7 @@ Operational outcomes:
 
 While the Alienware host is verified and sending:
 
-0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 9:00 AM–7:00 PM ET. CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
+0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 8:00 AM–9:00 PM ET. CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
 1. **Daily Organizer** status **Open**, contact type **All** (Glenn-assigned first, including planner and overdue).
 2. **Appraisal / trade / lease maturity / missed appointment / recent inquiry.**
 3. **Qualified dormant** new/used vehicle leads.
@@ -130,7 +130,7 @@ Glenn-owned profiles: prepare follow-up only after the latest email/SMS timing a
 | Channel | When | Proof |
 | --- | --- | --- |
 | Email | Valid permitted email; no opt-out / hard bounce. Any hour after a live verified session. | Sent activity + separate completed email task/note: `Manual email completed via system.` |
-| SMS | Valid SMS-permitted phone; no DNT / Stop. **9:00 AM–7:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
+| SMS | Valid SMS-permitted phone; no DNT / Stop. **8:00 AM–9:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
 | Phone | Valid callable number; no DNC. Autonomous calls require telephony integration. | Actual call outcome. Never mark a call completed if no call occurred. |
 
 A draft, blank composer, preview, or processing screen is not delivery. CRM history under Bordine, Glenn or Glenn Bordine is the evidence. Click Send once. Recheck history before any retry. Do not resend automatically when the result is uncertain.

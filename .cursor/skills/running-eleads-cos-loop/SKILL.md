@@ -1,11 +1,11 @@
 ---
 name: running-eleads-cos-loop
-description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of staff continual loop with deployed sub-agents for Valdosta Nissan 28206 or Valdosta Mitsubishi 28546, never TKO Autogroup 6220, on Alienware-18, under Titan governance TITAN-CHANGE-MULTIAGENT-001.
+description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of staff continual loop with deployed sub-agents for Valdosta Nissan 28206 or Valdosta Mitsubishi 28546, never TKO Autogroup 6220, on the 4-PC cluster (Alienware-18, Desktop3, Node3, Desktop4 / Node4) plus named overflow Desktop5 / Node5 and Desktop6 / Node6, under Titan governance TITAN-CHANGE-MULTIAGENT-001.
 ---
 
 # Running the Eleads COS loop
 
-Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`.
+Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`. Cluster overlays: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.5.md` (Desktop4 per-node release). Desktop4 is released to join (`releasedNodes`). Other nodes stay held until Glenn says they are ready. Install/enroll only on unreleased nodes. Alienware-18 is the coordinator. Desktop5 and Desktop6 lanes stay provisional and install-only. WiFi is not a Cursor worker.
 
 This is live rooftop work for **Bordine, Glenn**. Ban the words pilot, MVP, and prototype for the Valdosta loop. The governance record’s own “pilot” wording is historical Titan SDK scope (local Draft/Blocked connectors). It is not a label for this loop.
 
@@ -45,6 +45,16 @@ If the host blocker is unchanged and the operator is outside Slack, do not Slack
 ## Launch
 
 One sequence. The cloud command refuses to open Eleads and records ready or blocked in `/cursor/stores/self/eleads-valdosta-state.json`.
+
+On Desktop4 (released to join), Glenn, from `%USERPROFILE%`:
+
+1. `INSTALL-COS.cmd` if Titan is not installed.
+2. Double-click `deploy\desktop4\START-WORKER.cmd`. Leave that window open. Never `C:\Windows\system32`.
+3. Close every Chrome window, including the tray icon.
+4. Double-click `CHECKIN.cmd` beside the host executable.
+5. Sign in as Bordine, Glenn on **28546**. The host does not type the password.
+6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify`.
+7. Leave that Chrome window open on CDP 9222.
 
 On Alienware-18, Glenn:
 
@@ -130,7 +140,7 @@ Dealership knowledge uses only facts fresh on this rooftop in this session. If r
 
 While the Alienware session is verified:
 
-0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
+0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 8:00–21:00 ET. Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
 1. Daily Organizer status Open, contact type All (planner, overdue, Glenn-assigned first).
 2. Appraisal, trade, lease maturity, missed appointment, recent inquiry.
 3. Qualified dormant new/used.
@@ -145,7 +155,7 @@ Past-customer review: 48 hours.
 
 ## Windows (America/New_York)
 
-- SMS: 9:00–19:00 only. 8:00 PM is closed.
+- SMS: 8:00–21:00 only. 9:00 PM is closed.
 - Email: any hour after Verify.
 - Customer appointments: Mon/Wed/Thu/Fri 9:00–6:30; Sat 9:00–5:30; never Sunday; Tuesday only if the customer asks.
 - Follow-up task scheduling: Mon–Fri 9:00 AM–7:00 PM; Sat 9:00 AM–6:00 PM.
@@ -203,7 +213,7 @@ Stop. Do not ship the action. Correct the cycle.
 | Open Eleads from this cloud Linux agent | Close nothing in CRM because you never opened it. Record the blocker. Empty arrays. |
 | TKO, 6220, later rooftop, store-wide volume | Drop it. 28206 and 28546 only. |
 | 12-month or 14-month ownership screen | Live screen is 180 days. Recent inquiry overrides. Leave the source packet as filed. |
-| SMS at 8:00 PM or “until 8” | SMS ends 19:00 ET. |
+| SMS at 9:00 PM or “until 9” as open | SMS ends 21:00 ET. |
 | Exact-draft pause after Verify on an eligible send | V1.1 does not pause. Preserved checks still apply. |
 | 51-agent swarm or 51 model calls | Logical catalog only. Seven specialists max. Core persists. |
 | Maybe-Saturday, or Saturday without a clock time, saved as Appointment Set | Follow-up only. Need day and time in correspondence. |

@@ -10,6 +10,11 @@ public sealed class HostPaths
     public string Heartbeat { get; }
     public string VerifyMarker { get; }
     public string SessionLock { get; }
+    public string NodeMarker { get; }
+    public string ClusterLeases { get; }
+    public string ClusterMode { get; }
+    public string ClusterHold { get; }
+    public string UpgradeProgress { get; }
 
     public HostPaths(string? dataRoot = null)
     {
@@ -27,11 +32,107 @@ public sealed class HostPaths
         Heartbeat = Path.Combine(DataRoot, "heartbeat.json");
         VerifyMarker = Path.Combine(DataRoot, "verify.json");
         SessionLock = Path.Combine(DataRoot, "session.lock");
+        NodeMarker = Path.Combine(DataRoot, "node.json");
+        ClusterLeases = Path.Combine(DataRoot, "cluster-leases.json");
+        ClusterMode = Path.Combine(DataRoot, "cluster-mode.json");
+        ClusterHold = Path.Combine(DataRoot, "cluster-hold.json");
+        UpgradeProgress = Path.Combine(DataRoot, "upgrade-progress.json");
     }
 
     public void EnsureDataTree()
     {
         Directory.CreateDirectory(DataRoot);
         Directory.CreateDirectory(AppDir);
+    }
+
+    public string? ReadEnrolledNodeId()
+        => ReadJsonString(NodeMarker, "nodeId");
+
+    public bool? ReadHoldLaunch()
+        => ReadJsonBool(ClusterHold, "holdLaunch");
+
+    public IReadOnlyList<string> ReadReleasedNodeIds()
+        => ReadJsonStringArray(ClusterHold, "releasedNodes");
+
+    public bool ReadScaleOutMode()
+    {
+        var shared = Environment.GetEnvironmentVariable("TITAN_LEASE_DIR");
+        if (!string.IsNullOrWhiteSpace(shared))
+        {
+            var sharedMode = Path.Combine(shared.Trim(), "cluster-mode.json");
+            if (ReadJsonBool(sharedMode, "scaleOut") == true)
+            {
+                return true;
+            }
+        }
+
+        return ReadJsonBool(ClusterMode, "scaleOut") == true
+               || ClusterPartition.IsOverflowNode(ReadEnrolledNodeId());
+    }
+
+    private static string? ReadJsonString(string path, string property)
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            return doc.RootElement.TryGetProperty(property, out var value) ? value.GetString() : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static bool? ReadJsonBool(string path, string property)
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            return doc.RootElement.TryGetProperty(property, out var value) && value.ValueKind is System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False
+                ? value.GetBoolean()
+                : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static IReadOnlyList<string> ReadJsonStringArray(string path, string property)
+    {
+        if (!File.Exists(path))
+        {
+            return [];
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            if (!doc.RootElement.TryGetProperty(property, out var value)
+                || value.ValueKind != System.Text.Json.JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            return value.EnumerateArray()
+                .Select(item => item.GetString())
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Select(item => item!.Trim())
+                .ToArray();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return [];
+        }
     }
 }

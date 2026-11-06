@@ -1,0 +1,111 @@
+---
+name: titan-cos-multiagent-cluster
+description: Run Titan Chief of Staff on the Valdosta cluster (4-PC go-live plus ready 8-PC scale-out). Delegate specialist jobs by rooftop and lane, comb the database after P1, and push toward 60 actions/hour without double-sends. Never TKO 6220.
+---
+
+# Titan COS multi-agent cluster (4 live, 8 ready)
+
+Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3, Desktop4, Desktop5, or Desktop6, add more PCs, comb the database, or raise throughput toward 60 actions/hour.
+
+**Per-node hold.** Glenn released **Desktop4** (this PC) to finish setup and join the cluster. `holdLaunch` stays true (`clusterHoldLaunch` remains for unreleased nodes). Desktop5 and Desktop6 stay install-only. Do not START-WORKER, place COS, or CHECKIN-to-send on unreleased nodes.
+
+**Alienware-18 is MAIN:** coordinator, clone source, lease host. Specialists clone from Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator. WiFi on the LAN is not a Cursor worker.
+
+Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.5.md` (Desktop4 per-node release), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
+
+Ban the words pilot, MVP, and prototype for the Valdosta loop.
+
+## Authority
+
+Version 1.1 after a **Glenn-verified Eleads session on that PC** (CHECKIN.cmd, Verify, Chrome CDP 9222). Exact-draft is not a hard stop then.
+
+Still never skipped: consent / DNC / DNT / Stop; rooftops **28206** and **28546** only; identity **Bordine, Glenn**; 72h / 96h holds; customer day and time before Appointment Set; 180-day ownership screen; no invented facts; CRM history is proof.
+
+This cloud Linux agent must not open `eleadcrm.com`, start `Titan.ChiefOfStaff.exe`, type or store the password, or fabricate sends. If workers are offline or the node is unreleased: `sends=[]`. `scripts/launch-eleads-cos-loop.sh` fail-closes while `clusterHoldLaunch=true` unless a released node has a verified session. Empty `workers=[]` is not a live COS.
+
+## Inventory first
+
+Call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. Write `/cursor/stores/self/worker-snapshot.json`. Then:
+
+```bash
+scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
+```
+
+Label each node online or missing from that snapshot. Do not invent Desktop3, Desktop4, Desktop5, Desktop6, or Node3–Node8. WiFi connected is not online. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
+
+Known Alienware ids (historical): wrong-directory `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`; verified `%USERPROFILE%` `e630caf9-875d-4439-ab1a-3e6c386f6c0f`. Treat them as offline when the live list is empty.
+
+## One Core, seven specialists, four or eight PCs
+
+Do not spawn 51 agents. Core persists and sends. Specialists return typed results.
+
+| Specialist | Cluster job |
+| --- | --- |
+| queue/prioritization | P1 Daily Organizer, overdue rank |
+| profile inspection | P2 database comb, full history |
+| drafting | P3 tailored upgrade + organizer copy |
+| compliance | DNC, consent, 180-day, 72h/96h, SMS window |
+| appointment | Appointment-commit fast path |
+| CRM proof | History under Bordine, Glenn |
+| audit | Preflight / QA / postflight |
+
+## 12-step cycle → Eleads tick
+
+1. Core opens one idempotent tick.
+2. Audit preflight. Fail closed if Verify or rooftop is invalid.
+3. Core confirms the 51-role catalog. Deploy at most seven specialists.
+4. Queue builds Open/All work in order 0–5. Stop at the first unfinished rank.
+5. Profile inspection uses fresh rooftop facts only.
+6. Drafting writes eligible copy or blocked.
+7. Appointment specialist books only with day and time in correspondence.
+8. Audit QA.
+9. Compliance.
+10. Core rechecks and commits Draft, Blocked, or a V1.1 send.
+11. After Verify, eligible sends do not pause for exact-draft. Connector writes stay Draft or Blocked.
+12. Core writes the tick report. CRM history is the only send count.
+
+## Partition (do not double-send)
+
+Live **4-PC** (run today):
+
+| Node | Rooftop | Lane | Do this |
+| --- | --- | --- | --- |
+| Alienware-18 | 28206 | P1 bundled | Overdue emails, reschedule overdue calls, organizer remainder, SMS 08:00–21:00 ET |
+| Desktop3 | 28546 | P1 bundled | Same P1 jobs on Mitsubishi |
+| Node3 | 28206 | P2/P3 | Comb DB, then tailored upgrades, only after Nissan P1 is clear |
+| Desktop4 (Node4, provisional) | 28546 | P2/P3 | Comb DB, then tailored upgrades, only after Mitsubishi P1 is clear. Final tasks wait for Glenn’s per-PC study |
+
+Ready **8-PC** after `SCALE-OUT-8.cmd` (PC1/PC2 narrow to email):
+
+| Node | Rooftop | Lane |
+| --- | --- | --- |
+| Alienware-18 | 28206 | P1 email |
+| Desktop3 | 28546 | P1 email |
+| Node3 | 28206 | P2/P3 |
+| Desktop4 (Node4, provisional) | 28546 | P2/P3 |
+| Desktop5 (Node5, provisional) | 28206 | P1 calls |
+| Desktop6 (Node6, provisional) | 28546 | P1 calls |
+| Node7 | both allowed | SMS in window |
+| Node8 | both allowed | Appointment-commit |
+
+Lease: `CustomerLease` (15 min), fingerprint rooftop + customer, exclusive across all eight. Lease host is **Alienware-18** (`TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases`). Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Desktop4 worker start is released and must `cd /d %USERPROFILE%`. Other nodes stay held.
+
+## High-velocity job (60/hour needle)
+
+P1 overdue email completion + overdue call reschedule. At eight PCs those split across four machines. Emails need no approval after Verify. Do not start P2/P3 on a rooftop until that rooftop’s P1 is clear. Do not claim 60/hour while workers are offline.
+
+## Desktop3
+
+Cloud does not clone onto Desktop3. Glenn follows `docs/deploy/desktop3.md` (clone from Alienware-18, install/enroll, launch held).
+
+## Desktop4
+
+Cloud does not clone onto Desktop4. Glenn follows `docs/deploy/desktop4.md`. One-shot on Desktop4: `deploy\desktop4\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd`). It clones from Alienware-18 if needed, checks out `cursor/eleads-cluster-4pc-7dfe`, runs `INSTALL.cmd` and `ENROLL-NODE.cmd Desktop4`, then STOPS. Next: `START-WORKER.cmd` from `%USERPROFILE%`, CHECKIN twice as Bordine, Glenn on 28546, Chrome CDP 9222. Enroll `Desktop4` or `Node4` — both map to **provisional** Mitsubishi 28546 P2/P3. This agent must not claim Desktop4 is online unless `list-self-hosted-workers` shows it. Cloud Linux cannot run `INSTALL-COS.cmd` or `agent worker start` on his Windows box.
+
+## Desktop5
+
+Cloud does not clone onto Desktop5. Glenn follows `docs/deploy/desktop5.md` (**install only**). One-shot on Desktop5: `deploy\desktop5\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop5\INSTALL-COS.cmd`). Same install-only pattern as Desktop4: clone from Alienware-18, checkout `cursor/eleads-cluster-4pc-7dfe`, `INSTALL.cmd`, `ENROLL-NODE.cmd Desktop5`, print **INSTALLED. LAUNCH HELD.**, refuse `START-WORKER`. Enroll `Desktop5` or `Node5` — both map to **provisional** Nissan 28206 P1 calls (8-PC overflow, not a 4-PC go-live seat). Do not `SCALE-OUT-8.cmd`. WiFi ≠ worker. This agent must not claim Desktop5 is online unless `list-self-hosted-workers` shows it.
+
+## Desktop6
+
+Cloud does not clone onto Desktop6. Glenn follows `docs/deploy/desktop6.md` (**install only**). One-shot on Desktop6: `deploy\desktop6\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd`). Same install-only pattern as Desktop4: clone from Alienware-18, checkout `cursor/eleads-cluster-4pc-7dfe`, `INSTALL.cmd`, `ENROLL-NODE.cmd Desktop6`, print **INSTALLED. LAUNCH HELD.**, refuse `START-WORKER`. Enroll `Desktop6` or `Node6` — both map to **provisional** Mitsubishi 28546 P1 calls (8-PC overflow, not a 4-PC go-live seat). Do not `SCALE-OUT-8.cmd`. WiFi ≠ worker. This agent must not claim Desktop6 is online unless `list-self-hosted-workers` shows it.
