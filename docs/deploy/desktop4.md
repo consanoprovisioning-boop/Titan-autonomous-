@@ -20,6 +20,32 @@ Until Glenn says **all PCs are ready and online**, do **not**:
 
 `START-WORKER.cmd` fail-closes while `deploy\cluster-node\cluster-hold.json` has `"holdLaunch": true`. Install and enroll are allowed.
 
+## One-shot on Desktop4 (install only)
+
+Command Prompt on Desktop4, from `%USERPROFILE%`. Never `C:\Windows\system32`.
+
+Preferred (clone source is Alienware-18):
+
+```bat
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+```
+
+If that share does not yet have `INSTALL-COS.cmd`, GitHub fallback then the same file:
+
+```bat
+cd /d "%USERPROFILE%"
+git clone --branch cursor/eleads-cluster-4pc-7dfe https://github.com/consanoprovisioning-boop/Titan-autonomous-.git Titan-autonomous-
+"%USERPROFILE%\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd"
+```
+
+If the repo is already under `%USERPROFILE%\Titan-autonomous-`:
+
+```bat
+"%USERPROFILE%\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd"
+```
+
+That one file clones from Alienware-18 if the repo is missing, checks out `cursor/eleads-cluster-4pc-7dfe`, copies or publishes `dist\titan-chief-win-x64`, runs `INSTALL.cmd`, runs `ENROLL-NODE.cmd Desktop4`, prints **INSTALLED. LAUNCH HELD.**, and **STOPS**. It refuses `START-WORKER`. It does not CHECKIN-to-send. Cloud Linux cannot run this file.
+
 ## What Glenn needs on Desktop4
 
 - Windows 10/11
@@ -27,6 +53,8 @@ Until Glenn says **all PCs are ready and online**, do **not**:
 - .NET 8 desktop runtime (SDK only if this PC must publish)
 - Google Chrome
 - Cursor CLI (`agent`) signed in (`agent login`) — install the CLI; do not start the worker yet
+
+The steps below are what `INSTALL-COS.cmd` does. Use them only if you are not running the one-shot.
 
 ## 1. Preferred: clone from Alienware-18 on the LAN
 

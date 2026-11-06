@@ -1,5 +1,11 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-06 — Desktop4 one-shot INSTALL-COS (install only)
+
+**Decision (Glenn):** “install Titan COS now” on Desktop4 means clone/install/enroll, not launch. Cluster setup is still in progress.
+
+**Filed:** `deploy/desktop4/INSTALL-COS.cmd`. Playbook: `docs/deploy/desktop4.md`. `holdLaunch` stays `true`. The one-shot refuses `START-WORKER`, requires `%USERPROFILE%`, never starts from `C:\Windows\system32`, and STOPS after `INSTALL.cmd` + `ENROLL-NODE.cmd Desktop4`. Cloud Linux did not run the Windows installer. `sends=[]`.
+
 ## 2026-11-06 — Hold launch; Alienware-18 MAIN TITAN-CHANGE-MULTIAGENT-001 v0.5.3
 
 **Decision (Glenn):** the PC cluster is still being set up. He will say when it is complete. Then study each PC’s devices/ability and assign best-fit COS tasks. Not now. Install on Desktop4 is allowed. Do not launch (`START-WORKER`, COS placement, CHECKIN-to-send) until all PCs are ready and online. Alienware-18 is the MAIN computer (coordinator, clone source, lease host). Desktop4 is not the coordinator. Desktop4 = Mitsubishi 28546 P2/P3 remains **provisional**.

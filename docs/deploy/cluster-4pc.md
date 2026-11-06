@@ -44,6 +44,14 @@ What still blocks live sending:
 
 ## Per-PC install now (launch held)
 
+Desktop4 one-shot (install only, then STOP):
+
+```bat
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+```
+
+That file refuses `START-WORKER`. Other PCs:
+
 1. Clone **from Alienware-18**. GitHub is fallback.
 2. `INSTALL.cmd` once if the host is missing. That is not Verify.
 3. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Desktop4`, `Node3`, `Node4`).

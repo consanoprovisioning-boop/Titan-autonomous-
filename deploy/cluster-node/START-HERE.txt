@@ -7,6 +7,7 @@ Desktop4 clone from Alienware-18: docs\deploy\desktop4.md
 
 Alienware-18 is MAIN (coordinator, clone source, lease host). Launch is held until Glenn says all PCs are ready.
 
+Desktop4 one-shot: deploy\desktop4\INSTALL-COS.cmd (install only; refuses START-WORKER).
 1. Clone from Alienware-18, then INSTALL.cmd once if needed. That is not Verify.
 2. ENROLL-NODE.cmd Desktop4   (or Node3, Node4, Node5, Node6, Node7, Node8)
 3. STOP. Do not double-click START-WORKER.cmd. Do not CHECKIN-to-send.

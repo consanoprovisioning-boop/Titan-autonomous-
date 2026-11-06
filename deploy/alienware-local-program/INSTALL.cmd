@@ -11,7 +11,7 @@ set ROOT=%LOCALAPPDATA%\TitanChief
 
 if not exist "%SRC%\Titan.ChiefOfStaff.exe" (
   echo Missing Titan.ChiefOfStaff.exe in %SRC%
-  pause
+  if /i not "%TITAN_INSTALL_NOPAUSE%"=="1" pause
   exit /b 1
 )
 
@@ -26,5 +26,6 @@ echo Installed to %APP%
 echo kill.switch is armed. This is not Verify and not send authorization.
 echo Next: double-click CHECKIN.cmd
 echo Do not type verify by itself. Command Prompt owns that word.
+echo CHECKIN-to-send stays held while cluster holdLaunch=true.
+if /i not "%TITAN_INSTALL_NOPAUSE%"=="1" pause
 endlocal
-pause

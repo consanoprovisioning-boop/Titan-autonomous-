@@ -8,7 +8,7 @@ if "%NODE%"=="" (
   echo Usage: ENROLL-NODE.cmd Alienware-18^|Desktop3^|Desktop4^|Node3^|Node4^|Node5^|Node6^|Node7^|Node8
   echo Run this on the PC you are enrolling. Cloud Linux cannot enroll a Windows PC.
   echo Desktop4 is named Node4. Node3 is still unnamed. Node5-Node8 are 8-PC overflow.
-  pause
+  if /i not "%TITAN_INSTALL_NOPAUSE%"=="1" pause
   exit /b 1
 )
 
@@ -27,7 +27,7 @@ if /i "%NODE%"=="Node8" set ROOF=28206+28546
 
 if "%ROOF%"=="" (
   echo Unknown node %NODE%. Use Alienware-18, Desktop3, Desktop4, or Node3 through Node8.
-  pause
+  if /i not "%TITAN_INSTALL_NOPAUSE%"=="1" pause
   exit /b 1
 )
 

@@ -5,17 +5,31 @@ Preferred source: Alienware-18 (the MAIN computer). GitHub is fallback.
 Do NOT launch until Glenn says all PCs are ready and online.
 
 Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+Never start from C:\Windows\system32. This installer requires %USERPROFILE%.
 
-1. Clone under %USERPROFILE% from Alienware-18, then git checkout cursor/eleads-cluster-4pc-7dfe.
-   See docs\deploy\desktop4.md. Do not copy %LOCALAPPDATA%\TitanChief from another PC.
-2. Copy dist\titan-chief-win-x64 from Alienware-18, or publish, then double-click INSTALL.cmd once.
-   INSTALL.cmd does not start the program and does not open Eleads.
-3. Run deploy\desktop4\ENROLL.cmd  (same as deploy\cluster-node\ENROLL-NODE.cmd Desktop4)
-   ENROLL-NODE.cmd Node4 is the same provisional lane.
-4. STOP. Do not double-click START-WORKER.cmd. Do not CHECKIN-to-send.
+ONE-SHOT (install only, then STOP):
 
+  \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+
+If the repo is already under %USERPROFILE%\Titan-autonomous- :
+
+  %USERPROFILE%\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+
+INSTALL-COS.cmd clones from Alienware-18 if missing, checks out
+cursor/eleads-cluster-4pc-7dfe, copies or publishes dist\titan-chief-win-x64,
+runs INSTALL.cmd, runs ENROLL-NODE.cmd Desktop4, prints INSTALLED. LAUNCH HELD,
+and STOPS. It refuses START-WORKER. Do NOT CHECKIN-to-send.
+
+If the Alienware share does not have INSTALL-COS.cmd yet:
+
+  cd /d "%USERPROFILE%"
+  git clone --branch cursor/eleads-cluster-4pc-7dfe https://github.com/consanoprovisioning-boop/Titan-autonomous-.git Titan-autonomous-
+  "%USERPROFILE%\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd"
+
+Manual steps (only if you are not running the one-shot): docs\deploy\desktop4.md
 START-WORKER.cmd fail-closes while cluster hold is on.
 Alienware-18 is coordinator, clone source, and lease host. Desktop4 is not the coordinator.
 Provisional job after release: Mitsubishi 28546 P2/P3 after Desktop3 P1 is clear.
 Needs the .NET 8 desktop runtime and Google Chrome.
 INSTALL.cmd is not send authorization. Titan never types the password.
+Never 6220. Identity Bordine, Glenn.
