@@ -30,7 +30,7 @@ Exact-draft is **not** a hard stop under V1.1. The original PDF/RTF/source packe
 
 If Alienware-18 is offline or not Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
 
-Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It checks the worker snapshot, refuses to open Eleads, and records ready or blocked.
+Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It fail-closes while cluster launch is held, refuses to open Eleads, and records ready or blocked. Alienware-18 is MAIN. Do not START-WORKER or CHECKIN-to-send until Glenn says all PCs are ready.
 
 ## Work order (while session live)
 

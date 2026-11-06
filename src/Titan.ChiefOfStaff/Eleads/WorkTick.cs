@@ -21,6 +21,12 @@ public sealed class WorkTick
             return "Blocked: rooftop not 28206/28546.";
         }
 
+        if (ClusterPartition.HoldLaunch(paths))
+        {
+            store.Log("cluster", "hold", "launch held until Glenn releases the cluster. Alienware-18 is MAIN. No send.", rooftop);
+            return "Blocked: cluster launch is held. Alienware-18 is MAIN. Install only. No send.";
+        }
+
         await page.BringToFrontAsync();
         var body = await SafeBodyAsync(page);
         if (Policy.IsForbiddenRooftop(body))

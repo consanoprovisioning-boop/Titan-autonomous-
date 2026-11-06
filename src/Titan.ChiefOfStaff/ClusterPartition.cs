@@ -127,7 +127,7 @@ public static class ClusterPartition
                 ClusterJobKind.DatabaseComb,
                 ClusterJobKind.TailoredUpgradeEmail
             ],
-            "Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails. Named node for the new PC cluster. Blocked until Mitsubishi P1 is clear on Desktop3. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4.",
+            "Provisional Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails after Desktop3 P1. Final COS tasks wait until Glenn says the cluster is complete. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4. Do not launch until Glenn releases the hold.",
             Aliases: [Node4Template])
     ];
 
@@ -222,6 +222,27 @@ public static class ClusterPartition
 
     public static IReadOnlyList<ClusterNodeSpec> ActiveNodes(bool scaleOut)
         => scaleOut ? ScaleOutNodes : Nodes;
+
+    /// <summary>
+    /// Glenn standing order: install/enroll allowed; do not launch workers or
+    /// CHECKIN-to-send until he says all PCs are ready. Fail-closed.
+    /// TITAN_CLUSTER_HOLD_LAUNCH=off is the only override.
+    /// </summary>
+    public static bool HoldLaunch(HostPaths? paths)
+    {
+        var env = Environment.GetEnvironmentVariable("TITAN_CLUSTER_HOLD_LAUNCH")?.Trim();
+        if (string.Equals(env, "off", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (string.Equals(env, "on", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return paths?.ReadHoldLaunch() == true;
+    }
 
     public static ClusterNodeSpec? Find(string? nodeId)
         => MatchHint(nodeId, AllKnownNodes);

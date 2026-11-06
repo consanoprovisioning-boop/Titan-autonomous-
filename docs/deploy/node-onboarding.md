@@ -2,14 +2,18 @@
 
 Use this for unnamed PCs. Do not invent hostnames. Enroll the real Windows computer name, then map it to Node3–Node8.
 
-Cloud does not clone onto the PC. Glenn runs these steps locally. Same path as Desktop3: clone under `%USERPROFILE%`, publish or copy `dist\titan-chief-win-x64`, `INSTALL.cmd`, enroll, worker from `%USERPROFILE%`, CHECKIN twice, Chrome CDP **9222**.
+**Alienware-18 is MAIN.** Clone from Alienware-18. Lease host is Alienware-18. Do not make Desktop4 the coordinator.
+
+**Launch is held** until Glenn says all PCs are ready. Clone, copy `dist\titan-chief-win-x64` from Alienware-18, `INSTALL.cmd`, enroll. Do **not** start the worker or CHECKIN-to-send yet.
+
+Cloud does not clone onto the PC. Glenn runs these steps locally. Same path as Desktop3/Desktop4. Chrome CDP **9222** after Glenn releases the hold.
 
 ## Target lanes
 
 | Enroll as | Rooftop | Lane | When it may send |
 | --- | --- | --- | --- |
 | Node3 | 28206 Valdosta Nissan | P2/P3 comb + tailored upgrade | After Nissan P1 is clear on Alienware-18 |
-| Desktop4 (Node4) | 28546 Valdosta Mitsubishi | P2/P3 comb + tailored upgrade | After Mitsubishi P1 is clear on Desktop3. Named PC; enroll `Desktop4` or `Node4` |
+| Desktop4 (Node4, provisional) | 28546 Valdosta Mitsubishi | P2/P3 comb + tailored upgrade | After Mitsubishi P1 is clear on Desktop3. Named PC; enroll `Desktop4` or `Node4`. Final COS tasks wait for Glenn’s per-PC study |
 | Node5 | 28206 | P1 overdue **calls** | 8-PC scale-out. Reschedule only; never mark complete without a call |
 | Node6 | 28546 | P1 overdue **calls** | 8-PC scale-out |
 | Node7 | 28206 and 28546 | SMS in window | 8-PC scale-out. 08:00–21:00 ET only |
@@ -24,28 +28,26 @@ Node3 and Desktop4 (named Node4) are part of today’s 4-PC go-live. Desktop4 cl
 - Cursor CLI (`agent`) signed in
 - This repo cloned under `%USERPROFILE%` (same clone steps as `docs/deploy/desktop3.md`)
 
-Worker start is always:
+Worker start is held. After Glenn releases the cluster:
 
 ```bat
 cd /d "%USERPROFILE%"
 agent worker start --name "Node5" --verbose
 ```
 
-Replace the name with the enrolled node id. Directory must not be `C:\Windows\system32`.
+Replace the name with the enrolled node id. Directory must not be `C:\Windows\system32`. `START-WORKER.cmd` fail-closes while hold is on.
 
-## Commands
+## Commands (install only)
 
 ```bat
 cd /d "%USERPROFILE%\Titan-autonomous-"
-scripts\publish-win-x64.cmd
 dist\titan-chief-win-x64\INSTALL.cmd
 deploy\cluster-node\ENROLL-NODE.cmd Node5
-deploy\cluster-node\START-WORKER.cmd
 ```
 
-Then CHECKIN twice as Bordine, Glenn on **that node’s rooftop**, leave Chrome on CDP 9222. Never **6220**.
+Do **not** run `START-WORKER.cmd` or CHECKIN twice until Glenn says all PCs are ready. Never **6220**.
 
-For Node7 or Node8, either allowed rooftop is fine. Set `TITAN_LEASE_DIR` to the shared lease folder before ticking.
+For Node7 or Node8, either allowed rooftop is fine. Set `TITAN_LEASE_DIR` to the Alienware-18 lease folder (`\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases`) before ticking.
 
 ## Comb-database job (P2) — Node3 / Desktop4 (Node4)
 

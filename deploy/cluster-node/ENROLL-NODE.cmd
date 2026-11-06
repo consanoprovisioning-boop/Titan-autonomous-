@@ -31,11 +31,13 @@ if "%ROOF%"=="" (
   exit /b 1
 )
 
-> "%ROOT%\node.json" echo {"nodeId":"%NODE%","rooftop":"%ROOF%","identity":"Bordine, Glenn","forbiddenRooftop":"6220"}
+> "%ROOT%\node.json" echo {"nodeId":"%NODE%","rooftop":"%ROOF%","identity":"Bordine, Glenn","forbiddenRooftop":"6220","clusterMain":"Alienware-18"}
+if exist "%~dp0cluster-hold.json" copy /Y "%~dp0cluster-hold.json" "%ROOT%\cluster-hold.json" >nul
 echo Enrolled %NODE% rooftop %ROOF%
 echo File: %ROOT%\node.json
+echo Cluster MAIN is Alienware-18. Lease host is Alienware-18, not this PC.
 echo This is not Verify and not send authorization.
-echo Next: START-WORKER.cmd from %%USERPROFILE%%, then CHECKIN.cmd twice.
-echo If this is Node5-Node8, run SCALE-OUT-8.cmd on every PC and set TITAN_LEASE_DIR.
+echo STOP: do not run START-WORKER.cmd or CHECKIN-to-send until Glenn says all PCs are ready.
+echo If this is Node5-Node8, wait for Glenn; then SCALE-OUT-8.cmd and TITAN_LEASE_DIR on Alienware-18.
 echo Never 6220. Never start the worker from C:\Windows\system32.
 endlocal

@@ -7,7 +7,11 @@ description: Run Titan Chief of Staff on the Valdosta cluster (4-PC go-live plus
 
 Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3 or Desktop4, add more PCs, comb the database, or raise throughput toward 60 actions/hour.
 
-Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
+**Launch is held.** Cluster is still being set up. Glenn will say when complete. Then study each PC and assign best-fit COS tasks. Not now. Install/enroll allowed. Do not START-WORKER, place COS, or CHECKIN-to-send until all PCs are ready and online.
+
+**Alienware-18 is MAIN:** coordinator, clone source, lease host. Specialists clone from Alienware-18. Do not make Desktop4 the coordinator.
+
+Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
 
 Ban the words pilot, MVP, and prototype for the Valdosta loop.
 
@@ -17,7 +21,7 @@ Version 1.1 after a **Glenn-verified Eleads session on that PC** (CHECKIN.cmd, V
 
 Still never skipped: consent / DNC / DNT / Stop; rooftops **28206** and **28546** only; identity **Bordine, Glenn**; 72h / 96h holds; customer day and time before Appointment Set; 180-day ownership screen; no invented facts; CRM history is proof.
 
-This cloud Linux agent must not open `eleadcrm.com`, start `Titan.ChiefOfStaff.exe`, type or store the password, or fabricate sends. If workers are offline: `sends=[]`.
+This cloud Linux agent must not open `eleadcrm.com`, start `Titan.ChiefOfStaff.exe`, type or store the password, or fabricate sends. If workers are offline or launch is held: `sends=[]`. `scripts/launch-eleads-cos-loop.sh` fail-closes while `clusterHoldLaunch=true`.
 
 ## Inventory first
 
@@ -69,7 +73,7 @@ Live **4-PC** (run today):
 | Alienware-18 | 28206 | P1 bundled | Overdue emails, reschedule overdue calls, organizer remainder, SMS 08:00–21:00 ET |
 | Desktop3 | 28546 | P1 bundled | Same P1 jobs on Mitsubishi |
 | Node3 | 28206 | P2/P3 | Comb DB, then tailored upgrades, only after Nissan P1 is clear |
-| Desktop4 (Node4) | 28546 | P2/P3 | Comb DB, then tailored upgrades, only after Mitsubishi P1 is clear |
+| Desktop4 (Node4, provisional) | 28546 | P2/P3 | Comb DB, then tailored upgrades, only after Mitsubishi P1 is clear. Final tasks wait for Glenn’s per-PC study |
 
 Ready **8-PC** after `SCALE-OUT-8.cmd` (PC1/PC2 narrow to email):
 
@@ -78,13 +82,13 @@ Ready **8-PC** after `SCALE-OUT-8.cmd` (PC1/PC2 narrow to email):
 | Alienware-18 | 28206 | P1 email |
 | Desktop3 | 28546 | P1 email |
 | Node3 | 28206 | P2/P3 |
-| Desktop4 (Node4) | 28546 | P2/P3 |
+| Desktop4 (Node4, provisional) | 28546 | P2/P3 |
 | Node5 | 28206 | P1 calls |
 | Node6 | 28546 | P1 calls |
 | Node7 | both allowed | SMS in window |
 | Node8 | both allowed | Appointment-commit |
 
-Lease: `CustomerLease` (15 min), fingerprint rooftop + customer, exclusive across all eight. Shared folder `TITAN_LEASE_DIR` is required at eight PCs. Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Worker start must `cd /d %USERPROFILE%`.
+Lease: `CustomerLease` (15 min), fingerprint rooftop + customer, exclusive across all eight. Lease host is **Alienware-18** (`TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases`). Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Worker start is held; when released it must `cd /d %USERPROFILE%`.
 
 ## High-velocity job (60/hour needle)
 
@@ -92,8 +96,8 @@ P1 overdue email completion + overdue call reschedule. At eight PCs those split 
 
 ## Desktop3
 
-Cloud does not clone onto Desktop3. Glenn follows `docs/deploy/desktop3.md`.
+Cloud does not clone onto Desktop3. Glenn follows `docs/deploy/desktop3.md` (clone from Alienware-18, install/enroll, launch held).
 
 ## Desktop4
 
-Cloud does not clone onto Desktop4. Glenn follows `docs/deploy/desktop4.md`. Preferred: copy the working install from Alienware-18 on the LAN, then `git checkout cursor/eleads-cluster-4pc-7dfe`. GitHub checkout of that branch is fallback. Enroll `Desktop4` or `Node4` — both map to Mitsubishi 28546 P2/P3. Worker from `%USERPROFILE%`. This agent must not claim Desktop4 is online unless `list-self-hosted-workers` shows it.
+Cloud does not clone onto Desktop4. Glenn follows `docs/deploy/desktop4.md` (**install only**). Preferred: copy the working install from Alienware-18 on the LAN, then `git checkout cursor/eleads-cluster-4pc-7dfe`. GitHub checkout of that branch is fallback. Enroll `Desktop4` or `Node4` — both map to **provisional** Mitsubishi 28546 P2/P3. Do not START-WORKER or CHECKIN-to-send until Glenn releases the cluster. This agent must not claim Desktop4 is online unless `list-self-hosted-workers` shows it.

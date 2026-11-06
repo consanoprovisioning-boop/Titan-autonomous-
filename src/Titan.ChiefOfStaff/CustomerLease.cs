@@ -5,7 +5,8 @@ namespace Titan.ChiefOfStaff;
 /// <summary>
 /// Coordinator lock so two cluster nodes do not send to the same customer.
 /// Primary split is rooftop + lane. This lease is the second fence:
-/// local file, or TITAN_LEASE_DIR if Glenn points it at a shared folder.
+/// local file, or TITAN_LEASE_DIR on Alienware-18 (the MAIN lease host).
+/// Do not host the shared lease folder on Desktop4.
 /// Cloud Linux never claims a send from a lease. CRM history remains proof.
 /// </summary>
 public sealed record CustomerLease(

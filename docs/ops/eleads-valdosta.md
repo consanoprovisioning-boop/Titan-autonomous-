@@ -50,7 +50,7 @@ This Linux cloud agent must not:
 - run PowerShell self-extractors or `Set-ExecutionPolicy Bypass`
 - type an Eleads password
 
-If every cluster node is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to start that PC’s worker from `%USERPROFILE%`, double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach. Do not invent a Desktop3 or Desktop4 worker.
+If cluster launch is held (`clusterHoldLaunch=true`) or every cluster node is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Install/enroll are allowed. Do not tell Glenn to START-WORKER or CHECKIN-to-send until he says all PCs are ready and online. Alienware-18 is MAIN. Do not invent a Desktop3 or Desktop4 worker.
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 

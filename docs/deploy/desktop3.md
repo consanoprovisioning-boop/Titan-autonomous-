@@ -1,6 +1,10 @@
 # Desktop3 — clone Titan Autonomous + Titan COS
 
-**Cloud did not copy files onto Desktop3.** This playbook is what Glenn (or a local worker already running on Desktop3) runs on that PC. PC2 in the 4-PC cluster. Rooftop **Valdosta Mitsubishi 28546**. Lane **P1 organizer**.
+**Cloud did not copy files onto Desktop3.** This playbook is what Glenn runs on that PC. PC2 in the 4-PC cluster. Rooftop **Valdosta Mitsubishi 28546**. Lane **P1 organizer**.
+
+**Alienware-18 is MAIN.** Clone from Alienware-18. Desktop3 is a specialist, not the coordinator.
+
+**Launch is held** until Glenn says all PCs are ready and online. Clone, install, and enroll now. Do **not** run `START-WORKER.cmd` or CHECKIN-to-send yet.
 
 Never **6220**. Identity **Bordine, Glenn**. Worker directory **`%USERPROFILE%`**, never `C:\Windows\system32`. Chrome CDP **9222**.
 
@@ -12,9 +16,16 @@ Never **6220**. Identity **Bordine, Glenn**. Worker directory **`%USERPROFILE%`*
 - Google Chrome
 - Cursor CLI (`agent`) signed in (`agent login`)
 
-## 1. Clone the repo on Desktop3
+## 1. Clone from Alienware-18 (preferred)
 
-In Command Prompt, starting from Glenn’s profile:
+```bat
+cd /d "%USERPROFILE%"
+git clone "\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-" Titan-autonomous-
+cd Titan-autonomous-
+git checkout cursor/eleads-cluster-4pc-7dfe
+```
+
+GitHub fallback:
 
 ```bat
 cd /d "%USERPROFILE%"
@@ -53,20 +64,13 @@ ENROLL-NODE.cmd Desktop3
 
 That writes `%LOCALAPPDATA%\TitanChief\node.json` with `nodeId=Desktop3` and rooftop 28546. It does not start Eleads.
 
-## 5. Start the Cursor worker
+## 5. STOP — do not start the worker yet
 
-Double-click `deploy\desktop3\START-WORKER.cmd` (also in `deploy\cluster-node\START-WORKER.cmd` with name Desktop3).
+`START-WORKER.cmd` fail-closes while cluster hold is on. Do not run it until Glenn says all PCs are ready and online. When he does, the window **must** show `%USERPROFILE%` (example `C:\Users\Glenn R Bordine`), never `C:\Windows\system32`.
 
-The window **must** show `%USERPROFILE%` (example `C:\Users\Glenn R Bordine`). Leave it open.
+## 6. CHECKIN + Verify (held)
 
-```bat
-cd /d "%USERPROFILE%"
-agent worker start --name "Desktop3" --verbose
-```
-
-If `agent` is missing, the script tries `%LOCALAPPDATA%\cursor-agent\agent.cmd`.
-
-## 6. CHECKIN + Verify (Mitsubishi)
+Do **not** CHECKIN-to-send until Glenn says all PCs are ready. Filed for then:
 
 1. Close every Chrome window and the tray icon.
 2. Double-click `CHECKIN.cmd` beside `Titan.ChiefOfStaff.exe`.
@@ -90,4 +94,4 @@ Desktop3 does **not** comb the Nissan database and does **not** send Mitsubishi 
 
 ## Cloud attach
 
-This cloud agent inventories workers and records ready or blocked. It will not open Eleads. A missing Desktop3 worker stays `status=missing`. `sends=[]` until a verified local worker + session exist.
+This cloud agent inventories workers and records ready or blocked. It will not open Eleads. Launch is held. A missing Desktop3 worker stays `status=missing`. `sends=[]`.

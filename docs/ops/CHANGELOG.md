@@ -1,5 +1,11 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-06 — Hold launch; Alienware-18 MAIN TITAN-CHANGE-MULTIAGENT-001 v0.5.3
+
+**Decision (Glenn):** the PC cluster is still being set up. He will say when it is complete. Then study each PC’s devices/ability and assign best-fit COS tasks. Not now. Install on Desktop4 is allowed. Do not launch (`START-WORKER`, COS placement, CHECKIN-to-send) until all PCs are ready and online. Alienware-18 is the MAIN computer (coordinator, clone source, lease host). Desktop4 is not the coordinator. Desktop4 = Mitsubishi 28546 P2/P3 remains **provisional**.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md`. v0.5.0–v0.5.2 are not rewritten. `START-WORKER.cmd` and the cloud launcher fail-closed while `clusterHoldLaunch=true`. Cloud Linux still does not open Eleads. This entry does not claim any worker is online.
+
 ## 2026-11-06 — Desktop4 named Node4 TITAN-CHANGE-MULTIAGENT-001 v0.5.2
 
 **Decision (Glenn):** PC # DeskTop4 of the new PC cluster installs Titan Clone from Alienware-18. Desktop4 is a first-class named cluster node (like Desktop3) occupying the Node4 slot.

@@ -1,10 +1,24 @@
-# Desktop4 — clone Titan Autonomous + Titan COS from Alienware-18
+# Desktop4 — install Titan from Alienware-18 (no launch)
 
-**Cloud did not copy files onto Desktop4.** This playbook is what Glenn runs **on Desktop4**. PC4 in the 4-PC cluster. Named **Node4**. Rooftop **Valdosta Mitsubishi 28546**. Lane **P2/P3** (comb the Mitsubishi database, then tailored upgrades after Mitsubishi P1 on Desktop3 is clear).
+**Cloud did not copy files onto Desktop4.** This playbook is what Glenn runs **on Desktop4**. Clone, install, and enroll only.
+
+**Alienware-18 is the PC cluster MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop4 is a specialist that clones **from** Alienware-18. Do not make Desktop4 the coordinator.
+
+**Provisional lane (not final):** named **Node4**, rooftop **Valdosta Mitsubishi 28546**, P2/P3. Glenn will say when the cluster is complete. Then we study each PC’s devices/ability and assign best-fit COS tasks. Not now.
 
 Never **6220**. Identity **Bordine, Glenn**. Worker directory **`%USERPROFILE%`**, never `C:\Windows\system32`. Chrome CDP **9222**. SMS **08:00–21:00** ET. Ownership screen **180 days**. P1 before P2/P3.
 
-Alienware-18 stays Nissan 28206 P1. Desktop3 stays Mitsubishi 28546 P1. Enroll as `Desktop4` or `Node4` — both map to this lane.
+## DO NOT launch
+
+Until Glenn says **all PCs are ready and online**, do **not**:
+
+- run `START-WORKER.cmd`
+- run `agent worker start`
+- CHECKIN-to-send / Verify as go-live
+- place a COS agent on Desktop4
+- start `Titan.ChiefOfStaff.exe`
+
+`START-WORKER.cmd` fail-closes while `deploy\cluster-node\cluster-hold.json` has `"holdLaunch": true`. Install and enroll are allowed.
 
 ## What Glenn needs on Desktop4
 
@@ -12,7 +26,7 @@ Alienware-18 stays Nissan 28206 P1. Desktop3 stays Mitsubishi 28546 P1. Enroll a
 - Git (LAN clone from Alienware-18) or network share access (robocopy)
 - .NET 8 desktop runtime (SDK only if this PC must publish)
 - Google Chrome
-- Cursor CLI (`agent`) signed in (`agent login`)
+- Cursor CLI (`agent`) signed in (`agent login`) — install the CLI; do not start the worker yet
 
 ## 1. Preferred: clone from Alienware-18 on the LAN
 
@@ -70,14 +84,14 @@ Prefer the already-published folder from Alienware-18:
 robocopy "\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\dist\titan-chief-win-x64" "%USERPROFILE%\Titan-autonomous-\dist\titan-chief-win-x64" /E
 ```
 
-Or publish on Desktop4 (needs the .NET 8 SDK) / on Alienware-18 and then copy `dist\titan-chief-win-x64\`:
+Or publish on Alienware-18 (the MAIN build PC) and then copy `dist\titan-chief-win-x64\`. Publish on Desktop4 only if that PC has the .NET 8 SDK:
 
 ```bat
 cd /d "%USERPROFILE%\Titan-autonomous-"
 scripts\publish-win-x64.cmd
 ```
 
-Confirm `Titan.ChiefOfStaff.exe` is present. `CHECKIN.cmd` and `INSTALL.cmd` sit beside that exe.
+Confirm `Titan.ChiefOfStaff.exe` is present. `INSTALL.cmd` sits beside that exe. Do not run `CHECKIN.cmd` yet.
 
 ## 3. Install (not Verify, not a send)
 
@@ -86,7 +100,7 @@ cd /d "%USERPROFILE%\Titan-autonomous-\dist\titan-chief-win-x64"
 INSTALL.cmd
 ```
 
-Expected: files in `%LOCALAPPDATA%\TitanChief\app\`, `kill.switch` reads `armed`. Titan never types the password.
+Expected: files in `%LOCALAPPDATA%\TitanChief\app\`, `kill.switch` reads `armed`. Titan never types the password. This is not launch.
 
 ## 4. Enroll this PC as Desktop4
 
@@ -95,43 +109,28 @@ cd /d "%USERPROFILE%\Titan-autonomous-\deploy\cluster-node"
 ENROLL-NODE.cmd Desktop4
 ```
 
-Or double-click `deploy\desktop4\ENROLL.cmd`. `ENROLL-NODE.cmd Node4` is the same lane: it writes `nodeId=Desktop4` and rooftop 28546. It does not start Eleads.
+Or double-click `deploy\desktop4\ENROLL.cmd`. `ENROLL-NODE.cmd Node4` is the same **provisional** lane: it writes `nodeId=Desktop4` and rooftop 28546. It does not start Eleads. It does not start the worker.
 
-## 5. Start the Cursor worker
-
-Double-click `deploy\desktop4\START-WORKER.cmd` (also `deploy\cluster-node\START-WORKER.cmd` after enroll).
-
-The window **must** show `%USERPROFILE%` (example `C:\Users\Glenn R Bordine`). Leave it open.
+Point this PC at the Alienware-18 lease folder when Glenn shares it (do not host leases on Desktop4):
 
 ```bat
-cd /d "%USERPROFILE%"
-agent worker start --name "Desktop4" --verbose
+setx TITAN_LEASE_DIR "\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases"
 ```
 
-If `agent` is missing, the script tries `%LOCALAPPDATA%\cursor-agent\agent.cmd`. Never start the worker from `C:\Windows\system32`.
+## Stop here
 
-## 6. CHECKIN + Verify (Mitsubishi)
+Install on Desktop4 is done. **Do not** run `START-WORKER.cmd`. **Do not** CHECKIN-to-send. Wait until Glenn says the cluster is complete and all PCs are ready and online.
 
-1. Close every Chrome window and the tray icon.
-2. Double-click `CHECKIN.cmd` beside `Titan.ChiefOfStaff.exe`.
-3. Sign into Eleads as **Bordine, Glenn** on **Valdosta Mitsubishi (28546)**. Never **6220**.
-4. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify`.
-5. Leave that Chrome window open on CDP 9222.
+## Held until Glenn releases the cluster
 
-Do not start `Titan.ChiefOfStaff.exe` from Explorer except through CHECKIN / TICK. Do not run `Titan.cmd` from `C:\Windows\system32`.
+These steps stay filed. Do not run them now. `START-WORKER.cmd` fail-closes while hold is on.
 
-## 7. Desktop4 job
+1. Double-click `deploy\desktop4\START-WORKER.cmd` from `%USERPROFILE%` (never `C:\Windows\system32`).
+2. Close every Chrome window and the tray icon.
+3. `CHECKIN.cmd` beside `Titan.ChiefOfStaff.exe`, sign in as Bordine, Glenn on **28546**, `CHECKIN.cmd` again. Leave Chrome on CDP 9222.
 
-While verified, Desktop4 only works **28546 P2/P3**:
-
-1. Confirm Mitsubishi P1 is clear on Desktop3 (`DailyUpgradeQueue.CanStartOnRooftop`).
-2. Comb the Mitsubishi database (equity, abandon, in-market, upgrade). Full activity feed. No list-view send.
-3. Record ownership (180-day screen), permissions, vehicle, VOI, timestamps. Hold others’ leads (72h / 96h).
-4. After P2, send tailored upgrade emails from proven profile facts. Eligible SMS 08:00–21:00 ET.
-5. Appointment-commit fast path when a Mitsubishi customer already gave a day and time.
-
-Desktop4 does **not** work Nissan 28206 and does **not** take Mitsubishi P1 organizer (that is Desktop3).
+Provisional job after release: Mitsubishi 28546 P2/P3 after Desktop3 P1 is clear. Final COS tasks wait for Glenn’s per-PC study.
 
 ## Cloud attach
 
-This cloud agent inventories workers and records ready or blocked. It will not open Eleads. A missing Desktop4 worker stays `status=missing`. `sends=[]` until a verified local worker + session exist. Cloud Linux cannot copy files onto Desktop4 itself.
+This cloud agent inventories workers and records ready or blocked. It will not open Eleads. Launch is held (`clusterHoldLaunch=true`). A missing Desktop4 worker stays `status=missing`. `sends=[]`. Cloud Linux cannot copy files onto Desktop4 itself.

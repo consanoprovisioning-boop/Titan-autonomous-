@@ -13,6 +13,7 @@ public sealed class HostPaths
     public string NodeMarker { get; }
     public string ClusterLeases { get; }
     public string ClusterMode { get; }
+    public string ClusterHold { get; }
     public string UpgradeProgress { get; }
 
     public HostPaths(string? dataRoot = null)
@@ -34,6 +35,7 @@ public sealed class HostPaths
         NodeMarker = Path.Combine(DataRoot, "node.json");
         ClusterLeases = Path.Combine(DataRoot, "cluster-leases.json");
         ClusterMode = Path.Combine(DataRoot, "cluster-mode.json");
+        ClusterHold = Path.Combine(DataRoot, "cluster-hold.json");
         UpgradeProgress = Path.Combine(DataRoot, "upgrade-progress.json");
     }
 
@@ -45,6 +47,9 @@ public sealed class HostPaths
 
     public string? ReadEnrolledNodeId()
         => ReadJsonString(NodeMarker, "nodeId");
+
+    public bool? ReadHoldLaunch()
+        => ReadJsonBool(ClusterHold, "holdLaunch");
 
     public bool ReadScaleOutMode()
     {

@@ -5,13 +5,12 @@ Cloud did not copy files onto this PC. Clone the repo under %USERPROFILE% first.
 Desktop4 clone from Alienware-18: docs\deploy\desktop4.md
 8-PC overflow: Node5-Node8. See docs\deploy\cluster-8pc.md and docs\deploy\node-onboarding.md
 
-1. ENROLL-NODE.cmd Desktop4   (or Node3, Node4, Node5, Node6, Node7, Node8)
-2. Double-click START-WORKER.cmd and leave it open. Directory must be %USERPROFILE%.
-3. INSTALL.cmd once if needed. That is not Verify.
-4. Close Chrome completely.
-5. CHECKIN.cmd, sign in as Bordine, Glenn on this node's rooftop (never 6220).
-6. CHECKIN.cmd again. Leave Chrome open on port 9222.
-7. If this is Node5-Node8, run SCALE-OUT-8.cmd on every PC and set TITAN_LEASE_DIR.
+Alienware-18 is MAIN (coordinator, clone source, lease host). Launch is held until Glenn says all PCs are ready.
+
+1. Clone from Alienware-18, then INSTALL.cmd once if needed. That is not Verify.
+2. ENROLL-NODE.cmd Desktop4   (or Node3, Node4, Node5, Node6, Node7, Node8)
+3. STOP. Do not double-click START-WORKER.cmd. Do not CHECKIN-to-send.
+4. TITAN_LEASE_DIR belongs on Alienware-18, not on Desktop4.
 
 Never start the worker from C:\Windows\system32.
 P2/P3 work stays closed until that rooftop's P1 overdue / organizer work is clear.

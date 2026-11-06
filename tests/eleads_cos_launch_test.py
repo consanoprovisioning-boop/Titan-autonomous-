@@ -109,8 +109,12 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual(51, data["catalogSize"])
         self.assertEqual(7, len(data["specialistResults"]))
         self.assertTrue(all(row["status"] == "not-run" for row in data["specialistResults"]))
-        self.assertIn("offline", data["blockers"][0])
-        self.assertIn(launch.ALIENWARE_WORKER_ID, data["blockers"][0])
+        self.assertTrue(data["clusterHoldLaunch"])
+        self.assertEqual("Alienware-18", data["clusterMain"])
+        self.assertEqual("installing", data["desktop4"]["status"])
+        self.assertIn("held", data["blockers"][0].lower())
+        self.assertIn("MAIN", data["blockers"][0])
+        self.assertNotIn("START-WORKER.cmd", data["blockers"][0])
         self.assertEqual(8, len(data["cluster"]))
         self.assertEqual(0, data["clusterOnlineCount"])
         self.assertTrue(all(node["status"] == "missing" and node["fabricated"] is False for node in data["cluster"]))
@@ -165,9 +169,50 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertIn("Desktop4", enroll)
         self.assertIn('ENROLL-NODE.cmd" Desktop4', helper)
         playbook = (ROOT / "docs/deploy/desktop4.md").read_text(encoding="utf-8")
+        hold = (ROOT / "deploy/cluster-node/HOLD-LAUNCH.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
         self.assertIn("\\\\Alienware-18\\Users\\Glenn R Bordine\\Titan-autonomous-", playbook)
         self.assertIn("git clone https://github.com/consanoprovisioning-boop/Titan-autonomous-.git", playbook)
+        self.assertIn("provisional", playbook.lower())
+        self.assertIn("DO NOT launch", playbook)
+        self.assertIn("HOLD-LAUNCH.cmd", starter)
+        self.assertIn("exit /b 2", hold)
+        self.assertIn("cluster hold is on", starter.lower())
         self.assertNotIn("C:\\Windows\\system32\\Titan.cmd", playbook)
+
+    def test_cluster_hold_blocks_ready_session(self) -> None:
+        tmp = Path("/tmp/eleads-cos-hold-test")
+        tmp.mkdir(exist_ok=True)
+        workers = tmp / "workers.json"
+        state_path = tmp / "state.json"
+        ticklog = tmp / "TICKLOG.md"
+        receipt = tmp / "verify.json"
+        workers.write_text(json.dumps({
+            "workers": [{
+                "workerId": launch.ALIENWARE_WORKER_ID,
+                "machineDisplayName": "Alienware-18",
+                "displayName": "Alienware-18#C:\\Users\\Glenn R Bordine",
+            }]
+        }), encoding="utf-8")
+        receipt.write_text(json.dumps({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+        }), encoding="utf-8")
+        code = launch.main([
+            "--workers-file", str(workers),
+            "--verify-receipt", str(receipt),
+            "--state-file", str(state_path),
+            "--ticklog-file", str(ticklog),
+        ])
+        self.assertEqual(3, code)
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertFalse(data["verify"])
+        self.assertTrue(data["clusterHoldLaunch"])
+        self.assertEqual("Alienware-18", data["clusterMain"])
+        self.assertEqual([], data["sends"])
+        self.assertEqual("draft-blocked-local", data["mode"])
 
     def test_scale_out_script_does_not_open_eleads(self) -> None:
         scale = (ROOT / "deploy/cluster-node/SCALE-OUT-8.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")

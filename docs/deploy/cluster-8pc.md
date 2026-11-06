@@ -1,8 +1,12 @@
 # 8-PC Titan COS scale-out
 
-The live **4-PC go-live stays**. Alienware-18, Desktop3, Node3, and Desktop4 (Node4) keep their jobs until Glenn turns scale-out on. This file is the ready map for the next four boxes (Nodes 5–8). Same clone, `%USERPROFILE%` worker, CDP **9222**, and enroll path — not a redesign.
+The live **4-PC go-live stays**. Alienware-18, Desktop3, Node3, and Desktop4 (Node4, provisional) keep their jobs until Glenn turns scale-out on. This file is the ready map for the next four boxes (Nodes 5–8). Same clone, `%USERPROFILE%` worker, CDP **9222**, and enroll path — not a redesign.
 
-Cloud Linux writes this playbook. Glenn clones and Verifies on each PC. This file does not claim any node is online.
+**Alienware-18 is MAIN** (coordinator, clone source, lease host). Specialists clone from Alienware-18. Do not make Desktop4 the coordinator.
+
+**Launch is held** until Glenn says all PCs are ready and online. Clone/install/enroll only. Do not `START-WORKER` or CHECKIN-to-send now.
+
+Cloud Linux writes this playbook. Glenn clones and installs on each PC. This file does not claim any node is online.
 
 Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn**. SMS **08:00–21:00** ET. Ownership screen **180 days**. P1 before P2/P3.
 
@@ -15,7 +19,7 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 | PC1 | Alienware-18 | 28206 | Bundled P1 organizer (email + calls + SMS + appointments) |
 | PC2 | Desktop3 | 28546 | Bundled P1 organizer |
 | PC3 | Node3 | 28206 | P2/P3 comb + tailored upgrades after Nissan P1 |
-| PC4 | Desktop4 (Node4) | 28546 | P2/P3 after Mitsubishi P1 |
+| PC4 | Desktop4 (Node4, provisional) | 28546 | P2/P3 after Mitsubishi P1 |
 
 ## 8-PC lane map (when Nodes 5–8 exist)
 
@@ -26,7 +30,7 @@ Turn scale-out on with `deploy\cluster-node\SCALE-OUT-8.cmd` on every PC (and se
 | PC1 | Alienware-18 | 28206 | P1 email | Overdue / organizer **emails** only |
 | PC2 | Desktop3 | 28546 | P1 email | Overdue / organizer **emails** only |
 | PC3 | Node3 | 28206 | P2/P3 | Comb Nissan DB, then tailored upgrades |
-| PC4 | Desktop4 (Node4) | 28546 | P2/P3 | Comb Mitsubishi DB, then tailored upgrades |
+| PC4 | Desktop4 (Node4, provisional) | 28546 | P2/P3 | Comb Mitsubishi DB, then tailored upgrades |
 | PC5 | Node5 | 28206 | P1 calls | Reschedule overdue Nissan **calls**. Never mark a call complete if no call occurred |
 | PC6 | Node6 | 28546 | P1 calls | Reschedule overdue Mitsubishi **calls** |
 | PC7 | Node7 | 28206 and 28546 | SMS in window | Eligible SMS 08:00–21:00 ET. One customer lease still blocks the other nodes |
@@ -54,25 +58,23 @@ Do not spawn 51 agents on one PC. Do not Verify two PCs into TKO 6220.
 
 ## What Glenn does when the next 4 boxes arrive
 
-On **each new PC** (same as Desktop3, but enroll Node5–Node8):
+On **each new PC** (clone from Alienware-18, same as Desktop3/Desktop4, enroll Node5–Node8). **Install only while launch is held:**
 
 ```bat
 cd /d "%USERPROFILE%"
-git clone https://github.com/consanoprovisioning-boop/Titan-autonomous-.git Titan-autonomous-
+git clone "\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-" Titan-autonomous-
 cd Titan-autonomous-
 git checkout cursor/eleads-cluster-4pc-7dfe
-scripts\publish-win-x64.cmd
 dist\titan-chief-win-x64\INSTALL.cmd
 deploy\cluster-node\ENROLL-NODE.cmd Node5
-deploy\cluster-node\START-WORKER.cmd
 ```
 
-Replace `Node5` with `Node6`, `Node7`, or `Node8` on the matching box. Worker directory must be `%USERPROFILE%`, never `C:\Windows\system32`. Then CHECKIN twice as Bordine, Glenn on that node’s rooftop (Node7/Node8 may use either allowed rooftop; never 6220). Leave Chrome on 9222.
+Do **not** run `START-WORKER.cmd` until Glenn says all PCs are ready. Replace `Node5` with `Node6`, `Node7`, or `Node8` on the matching box.
 
-On **every** PC, including the original four:
+On **every** PC, including the original four, lease host is Alienware-18 (not Desktop4, not a separate NAS unless Glenn moves it):
 
 ```bat
-set TITAN_LEASE_DIR=\\NAS\Titan\leases
+set TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases
 deploy\cluster-node\SCALE-OUT-8.cmd
 ```
 
@@ -82,6 +84,7 @@ Cloud does not clone onto the new PCs and does not open Eleads.
 
 ## Still blocked for live sending
 
+- Cluster launch hold until Glenn says all PCs are ready.
 - `list-self-hosted-workers` empty (`workers=[]`) — do not invent Node5–Node8 as online.
 - No Glenn Verify on that PC.
 - Worker started from `C:\Windows\system32`.

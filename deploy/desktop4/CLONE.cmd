@@ -29,9 +29,11 @@ echo   cd Titan-autonomous-
 echo   git checkout cursor/eleads-cluster-4pc-7dfe
 echo.
 echo Then copy or publish dist\titan-chief-win-x64, run INSTALL.cmd,
-echo ENROLL-NODE.cmd Desktop4, and START-WORKER.cmd from %%USERPROFILE%%.
+echo and ENROLL-NODE.cmd Desktop4. STOP there.
+echo Do NOT run START-WORKER.cmd. Do NOT CHECKIN-to-send.
+echo Alienware-18 is MAIN. Desktop4 lane is provisional 28546 P2/P3.
 echo Full playbook: docs\deploy\desktop4.md
-echo Rooftop 28546 P2/P3 (Node4). Never 6220. Worker must not start in C:\Windows\system32.
+echo Never 6220. Worker must not start in C:\Windows\system32.
 echo.
 pause
 endlocal

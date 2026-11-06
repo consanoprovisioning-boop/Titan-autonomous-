@@ -3,6 +3,13 @@ setlocal
 REM Reusable worker starter. Optional argument is the node name.
 REM Default reads %LOCALAPPDATA%\TitanChief\node.json if present, else Node3.
 REM Does NOT start Titan.ChiefOfStaff.exe and does NOT open Eleads.
+REM Fail-closed while cluster hold is on. Alienware-18 is MAIN.
+
+call "%~dp0HOLD-LAUNCH.cmd" "%~dp0cluster-hold.json"
+if errorlevel 2 (
+  pause
+  exit /b 2
+)
 
 set "NODE=%~1"
 if "%NODE%"=="" (

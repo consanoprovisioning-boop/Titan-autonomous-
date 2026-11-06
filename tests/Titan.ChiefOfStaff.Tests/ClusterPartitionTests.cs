@@ -150,4 +150,28 @@ public class ClusterPartitionTests
         Assert.Equal("Desktop4", ClusterPartition.Resolve(null, null, "Node4", scaleOut: true)?.NodeId);
         Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, ClusterPartition.EffectiveSpec("Desktop4", scaleOut: true)!.Lane);
     }
+
+    [Fact]
+    public void Hold_launch_is_fail_closed_until_glenn_releases()
+    {
+        var previous = Environment.GetEnvironmentVariable("TITAN_CLUSTER_HOLD_LAUNCH");
+        try
+        {
+            Environment.SetEnvironmentVariable("TITAN_CLUSTER_HOLD_LAUNCH", "on");
+            Assert.True(ClusterPartition.HoldLaunch(paths: null));
+            Environment.SetEnvironmentVariable("TITAN_CLUSTER_HOLD_LAUNCH", "off");
+            Assert.False(ClusterPartition.HoldLaunch(paths: null));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("TITAN_CLUSTER_HOLD_LAUNCH", previous);
+        }
+
+        var root = Path.Combine(Path.GetTempPath(), "titan-hold-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(root);
+        File.WriteAllText(Path.Combine(root, "cluster-hold.json"), """{"holdLaunch":true,"clusterMain":"Alienware-18"}""");
+        var paths = new HostPaths(root);
+        Assert.True(paths.ReadHoldLaunch());
+        Assert.True(ClusterPartition.HoldLaunch(paths));
+    }
 }

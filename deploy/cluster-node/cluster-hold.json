@@ -1,0 +1,11 @@
+{
+  "holdLaunch": true,
+  "clusterMain": "Alienware-18",
+  "leaseHost": "Alienware-18",
+  "leaseDirHint": "\\\\Alienware-18\\Users\\Glenn R Bordine\\TitanChief-leases",
+  "desktop4": {
+    "status": "installing",
+    "lane": "provisional-28546-P2P3"
+  },
+  "reason": "Cluster still being set up. Glenn will say when complete. Then study each PC and assign best-fit COS tasks. Install and enroll are allowed. Do not START-WORKER, place COS, or CHECKIN-to-send until all PCs are ready and online. Alienware-18 is MAIN (coordinator, clone source, lease host). Desktop4 is not the coordinator."
+}

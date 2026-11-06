@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import socket
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -42,6 +43,7 @@ CLUSTER_NODES = (
         "rooftop": "28546",
         "lane": "P2P3DatabaseUpgrade",
         "hostnameHints": ("Desktop4", "DESKTOP4", "DeskTop4", "Node4"),
+        "provisional": True,
     },
     {
         "nodeId": "Node5",
@@ -85,6 +87,14 @@ SPECIALISTS = (
 DEFAULT_STATE = Path("/cursor/stores/self/eleads-valdosta-state.json")
 DEFAULT_TICKLOG = Path("/cursor/stores/self/TICKLOG.md")
 ELEADS_SESSION_NONE = "none-and-must-not-open-from-cloud"
+CLUSTER_HOLD_FILE = Path(__file__).resolve().parent.parent / "deploy" / "cluster-node" / "cluster-hold.json"
+CLUSTER_MAIN = "Alienware-18"
+HOLD_BLOCKER = (
+    "Cluster launch is held. Glenn has not said all PCs are ready and online. "
+    "Alienware-18 is the MAIN computer (coordinator, clone source, lease host). "
+    "Desktop4 may install and enroll only. Do not START-WORKER, place COS, or CHECKIN-to-send. "
+    "Provisional Desktop4 lane is Mitsubishi 28546 P2/P3. This cloud host will not open Eleads."
+)
 
 
 class EleadsOpenRefused(RuntimeError):
@@ -255,6 +265,25 @@ def load_json(path: Path | None) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_cluster_hold(path: Path | None = None) -> dict:
+    env = (os.environ.get("TITAN_CLUSTER_HOLD_LAUNCH") or "").strip().casefold()
+    data = load_json(path or CLUSTER_HOLD_FILE) or {}
+    if not isinstance(data, dict):
+        data = {}
+    if env == "off":
+        data = dict(data)
+        data["holdLaunch"] = False
+    elif env == "on":
+        data = dict(data)
+        data["holdLaunch"] = True
+    elif "holdLaunch" not in data:
+        data = dict(data)
+        data["holdLaunch"] = True
+    data.setdefault("clusterMain", CLUSTER_MAIN)
+    data.setdefault("desktop4", {"status": "installing", "lane": "provisional-28546-P2P3"})
+    return data
+
+
 def specialist_results() -> list[dict]:
     return [
         {
@@ -270,11 +299,13 @@ def specialist_results() -> list[dict]:
 
 
 def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
+    hold = load_cluster_hold()
+    hold_on = bool(hold.get("holdLaunch"))
     row = alienware_worker(snapshot)
     online = row is not None
     seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
     system32 = worker_directory_is_system32(row)
-    verified = online and verify_receipt_ok(receipt) and not system32
+    verified = (not hold_on) and online and verify_receipt_ok(receipt) and not system32
     workers = snapshot.get("workers") or []
     worker_count = len(workers) if isinstance(workers, list) else 0
     if verified:
@@ -320,6 +351,11 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
 
     stamp = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cluster = inventory_cluster(snapshot)
+    if hold_on:
+        blockers = [HOLD_BLOCKER]
+        host = "cloud-linux"
+        mode = "draft-blocked-local"
+        session = ELEADS_SESSION_NONE
     return {
         "cycleId": f"{'ready' if verified else 'blocked'}-{stamp}",
         "openedAtUtc": stamp,
@@ -349,6 +385,9 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "openedFromThisProcess": False,
         "cluster": cluster,
         "clusterOnlineCount": sum(1 for n in cluster if n["status"] == "online"),
+        "clusterHoldLaunch": hold_on,
+        "clusterMain": hold.get("clusterMain") or CLUSTER_MAIN,
+        "desktop4": hold.get("desktop4") or {"status": "installing", "lane": "provisional-28546-P2P3"},
     }
 
 
