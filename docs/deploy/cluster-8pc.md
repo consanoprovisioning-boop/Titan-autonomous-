@@ -1,6 +1,6 @@
 # 8-PC Titan COS scale-out
 
-The live **4-PC go-live stays**. Alienware-18, Desktop3, Node3, and Node4 keep their jobs until Glenn turns scale-out on. This file is the ready map for the next four boxes (Nodes 5–8). Same clone, `%USERPROFILE%` worker, CDP **9222**, and enroll path — not a redesign.
+The live **4-PC go-live stays**. Alienware-18, Desktop3, Node3, and Desktop4 (Node4) keep their jobs until Glenn turns scale-out on. This file is the ready map for the next four boxes (Nodes 5–8). Same clone, `%USERPROFILE%` worker, CDP **9222**, and enroll path — not a redesign.
 
 Cloud Linux writes this playbook. Glenn clones and Verifies on each PC. This file does not claim any node is online.
 
@@ -15,7 +15,7 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 | PC1 | Alienware-18 | 28206 | Bundled P1 organizer (email + calls + SMS + appointments) |
 | PC2 | Desktop3 | 28546 | Bundled P1 organizer |
 | PC3 | Node3 | 28206 | P2/P3 comb + tailored upgrades after Nissan P1 |
-| PC4 | Node4 | 28546 | P2/P3 after Mitsubishi P1 |
+| PC4 | Desktop4 (Node4) | 28546 | P2/P3 after Mitsubishi P1 |
 
 ## 8-PC lane map (when Nodes 5–8 exist)
 
@@ -26,7 +26,7 @@ Turn scale-out on with `deploy\cluster-node\SCALE-OUT-8.cmd` on every PC (and se
 | PC1 | Alienware-18 | 28206 | P1 email | Overdue / organizer **emails** only |
 | PC2 | Desktop3 | 28546 | P1 email | Overdue / organizer **emails** only |
 | PC3 | Node3 | 28206 | P2/P3 | Comb Nissan DB, then tailored upgrades |
-| PC4 | Node4 | 28546 | P2/P3 | Comb Mitsubishi DB, then tailored upgrades |
+| PC4 | Desktop4 (Node4) | 28546 | P2/P3 | Comb Mitsubishi DB, then tailored upgrades |
 | PC5 | Node5 | 28206 | P1 calls | Reschedule overdue Nissan **calls**. Never mark a call complete if no call occurred |
 | PC6 | Node6 | 28546 | P1 calls | Reschedule overdue Mitsubishi **calls** |
 | PC7 | Node7 | 28206 and 28546 | SMS in window | Eligible SMS 08:00–21:00 ET. One customer lease still blocks the other nodes |

@@ -116,6 +116,8 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertTrue(all(node["status"] == "missing" and node["fabricated"] is False for node in data["cluster"]))
         self.assertEqual("Desktop3", data["cluster"][1]["nodeId"])
         self.assertEqual("missing", data["cluster"][1]["status"])
+        self.assertEqual("Desktop4", data["cluster"][3]["nodeId"])
+        self.assertEqual("missing", data["cluster"][3]["status"])
         self.assertEqual("Node8", data["cluster"][7]["nodeId"])
         self.assertEqual("missing", data["cluster"][7]["status"])
         text = ticklog.read_text(encoding="utf-8")
@@ -145,6 +147,27 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertNotIn("Titan.ChiefOfStaff.exe", executable)
         self.assertIn("does NOT start Titan.ChiefOfStaff.exe", starter)
         self.assertIn("system32", starter.lower())
+
+    def test_desktop4_worker_starts_from_userprofile(self) -> None:
+        starter = (ROOT / "deploy/desktop4/START-WORKER.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        enroll = (ROOT / "deploy/cluster-node/ENROLL-NODE.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        helper = (ROOT / "deploy/desktop4/ENROLL.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        executable = "\n".join(
+            line for line in starter.splitlines()
+            if not line.lstrip().upper().startswith("REM ")
+        )
+        self.assertIn('cd /d "%USERPROFILE%"', starter)
+        self.assertIn("--name \"Desktop4\"", starter)
+        self.assertNotIn("eleadcrm.com", executable)
+        self.assertNotIn("Titan.ChiefOfStaff.exe", executable)
+        self.assertIn("does NOT start Titan.ChiefOfStaff.exe", starter)
+        self.assertIn("system32", starter.lower())
+        self.assertIn("Desktop4", enroll)
+        self.assertIn('ENROLL-NODE.cmd" Desktop4', helper)
+        playbook = (ROOT / "docs/deploy/desktop4.md").read_text(encoding="utf-8")
+        self.assertIn("\\\\Alienware-18\\Users\\Glenn R Bordine\\Titan-autonomous-", playbook)
+        self.assertIn("git clone https://github.com/consanoprovisioning-boop/Titan-autonomous-.git", playbook)
+        self.assertNotIn("C:\\Windows\\system32\\Titan.cmd", playbook)
 
     def test_scale_out_script_does_not_open_eleads(self) -> None:
         scale = (ROOT / "deploy/cluster-node/SCALE-OUT-8.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
@@ -209,7 +232,7 @@ class LaunchGuardTests(unittest.TestCase):
     def test_cluster_inventory_does_not_fabricate_desktop3(self) -> None:
         empty = launch.inventory_cluster({"workers": []})
         self.assertEqual(
-            ["Alienware-18", "Desktop3", "Node3", "Node4", "Node5", "Node6", "Node7", "Node8"],
+            ["Alienware-18", "Desktop3", "Node3", "Desktop4", "Node5", "Node6", "Node7", "Node8"],
             [n["nodeId"] for n in empty],
         )
         self.assertTrue(all(n["status"] == "missing" and n["fabricated"] is False for n in empty))
@@ -224,6 +247,29 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual("online", live[0]["status"])
         self.assertEqual("missing", live[1]["status"])
         self.assertEqual("Desktop3", live[1]["nodeId"])
+        self.assertEqual("missing", live[3]["status"])
+        self.assertEqual("Desktop4", live[3]["nodeId"])
+
+        named = launch.inventory_cluster({
+            "workers": [{
+                "workerId": "d4",
+                "machineDisplayName": "DeskTop4",
+                "displayName": "Desktop4#C:\\Users\\Glenn R Bordine",
+            }]
+        })
+        self.assertEqual("Desktop4", named[3]["nodeId"])
+        self.assertEqual("online", named[3]["status"])
+        self.assertFalse(named[3]["fabricated"])
+
+        alias = launch.inventory_cluster({
+            "workers": [{
+                "workerId": "n4",
+                "machineDisplayName": "Node4",
+                "displayName": "Node4",
+            }]
+        })
+        self.assertEqual("Desktop4", alias[3]["nodeId"])
+        self.assertEqual("online", alias[3]["status"])
 
 
 if __name__ == "__main__":

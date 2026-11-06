@@ -11,7 +11,7 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 | PC1 | Alienware-18 | Valdosta Nissan 28206 | P1 organizer | Overdue emails, reschedule overdue calls, remaining Daily Organizer, SMS 08:00–21:00 ET, appointment-commit fast path |
 | PC2 | Desktop3 | Valdosta Mitsubishi 28546 | P1 organizer | Same P1 jobs on Mitsubishi |
 | PC3 | Node3 (enroll a real hostname) | Valdosta Nissan 28206 | P2/P3 | Comb the Nissan database, then tailored upgrade emails |
-| PC4 | Node4 (enroll a real hostname) | Valdosta Mitsubishi 28546 | P2/P3 | Comb the Mitsubishi database, then tailored upgrade emails |
+| PC4 | Desktop4 (Node4) | Valdosta Mitsubishi 28546 | P2/P3 | Comb the Mitsubishi database, then tailored upgrade emails |
 
 P2/P3 on a rooftop stay closed until that rooftop’s P1 overdue / organizer work is clear. Appointment-commit fast path (PR #16) preempts the rooftop owner. Daily upgrade order (PR #17) is P1 → P2 → P3.
 
@@ -39,7 +39,7 @@ What still blocks live sending:
 
 ## Per-PC start (every node)
 
-1. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Node3`, `Node4`).
+1. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Desktop4`, `Node3`, `Node4`).
 2. Double-click that node’s `START-WORKER.cmd`. Directory must show `%USERPROFILE%`.
 3. `INSTALL.cmd` once if the host is missing. That is not Verify.
 4. Close every Chrome window and the tray icon.
@@ -48,5 +48,6 @@ What still blocks live sending:
 
 Alienware-18 detail: `docs/deploy/alienware-18.md`.  
 Desktop3 clone: `docs/deploy/desktop3.md`.  
-Unnamed PCs (Node3–Node8): `docs/deploy/node-onboarding.md`.  
+Desktop4 clone from Alienware-18: `docs/deploy/desktop4.md`.  
+Unnamed PCs (Node3, Node5–Node8): `docs/deploy/node-onboarding.md`.  
 When four more PCs arrive, keep this 4-PC go-live and follow `docs/deploy/cluster-8pc.md`. Do not redesign the first four nodes.

@@ -1,0 +1,23 @@
+Titan Chief of Staff — Desktop4 (PC4 / Node4, Valdosta Mitsubishi 28546 P2/P3)
+
+Cloud did not copy these files onto Desktop4. You (Glenn) clone and run this on Desktop4.
+Preferred source: the working install on Alienware-18 (LAN git clone or robocopy). GitHub is fallback.
+
+Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+
+1. Clone under %USERPROFILE% from Alienware-18, then git checkout cursor/eleads-cluster-4pc-7dfe.
+   See docs\deploy\desktop4.md. Do not copy %LOCALAPPDATA%\TitanChief from another PC.
+2. Copy dist\titan-chief-win-x64 from Alienware-18, or publish, then double-click INSTALL.cmd once.
+   INSTALL.cmd does not start the program and does not open Eleads.
+3. Run deploy\desktop4\ENROLL.cmd  (same as deploy\cluster-node\ENROLL-NODE.cmd Desktop4)
+   ENROLL-NODE.cmd Node4 is the same lane.
+4. Double-click START-WORKER.cmd in this folder. Leave that window open.
+   It must show %USERPROFILE% (not C:\Windows\system32).
+5. Close every Chrome window and the tray icon.
+6. Double-click CHECKIN.cmd next to Titan.ChiefOfStaff.exe.
+7. Sign in as Bordine, Glenn on store 28546 (Valdosta Mitsubishi). Never 6220.
+8. Double-click CHECKIN.cmd again. That second run is Verify. Leave Chrome open.
+
+Desktop4 job: Mitsubishi P2/P3 comb + tailored upgrades after Desktop3 P1 is clear.
+Needs the .NET 8 desktop runtime and Google Chrome.
+INSTALL.cmd is not send authorization. Titan never types the password.

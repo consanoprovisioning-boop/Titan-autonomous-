@@ -38,10 +38,10 @@ CLUSTER_NODES = (
         "hostnameHints": ("Node3",),
     },
     {
-        "nodeId": "Node4",
+        "nodeId": "Desktop4",
         "rooftop": "28546",
         "lane": "P2P3DatabaseUpgrade",
-        "hostnameHints": ("Node4",),
+        "hostnameHints": ("Desktop4", "DESKTOP4", "DeskTop4", "Node4"),
     },
     {
         "nodeId": "Node5",
@@ -157,9 +157,9 @@ def _worker_blob(row: dict) -> str:
 
 
 def match_cluster_node(row: dict) -> dict | None:
-    blob = _worker_blob(row)
+    blob = _worker_blob(row).casefold()
     for node in CLUSTER_NODES:
-        if any(hint in blob for hint in node["hostnameHints"]):
+        if any(hint.casefold() in blob for hint in node["hostnameHints"]):
             return node
     return None
 

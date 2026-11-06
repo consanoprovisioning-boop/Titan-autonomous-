@@ -1,10 +1,11 @@
-Titan COS cluster node (Node3-Node8)
+Titan COS cluster node (Desktop4 / Node3-Node8)
 
 Cloud did not copy files onto this PC. Clone the repo under %USERPROFILE% first.
-4-PC go-live: Node3 / Node4. See docs\deploy\cluster-4pc.md
+4-PC go-live: Desktop4 is named Node4. Node3 is still unnamed. See docs\deploy\cluster-4pc.md
+Desktop4 clone from Alienware-18: docs\deploy\desktop4.md
 8-PC overflow: Node5-Node8. See docs\deploy\cluster-8pc.md and docs\deploy\node-onboarding.md
 
-1. ENROLL-NODE.cmd Node3   (or Node4, Node5, Node6, Node7, Node8)
+1. ENROLL-NODE.cmd Desktop4   (or Node3, Node4, Node5, Node6, Node7, Node8)
 2. Double-click START-WORKER.cmd and leave it open. Directory must be %USERPROFILE%.
 3. INSTALL.cmd once if needed. That is not Verify.
 4. Close Chrome completely.

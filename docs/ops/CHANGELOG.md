@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-06 — Desktop4 named Node4 TITAN-CHANGE-MULTIAGENT-001 v0.5.2
+
+**Decision (Glenn):** PC # DeskTop4 of the new PC cluster installs Titan Clone from Alienware-18. Desktop4 is a first-class named cluster node (like Desktop3) occupying the Node4 slot.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md`. Playbook: `docs/deploy/desktop4.md`. v0.5.0 and v0.5.1 are not rewritten.
+
+**Partition:** Alienware-18 = Nissan 28206 P1; Desktop3 = Mitsubishi 28546 P1; Node3 = Nissan P2/P3; Desktop4 (Node4) = Mitsubishi 28546 P2/P3. Enroll `Desktop4` or `Node4`. Preferred clone is the Alienware-18 working copy on the LAN; GitHub checkout of `cursor/eleads-cluster-4pc-7dfe` is fallback. Cloud Linux still does not open Eleads and cannot copy files onto Desktop4. `sends=[]` while workers are offline. This entry does not claim Desktop4 is online.
+
 ## 2026-11-02 — 8-PC scale-out overlay TITAN-CHANGE-MULTIAGENT-001 v0.5.1
 
 **Decision (Glenn):** four more PCs are coming (eight total). Keep the 4-PC go-live. Add overflow lanes: P1 Nissan email, P1 Mitsubishi email, P1 Nissan calls, P1 Mitsubishi calls, Nissan P2/P3, Mitsubishi P2/P3, SMS-in-window, appointment-commit.

@@ -2,8 +2,8 @@ namespace Titan.ChiefOfStaff;
 
 /// <summary>
 /// Local cluster for Titan COS. The live 4-PC go-live set is unchanged:
-/// Alienware-18, Desktop3, Node3, Node4. Nodes 5–8 are overflow lanes for
-/// the 8-PC scale-out — same clone / %USERPROFILE% worker / CDP 9222 path.
+/// Alienware-18, Desktop3, Node3, Desktop4 (Node4). Nodes 5–8 are overflow
+/// lanes for the 8-PC scale-out — same clone / %USERPROFILE% worker / CDP 9222 path.
 /// This type only assigns. Cloud Linux never opens Eleads or claims sends.
 /// </summary>
 public enum ClusterLane
@@ -35,10 +35,13 @@ public sealed record ClusterNodeSpec(
     ClusterLane Lane,
     IReadOnlyList<ClusterJobKind> Jobs,
     string Role,
-    IReadOnlyList<string>? Rooftops = null)
+    IReadOnlyList<string>? Rooftops = null,
+    IReadOnlyList<string>? Aliases = null)
 {
     public IReadOnlyList<string> AllowedRooftops =>
         Rooftops is { Count: > 0 } ? Rooftops : [RooftopId];
+
+    public IReadOnlyList<string> KnownAliases => Aliases ?? [];
 
     public bool OwnsRooftop(string? rooftopId)
         => Policy.IsAllowedRooftop(rooftopId)
@@ -51,6 +54,7 @@ public static class ClusterPartition
 {
     public const string Alienware18 = "Alienware-18";
     public const string Desktop3 = "Desktop3";
+    public const string Desktop4 = "Desktop4";
     public const string Node3Template = "Node3";
     public const string Node4Template = "Node4";
     public const string Node5Template = "Node5";
@@ -113,9 +117,9 @@ public static class ClusterPartition
             ],
             "Valdosta Nissan 28206 P2/P3 — comb database then tailored upgrade emails. Blocked until Nissan P1 is clear."),
         new(
-            Node4Template,
-            "Node4 (PC4, unnamed until enrolled)",
-            "Node4",
+            Desktop4,
+            "Desktop4 (PC4 / Node4)",
+            "Desktop4",
             Policy.MitsubishiId,
             ClusterLane.P2P3DatabaseUpgrade,
             [
@@ -123,13 +127,14 @@ public static class ClusterPartition
                 ClusterJobKind.DatabaseComb,
                 ClusterJobKind.TailoredUpgradeEmail
             ],
-            "Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails. Blocked until Mitsubishi P1 is clear.")
+            "Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails. Named node for the new PC cluster. Blocked until Mitsubishi P1 is clear on Desktop3. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4.",
+            Aliases: [Node4Template])
     ];
 
     /// <summary>
     /// 8-PC scale-out. PC1–PC4 keep their node ids. When scale-out is on,
     /// PC1/PC2 narrow to P1 email so Node5/Node6 can take P1 calls without
-    /// colliding. Node3/Node4 stay P2/P3. Node7 is SMS; Node8 is appointments.
+    /// colliding. Node3 and Desktop4 (Node4) stay P2/P3. Node7 is SMS; Node8 is appointments.
     /// </summary>
     public static IReadOnlyList<ClusterNodeSpec> ScaleOutNodes { get; } =
     [
@@ -293,7 +298,7 @@ public static class ClusterPartition
 
         if (node.Lane != ClusterLane.P2P3DatabaseUpgrade && queue == WorkQueue.Database)
         {
-            return $"{node.DisplayName} is not the P2/P3 database lane. Database comb belongs to Node3 (Nissan) or Node4 (Mitsubishi).";
+            return $"{node.DisplayName} is not the P2/P3 database lane. Database comb belongs to Node3 (Nissan) or Desktop4 / Node4 (Mitsubishi).";
         }
 
         if (node.Lane == ClusterLane.P2P3DatabaseUpgrade && queue == WorkQueue.Database)
@@ -347,7 +352,9 @@ public static class ClusterPartition
         foreach (var node in catalog)
         {
             if (string.Equals(node.NodeId, text, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(node.HostnameHint, text, StringComparison.OrdinalIgnoreCase))
+                || string.Equals(node.HostnameHint, text, StringComparison.OrdinalIgnoreCase)
+                || node.KnownAliases.Any(alias =>
+                    string.Equals(alias, text, StringComparison.OrdinalIgnoreCase)))
             {
                 return node;
             }

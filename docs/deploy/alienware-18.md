@@ -107,4 +107,4 @@ scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snap
 
 Refresh `worker-snapshot.json` from `list-self-hosted-workers` `scope=all` `status=all` immediately before that command. The script does not open Eleads. Exit 3 records a blocked cycle. Exit 0 means the worker is online and Verify is on file.
 
-Alienware-18 is **PC1** in the 4-PC cluster (Nissan 28206 P1). Desktop3, Node3, and Node4 are documented in `docs/deploy/cluster-4pc.md`. This cloud host still will not open Eleads.
+Alienware-18 is **PC1** in the 4-PC cluster (Nissan 28206 P1) and the preferred source copy for Desktop4. Desktop3, Desktop4 (Node4), and Node3 are documented in `docs/deploy/cluster-4pc.md`. Desktop4 clone: `docs/deploy/desktop4.md`. This cloud host still will not open Eleads.

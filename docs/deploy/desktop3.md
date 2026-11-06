@@ -86,7 +86,7 @@ While verified, Desktop3 only works **28546 P1**:
 4. Eligible SMS 08:00–21:00 ET.
 5. Appointment-commit fast path when a Mitsubishi customer already gave a day and time.
 
-Desktop3 does **not** comb the Nissan database and does **not** send Mitsubishi upgrade emails until Node4’s P2/P3 lane is open after Mitsubishi P1 is clear.
+Desktop3 does **not** comb the Nissan database and does **not** send Mitsubishi upgrade emails until Desktop4 (Node4)’s P2/P3 lane is open after Mitsubishi P1 is clear.
 
 ## Cloud attach
 

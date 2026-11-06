@@ -13,6 +13,7 @@ public class ClusterPartitionTests
         var desktop3 = ClusterPartition.Find("Desktop3")!;
         var node3 = ClusterPartition.Find("Node3")!;
         var node4 = ClusterPartition.Find("Node4")!;
+        var desktop4 = ClusterPartition.Find("Desktop4")!;
 
         Assert.Equal(Policy.NissanId, alienware.RooftopId);
         Assert.Equal(ClusterLane.P1Organizer, alienware.Lane);
@@ -24,8 +25,10 @@ public class ClusterPartitionTests
 
         Assert.Equal(Policy.NissanId, node3.RooftopId);
         Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, node3.Lane);
-        Assert.Equal(Policy.MitsubishiId, node4.RooftopId);
-        Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, node4.Lane);
+        Assert.Equal("Desktop4", desktop4.NodeId);
+        Assert.Equal("Desktop4", node4.NodeId);
+        Assert.Equal(Policy.MitsubishiId, desktop4.RooftopId);
+        Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, desktop4.Lane);
     }
 
     [Fact]
@@ -35,6 +38,11 @@ public class ClusterPartitionTests
         Assert.Equal("Desktop3", ClusterPartition.Resolve("DESKTOP3", null, null)?.NodeId);
         Assert.Equal("Desktop3", ClusterPartition.Resolve(null, "Desktop3", null)?.NodeId);
         Assert.Equal("Node3", ClusterPartition.Resolve(null, null, "Node3")?.NodeId);
+        Assert.Equal("Desktop4", ClusterPartition.Resolve("DESKTOP4", null, null)?.NodeId);
+        Assert.Equal("Desktop4", ClusterPartition.Resolve("DeskTop4", null, null)?.NodeId);
+        Assert.Equal("Desktop4", ClusterPartition.Resolve(null, "Desktop4", null)?.NodeId);
+        Assert.Equal("Desktop4", ClusterPartition.Resolve(null, null, "Desktop4")?.NodeId);
+        Assert.Equal("Desktop4", ClusterPartition.Resolve(null, null, "Node4")?.NodeId);
         Assert.Null(ClusterPartition.Resolve("random-laptop", null, null));
     }
 
@@ -65,6 +73,23 @@ public class ClusterPartitionTests
     }
 
     [Fact]
+    public void Desktop4_mitsubishi_p2_stays_closed_until_desktop3_p1_is_clear()
+    {
+        var desktop4 = ClusterPartition.Find("Desktop4")!;
+        var none = DailyUpgradeProgress.Empty;
+        Assert.True(ClusterPartition.MayWorkRooftop(desktop4, "28546"));
+        Assert.False(ClusterPartition.MayWorkRooftop(desktop4, "28206"));
+        Assert.False(ClusterPartition.MayWorkRooftop(desktop4, "6220"));
+        Assert.False(ClusterPartition.MayWorkQueue(desktop4, WorkQueue.Database, none));
+        Assert.Contains("28546", ClusterPartition.LaneBlockReason(desktop4, WorkQueue.Database, none)!);
+
+        var mitsubishiP1Done = new DailyUpgradeProgress(["28546"], []);
+        Assert.True(ClusterPartition.MayWorkQueue(desktop4, WorkQueue.Database, mitsubishiP1Done));
+        Assert.False(ClusterPartition.MayWorkQueue(desktop4, WorkQueue.Overdue, mitsubishiP1Done));
+        Assert.False(ClusterPartition.MayWorkQueue(ClusterPartition.Find("Desktop3")!, WorkQueue.Database, mitsubishiP1Done));
+    }
+
+    [Fact]
     public void Per_rooftop_gate_does_not_wait_on_the_other_store()
     {
         var nissanOnly = new DailyUpgradeProgress(["28206"], []);
@@ -81,6 +106,7 @@ public class ClusterPartitionTests
         Assert.Equal(8, ClusterPartition.ScaleOutNodes.Count);
         Assert.Equal(4, ClusterPartition.OverflowNodes.Count);
         Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Node4"]));
+        Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Desktop4"]));
         Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Node5"]));
         Assert.True(ClusterPartition.IsScaleOut(clusterSizeEnv: "8"));
         Assert.True(ClusterPartition.IsScaleOut(modeFileScaleOut: true));
@@ -121,5 +147,7 @@ public class ClusterPartitionTests
         Assert.Equal("Node5", ClusterPartition.Resolve(null, null, "Node5")?.NodeId);
         Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: false)!.Lane);
         Assert.Equal(ClusterLane.P1Email, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: true)!.Lane);
+        Assert.Equal("Desktop4", ClusterPartition.Resolve(null, null, "Node4", scaleOut: true)?.NodeId);
+        Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, ClusterPartition.EffectiveSpec("Desktop4", scaleOut: true)!.Lane);
     }
 }

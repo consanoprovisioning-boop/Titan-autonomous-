@@ -5,9 +5,9 @@ REM Does not start Titan.ChiefOfStaff.exe. Does not open Eleads. Does not type a
 
 set "NODE=%~1"
 if "%NODE%"=="" (
-  echo Usage: ENROLL-NODE.cmd Alienware-18^|Desktop3^|Node3^|Node4^|Node5^|Node6^|Node7^|Node8
+  echo Usage: ENROLL-NODE.cmd Alienware-18^|Desktop3^|Desktop4^|Node3^|Node4^|Node5^|Node6^|Node7^|Node8
   echo Run this on the PC you are enrolling. Cloud Linux cannot enroll a Windows PC.
-  echo Node3/Node4 are 4-PC go-live. Node5-Node8 are 8-PC overflow. Then run SCALE-OUT-8.cmd.
+  echo Desktop4 is named Node4. Node3 is still unnamed. Node5-Node8 are 8-PC overflow.
   pause
   exit /b 1
 )
@@ -15,17 +15,18 @@ if "%NODE%"=="" (
 set ROOT=%LOCALAPPDATA%\TitanChief
 mkdir "%ROOT%" 2>nul
 
+if /i "%NODE%"=="Node4" set "NODE=Desktop4"
 if /i "%NODE%"=="Alienware-18" set ROOF=28206
 if /i "%NODE%"=="Desktop3" set ROOF=28546
+if /i "%NODE%"=="Desktop4" set ROOF=28546
 if /i "%NODE%"=="Node3" set ROOF=28206
-if /i "%NODE%"=="Node4" set ROOF=28546
 if /i "%NODE%"=="Node5" set ROOF=28206
 if /i "%NODE%"=="Node6" set ROOF=28546
 if /i "%NODE%"=="Node7" set ROOF=28206+28546
 if /i "%NODE%"=="Node8" set ROOF=28206+28546
 
 if "%ROOF%"=="" (
-  echo Unknown node %NODE%. Use Alienware-18, Desktop3, or Node3 through Node8.
+  echo Unknown node %NODE%. Use Alienware-18, Desktop3, Desktop4, or Node3 through Node8.
   pause
   exit /b 1
 )

@@ -9,13 +9,13 @@ Cloud does not clone onto the PC. Glenn runs these steps locally. Same path as D
 | Enroll as | Rooftop | Lane | When it may send |
 | --- | --- | --- | --- |
 | Node3 | 28206 Valdosta Nissan | P2/P3 comb + tailored upgrade | After Nissan P1 is clear on Alienware-18 |
-| Node4 | 28546 Valdosta Mitsubishi | P2/P3 comb + tailored upgrade | After Mitsubishi P1 is clear on Desktop3 |
+| Desktop4 (Node4) | 28546 Valdosta Mitsubishi | P2/P3 comb + tailored upgrade | After Mitsubishi P1 is clear on Desktop3. Named PC; enroll `Desktop4` or `Node4` |
 | Node5 | 28206 | P1 overdue **calls** | 8-PC scale-out. Reschedule only; never mark complete without a call |
 | Node6 | 28546 | P1 overdue **calls** | 8-PC scale-out |
 | Node7 | 28206 and 28546 | SMS in window | 8-PC scale-out. 08:00–21:00 ET only |
 | Node8 | 28206 and 28546 | Appointment-commit | 8-PC scale-out. Day and time already in correspondence |
 
-Node3 and Node4 are part of today’s 4-PC go-live. Node5–Node8 wait until those boxes exist, then run `SCALE-OUT-8.cmd` on every PC. See `docs/deploy/cluster-8pc.md`.
+Node3 and Desktop4 (named Node4) are part of today’s 4-PC go-live. Desktop4 clone: `docs/deploy/desktop4.md`. Node5–Node8 wait until those boxes exist, then run `SCALE-OUT-8.cmd` on every PC. See `docs/deploy/cluster-8pc.md`.
 
 ## Need on the PC
 
@@ -47,7 +47,7 @@ Then CHECKIN twice as Bordine, Glenn on **that node’s rooftop**, leave Chrome 
 
 For Node7 or Node8, either allowed rooftop is fine. Set `TITAN_LEASE_DIR` to the shared lease folder before ticking.
 
-## Comb-database job (P2) — Node3 / Node4
+## Comb-database job (P2) — Node3 / Desktop4 (Node4)
 
 1. Confirm P1 is clear for this rooftop (`DailyUpgradeQueue.CanStartOnRooftop`).
 2. Open Daily Organizer / database views: equity, abandon, in-market, upgrade.
