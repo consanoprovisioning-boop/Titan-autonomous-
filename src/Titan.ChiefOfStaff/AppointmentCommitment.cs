@@ -256,7 +256,7 @@ public static class AppointmentCommitment
         var lower = text.ToLowerInvariant();
 
         var monthDay = Regex.Match(lower, @"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?\b");
-        var numeric = Regex.Match(lower, @"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b");
+        var numeric = CalendarSlashDate(lower);
 
         if (monthDay.Success)
         {
@@ -296,6 +296,27 @@ public static class AppointmentCommitment
         }
 
         return new DateTimeOffset(date.Add(time.Value), nowEt.Offset);
+    }
+
+    /// <summary>
+    /// First month/day slash that is not a truck size. "1/2 ton" and "3/4-ton"
+    /// are half-ton and three-quarter-ton trucks, not January 2 or March 4.
+    /// </summary>
+    private static Match CalendarSlashDate(string lower)
+    {
+        var numeric = Regex.Match(lower, @"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b");
+        while (numeric.Success && IsTruckTonnage(lower, numeric))
+        {
+            numeric = numeric.NextMatch();
+        }
+
+        return numeric;
+    }
+
+    private static bool IsTruckTonnage(string lower, Match numeric)
+    {
+        var rest = lower[(numeric.Index + numeric.Length)..];
+        return Regex.IsMatch(rest, @"^\s*-?\s*tons?\b");
     }
 
     private static DateTime ResolveDated(DateTime today, int month, int day)
