@@ -5,13 +5,13 @@ description: Run Titan Chief of Staff on the Valdosta cluster (4-PC go-live plus
 
 # Titan COS multi-agent cluster (4 live, 8 ready)
 
-Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3 or Desktop4, add more PCs, comb the database, or raise throughput toward 60 actions/hour.
+Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3, Desktop4, Desktop5, or Desktop6, add more PCs, comb the database, or raise throughput toward 60 actions/hour.
 
 **Launch is held.** Cluster is still being set up. Glenn will say when complete. Then study each PC and assign best-fit COS tasks. Not now. Install/enroll allowed. Do not START-WORKER, place COS, or CHECKIN-to-send until all PCs are ready and online.
 
-**Alienware-18 is MAIN:** coordinator, clone source, lease host. Specialists clone from Alienware-18. Do not make Desktop4 the coordinator.
+**Alienware-18 is MAIN:** coordinator, clone source, lease host. Specialists clone from Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator. WiFi on the LAN is not a Cursor worker.
 
-Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
+Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
 
 Ban the words pilot, MVP, and prototype for the Valdosta loop.
 
@@ -31,7 +31,7 @@ Call cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`. 
 scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json
 ```
 
-Label each node online or missing from that snapshot. Do not invent Desktop3, Desktop4, or Node3–Node8. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
+Label each node online or missing from that snapshot. Do not invent Desktop3, Desktop4, Desktop5, Desktop6, or Node3–Node8. WiFi connected is not online. A worker whose directory is `C:\Windows\system32` is online and must not receive a placed agent.
 
 Known Alienware ids (historical): wrong-directory `1a1f1f15-72c4-4334-ad8b-f87d54efe73a`; verified `%USERPROFILE%` `e630caf9-875d-4439-ab1a-3e6c386f6c0f`. Treat them as offline when the live list is empty.
 
@@ -83,8 +83,8 @@ Ready **8-PC** after `SCALE-OUT-8.cmd` (PC1/PC2 narrow to email):
 | Desktop3 | 28546 | P1 email |
 | Node3 | 28206 | P2/P3 |
 | Desktop4 (Node4, provisional) | 28546 | P2/P3 |
-| Node5 | 28206 | P1 calls |
-| Node6 | 28546 | P1 calls |
+| Desktop5 (Node5, provisional) | 28206 | P1 calls |
+| Desktop6 (Node6, provisional) | 28546 | P1 calls |
 | Node7 | both allowed | SMS in window |
 | Node8 | both allowed | Appointment-commit |
 
@@ -101,3 +101,11 @@ Cloud does not clone onto Desktop3. Glenn follows `docs/deploy/desktop3.md` (clo
 ## Desktop4
 
 Cloud does not clone onto Desktop4. Glenn follows `docs/deploy/desktop4.md` (**install only**). One-shot on Desktop4: `deploy\desktop4\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd`). It clones from Alienware-18 if needed, checks out `cursor/eleads-cluster-4pc-7dfe`, runs `INSTALL.cmd` and `ENROLL-NODE.cmd Desktop4`, then STOPS. It refuses `START-WORKER`. GitHub checkout of that branch is fallback. Enroll `Desktop4` or `Node4` — both map to **provisional** Mitsubishi 28546 P2/P3. Do not START-WORKER or CHECKIN-to-send until Glenn releases the cluster. This agent must not claim Desktop4 is online unless `list-self-hosted-workers` shows it. Cloud Linux cannot run `INSTALL-COS.cmd`.
+
+## Desktop5
+
+Cloud does not clone onto Desktop5. Glenn follows `docs/deploy/desktop5.md` (**install only**). One-shot on Desktop5: `deploy\desktop5\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop5\INSTALL-COS.cmd`). Same install-only pattern as Desktop4: clone from Alienware-18, checkout `cursor/eleads-cluster-4pc-7dfe`, `INSTALL.cmd`, `ENROLL-NODE.cmd Desktop5`, print **INSTALLED. LAUNCH HELD.**, refuse `START-WORKER`. Enroll `Desktop5` or `Node5` — both map to **provisional** Nissan 28206 P1 calls (8-PC overflow, not a 4-PC go-live seat). Do not `SCALE-OUT-8.cmd`. WiFi ≠ worker. This agent must not claim Desktop5 is online unless `list-self-hosted-workers` shows it.
+
+## Desktop6
+
+Cloud does not clone onto Desktop6. Glenn follows `docs/deploy/desktop6.md` (**install only**). One-shot on Desktop6: `deploy\desktop6\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd`). Same install-only pattern as Desktop4: clone from Alienware-18, checkout `cursor/eleads-cluster-4pc-7dfe`, `INSTALL.cmd`, `ENROLL-NODE.cmd Desktop6`, print **INSTALLED. LAUNCH HELD.**, refuse `START-WORKER`. Enroll `Desktop6` or `Node6` — both map to **provisional** Mitsubishi 28546 P1 calls (8-PC overflow, not a 4-PC go-live seat). Do not `SCALE-OUT-8.cmd`. WiFi ≠ worker. This agent must not claim Desktop6 is online unless `list-self-hosted-workers` shows it.

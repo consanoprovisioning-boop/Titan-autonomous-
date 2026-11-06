@@ -46,16 +46,18 @@ CLUSTER_NODES = (
         "provisional": True,
     },
     {
-        "nodeId": "Node5",
+        "nodeId": "Desktop5",
         "rooftop": "28206",
         "lane": "P1Call",
-        "hostnameHints": ("Node5",),
+        "hostnameHints": ("Desktop5", "DESKTOP5", "DeskTop5", "Node5"),
+        "provisional": True,
     },
     {
-        "nodeId": "Node6",
+        "nodeId": "Desktop6",
         "rooftop": "28546",
         "lane": "P1Call",
-        "hostnameHints": ("Node6",),
+        "hostnameHints": ("Desktop6", "DESKTOP6", "DeskTop6", "Node6"),
+        "provisional": True,
     },
     {
         "nodeId": "Node7",
@@ -92,8 +94,10 @@ CLUSTER_MAIN = "Alienware-18"
 HOLD_BLOCKER = (
     "Cluster launch is held. Glenn has not said all PCs are ready and online. "
     "Alienware-18 is the MAIN computer (coordinator, clone source, lease host). "
-    "Desktop4 may install and enroll only. Do not START-WORKER, place COS, or CHECKIN-to-send. "
-    "Provisional Desktop4 lane is Mitsubishi 28546 P2/P3. This cloud host will not open Eleads."
+    "Desktop4, Desktop5, and Desktop6 may install and enroll only. WiFi on the LAN is not a Cursor worker. "
+    "Do not START-WORKER, place COS, or CHECKIN-to-send. "
+    "Provisional lanes: Desktop4 Mitsubishi 28546 P2/P3; Desktop5 Nissan 28206 P1 calls; "
+    "Desktop6 Mitsubishi 28546 P1 calls. This cloud host will not open Eleads."
 )
 
 
@@ -280,7 +284,10 @@ def load_cluster_hold(path: Path | None = None) -> dict:
         data = dict(data)
         data["holdLaunch"] = True
     data.setdefault("clusterMain", CLUSTER_MAIN)
+    data.setdefault("wifiConnected", ["Desktop4", "Desktop5", "Desktop6"])
     data.setdefault("desktop4", {"status": "installing", "lane": "provisional-28546-P2P3"})
+    data.setdefault("desktop5", {"status": "installing", "lane": "provisional-28206-P1Call"})
+    data.setdefault("desktop6", {"status": "installing", "lane": "provisional-28546-P1Call"})
     return data
 
 
@@ -387,7 +394,10 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "clusterOnlineCount": sum(1 for n in cluster if n["status"] == "online"),
         "clusterHoldLaunch": hold_on,
         "clusterMain": hold.get("clusterMain") or CLUSTER_MAIN,
+        "wifiConnected": hold.get("wifiConnected") or ["Desktop4", "Desktop5", "Desktop6"],
         "desktop4": hold.get("desktop4") or {"status": "installing", "lane": "provisional-28546-P2P3"},
+        "desktop5": hold.get("desktop5") or {"status": "installing", "lane": "provisional-28206-P1Call"},
+        "desktop6": hold.get("desktop6") or {"status": "installing", "lane": "provisional-28546-P1Call"},
     }
 
 

@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-06 — Desktop5 and Desktop6 named overflow INSTALL-COS (install only) TITAN-CHANGE-MULTIAGENT-001 v0.5.4
+
+**Decision (Glenn):** DeskTop4, DeskTop5, and DeskTop6 are connected to the WiFi network. Treat them as named cluster nodes on the LAN. This is not “all PCs ready, launch.”
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md`. Playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. One-shots: `deploy/desktop5/INSTALL-COS.cmd`, `deploy/desktop6/INSTALL-COS.cmd` (same install-only pattern as Desktop4). v0.5.0–v0.5.3 are not rewritten.
+
+**Partition (provisional):** Desktop4 stays Mitsubishi 28546 P2/P3 (Node4). Desktop5 ≈ Node5 Nissan 28206 P1 calls (8-PC overflow). Desktop6 ≈ Node6 Mitsubishi 28546 P1 calls (8-PC overflow). Final COS tasks wait for Glenn’s per-PC study. `holdLaunch` stays `true`. Alienware-18 stays MAIN. WiFi connected is not a Cursor worker. Cloud Linux did not run the Windows installer. `sends=[]`.
+
 ## 2026-11-06 — Desktop4 one-shot INSTALL-COS (install only)
 
 **Decision (Glenn):** “install Titan COS now” on Desktop4 means clone/install/enroll, not launch. Cluster setup is still in progress.

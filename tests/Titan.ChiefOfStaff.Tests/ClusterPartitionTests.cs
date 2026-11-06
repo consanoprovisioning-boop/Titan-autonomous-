@@ -108,6 +108,8 @@ public class ClusterPartitionTests
         Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Node4"]));
         Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Desktop4"]));
         Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Node5"]));
+        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Desktop5"]));
+        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Desktop6"]));
         Assert.True(ClusterPartition.IsScaleOut(clusterSizeEnv: "8"));
         Assert.True(ClusterPartition.IsScaleOut(modeFileScaleOut: true));
         Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.EffectiveSpec("Alienware-18", scaleOut: false)!.Lane);
@@ -119,9 +121,12 @@ public class ClusterPartitionTests
     public void Eight_node_overflow_lanes_do_not_share_a_send_job()
     {
         var eight = ClusterPartition.ScaleOutNodes;
-        Assert.Equal("Node5", eight[4].NodeId);
+        Assert.Equal("Desktop5", eight[4].NodeId);
+        Assert.Equal("Desktop5", ClusterPartition.Find("Node5")!.NodeId);
         Assert.Equal(ClusterLane.P1Call, eight[4].Lane);
         Assert.Equal(Policy.NissanId, eight[4].RooftopId);
+        Assert.Equal("Desktop6", eight[5].NodeId);
+        Assert.Equal("Desktop6", ClusterPartition.Find("Node6")!.NodeId);
         Assert.Equal(ClusterLane.P1Call, eight[5].Lane);
         Assert.Equal(Policy.MitsubishiId, eight[5].RooftopId);
         Assert.Equal(ClusterLane.SmsInWindow, eight[6].Lane);
@@ -144,11 +149,17 @@ public class ClusterPartitionTests
     [Fact]
     public void Resolve_finds_overflow_nodes_without_dropping_go_live()
     {
-        Assert.Equal("Node5", ClusterPartition.Resolve(null, null, "Node5")?.NodeId);
+        Assert.Equal("Desktop5", ClusterPartition.Resolve(null, null, "Node5")?.NodeId);
+        Assert.Equal("Desktop5", ClusterPartition.Resolve("DeskTop5", null, null)?.NodeId);
+        Assert.Equal("Desktop5", ClusterPartition.Resolve(null, null, "Desktop5")?.NodeId);
+        Assert.Equal("Desktop6", ClusterPartition.Resolve(null, null, "Node6")?.NodeId);
+        Assert.Equal("Desktop6", ClusterPartition.Resolve("DeskTop6", null, null)?.NodeId);
         Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: false)!.Lane);
         Assert.Equal(ClusterLane.P1Email, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: true)!.Lane);
         Assert.Equal("Desktop4", ClusterPartition.Resolve(null, null, "Node4", scaleOut: true)?.NodeId);
         Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, ClusterPartition.EffectiveSpec("Desktop4", scaleOut: true)!.Lane);
+        Assert.Equal(ClusterLane.P1Call, ClusterPartition.EffectiveSpec("Desktop5", scaleOut: true)!.Lane);
+        Assert.Equal(ClusterLane.P1Call, ClusterPartition.EffectiveSpec("Desktop6", scaleOut: true)!.Lane);
     }
 
     [Fact]

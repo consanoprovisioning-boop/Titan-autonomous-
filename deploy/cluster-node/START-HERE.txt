@@ -1,17 +1,22 @@
-Titan COS cluster node (Desktop4 / Node3-Node8)
+Titan COS cluster node (Desktop4 / Desktop5 / Desktop6 / Node3-Node8)
 
 Cloud did not copy files onto this PC. Clone the repo under %USERPROFILE% first.
 4-PC go-live: Desktop4 is named Node4. Node3 is still unnamed. See docs\deploy\cluster-4pc.md
 Desktop4 clone from Alienware-18: docs\deploy\desktop4.md
-8-PC overflow: Node5-Node8. See docs\deploy\cluster-8pc.md and docs\deploy\node-onboarding.md
+8-PC overflow: Desktop5 is named Node5, Desktop6 is named Node6 (provisional). Node7-Node8 unnamed.
+See docs\deploy\cluster-8pc.md, docs\deploy\desktop5.md, docs\deploy\desktop6.md, docs\deploy\node-onboarding.md
+WiFi on the LAN is not a Cursor worker.
 
 Alienware-18 is MAIN (coordinator, clone source, lease host). Launch is held until Glenn says all PCs are ready.
 
-Desktop4 one-shot: deploy\desktop4\INSTALL-COS.cmd (install only; refuses START-WORKER).
+One-shots (install only; each refuses START-WORKER):
+  deploy\desktop4\INSTALL-COS.cmd
+  deploy\desktop5\INSTALL-COS.cmd
+  deploy\desktop6\INSTALL-COS.cmd
 1. Clone from Alienware-18, then INSTALL.cmd once if needed. That is not Verify.
-2. ENROLL-NODE.cmd Desktop4   (or Node3, Node4, Node5, Node6, Node7, Node8)
+2. ENROLL-NODE.cmd Desktop4  (or Desktop5, Desktop6, Node3, Node4, Node5, Node6, Node7, Node8)
 3. STOP. Do not double-click START-WORKER.cmd. Do not CHECKIN-to-send.
-4. TITAN_LEASE_DIR belongs on Alienware-18, not on Desktop4.
+4. TITAN_LEASE_DIR belongs on Alienware-18, not on Desktop4/5/6.
 
 Never start the worker from C:\Windows\system32.
 P2/P3 work stays closed until that rooftop's P1 overdue / organizer work is clear.

@@ -21,7 +21,7 @@ if not "%TITAN_LEASE_DIR%"=="" (
 
 echo.
 echo Scale-out armed on this PC. 4-PC go-live node ids are unchanged.
-echo PC1/PC2 now take P1 email only. Node5/6=calls, Node7=SMS, Node8=appointments.
+echo PC1/PC2 now take P1 email only. Desktop5/6 (Node5/6 provisional)=calls, Node7=SMS, Node8=appointments.
 echo This is not Verify and not send authorization. Never 6220.
 echo Playbook: docs\deploy\cluster-8pc.md
 endlocal

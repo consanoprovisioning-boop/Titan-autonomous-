@@ -2,7 +2,7 @@
 
 Titan Autonomous and Titan Chief of Staff live on all four Windows PCs. Cloud Linux writes this playbook. Glenn clones and installs on each PC. This file does not claim any node is online.
 
-**Alienware-18 is the MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop3, Desktop4, and later nodes are specialists that clone **from** Alienware-18. Do not make Desktop4 the coordinator.
+**Alienware-18 is the MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop3, Desktop4, Desktop5, Desktop6, and later nodes are specialists that clone **from** Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator.
 
 **Launch is held.** The cluster is still being set up. Glenn will say when it is complete. Then we study each PC’s devices/ability and assign best-fit COS tasks. Not now. Install and enroll are allowed. Do **not** run `START-WORKER.cmd`, place COS, or CHECKIN-to-send until Glenn says all PCs are ready and online.
 
@@ -16,6 +16,8 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 | PC2 | Desktop3 | Valdosta Mitsubishi 28546 | P1 organizer | Same P1 jobs on Mitsubishi |
 | PC3 | Node3 (enroll a real hostname) | Valdosta Nissan 28206 | P2/P3 | Comb the Nissan database, then tailored upgrade emails |
 | PC4 | Desktop4 (Node4, **provisional**) | Valdosta Mitsubishi 28546 | P2/P3 | Comb the Mitsubishi database, then tailored upgrade emails. Final COS tasks wait for Glenn’s per-PC study |
+
+Desktop5 (Node5) and Desktop6 (Node6) are **named 8-PC overflow** PCs on WiFi, not 4-PC go-live seats. Provisional: Desktop5 ≈ Nissan 28206 P1 calls; Desktop6 ≈ Mitsubishi 28546 P1 calls. See `docs/deploy/cluster-8pc.md`. WiFi ≠ Cursor worker.
 
 P2/P3 on a rooftop stay closed until that rooftop’s P1 overdue / organizer work is clear. Appointment-commit fast path (PR #16) preempts the rooftop owner. Daily upgrade order (PR #17) is P1 → P2 → P3.
 
@@ -44,17 +46,19 @@ What still blocks live sending:
 
 ## Per-PC install now (launch held)
 
-Desktop4 one-shot (install only, then STOP):
+One-shots (install only, then STOP). Each refuses `START-WORKER`:
 
 ```bat
 \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop5\INSTALL-COS.cmd
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
 ```
 
-That file refuses `START-WORKER`. Other PCs:
+Other PCs:
 
 1. Clone **from Alienware-18**. GitHub is fallback.
 2. `INSTALL.cmd` once if the host is missing. That is not Verify.
-3. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Desktop4`, `Node3`, `Node4`).
+3. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Desktop4`, `Desktop5`, `Desktop6`, `Node3`–`Node8`).
 4. **STOP.** Do not double-click `START-WORKER.cmd`. Do not CHECKIN-to-send. `START-WORKER.cmd` fail-closes while hold is on.
 
 Held until Glenn releases the cluster: worker from `%USERPROFILE%`, then `CHECKIN.cmd` twice as Bordine, Glenn on **that node’s rooftop**, leave Chrome open. Do not Verify two PCs onto the same rooftop tab set.
@@ -62,5 +66,7 @@ Held until Glenn releases the cluster: worker from `%USERPROFILE%`, then `CHECKI
 Alienware-18 detail: `docs/deploy/alienware-18.md`.  
 Desktop3 clone: `docs/deploy/desktop3.md`.  
 Desktop4 clone from Alienware-18: `docs/deploy/desktop4.md`.  
-Unnamed PCs (Node3, Node5–Node8): `docs/deploy/node-onboarding.md`.  
-When four more PCs arrive, keep this 4-PC go-live and follow `docs/deploy/cluster-8pc.md`. Do not redesign the first four nodes.
+Desktop5 clone from Alienware-18: `docs/deploy/desktop5.md`.  
+Desktop6 clone from Alienware-18: `docs/deploy/desktop6.md`.  
+Unnamed PCs (Node3, Node7, Node8): `docs/deploy/node-onboarding.md`.  
+When remaining overflow PCs arrive, keep this 4-PC go-live and follow `docs/deploy/cluster-8pc.md`. Do not redesign the first four nodes.

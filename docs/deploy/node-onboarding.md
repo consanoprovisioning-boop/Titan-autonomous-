@@ -2,11 +2,11 @@
 
 Use this for unnamed PCs. Do not invent hostnames. Enroll the real Windows computer name, then map it to Node3–Node8.
 
-**Alienware-18 is MAIN.** Clone from Alienware-18. Lease host is Alienware-18. Do not make Desktop4 the coordinator.
+**Alienware-18 is MAIN.** Clone from Alienware-18. Lease host is Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator.
 
 **Launch is held** until Glenn says all PCs are ready. Clone, copy `dist\titan-chief-win-x64` from Alienware-18, `INSTALL.cmd`, enroll. Do **not** start the worker or CHECKIN-to-send yet.
 
-Cloud does not clone onto the PC. Glenn runs these steps locally. Same path as Desktop3/Desktop4. Chrome CDP **9222** after Glenn releases the hold.
+Cloud does not clone onto the PC. Glenn runs these steps locally. Same path as Desktop3/Desktop4/Desktop5/Desktop6. Chrome CDP **9222** after Glenn releases the hold. WiFi on the LAN is not a Cursor worker.
 
 ## Target lanes
 
@@ -14,12 +14,12 @@ Cloud does not clone onto the PC. Glenn runs these steps locally. Same path as D
 | --- | --- | --- | --- |
 | Node3 | 28206 Valdosta Nissan | P2/P3 comb + tailored upgrade | After Nissan P1 is clear on Alienware-18 |
 | Desktop4 (Node4, provisional) | 28546 Valdosta Mitsubishi | P2/P3 comb + tailored upgrade | After Mitsubishi P1 is clear on Desktop3. Named PC; enroll `Desktop4` or `Node4`. Final COS tasks wait for Glenn’s per-PC study |
-| Node5 | 28206 | P1 overdue **calls** | 8-PC scale-out. Reschedule only; never mark complete without a call |
-| Node6 | 28546 | P1 overdue **calls** | 8-PC scale-out |
+| Desktop5 (Node5, provisional) | 28206 Valdosta Nissan | P1 overdue **calls** | 8-PC overflow. Named PC on WiFi; enroll `Desktop5` or `Node5`. Reschedule only; never mark complete without a call. Final COS tasks wait for Glenn’s per-PC study |
+| Desktop6 (Node6, provisional) | 28546 Valdosta Mitsubishi | P1 overdue **calls** | 8-PC overflow. Named PC on WiFi; enroll `Desktop6` or `Node6`. Reschedule only; never mark complete without a call. Final COS tasks wait for Glenn’s per-PC study |
 | Node7 | 28206 and 28546 | SMS in window | 8-PC scale-out. 08:00–21:00 ET only |
 | Node8 | 28206 and 28546 | Appointment-commit | 8-PC scale-out. Day and time already in correspondence |
 
-Node3 and Desktop4 (named Node4) are part of today’s 4-PC go-live. Desktop4 clone: `docs/deploy/desktop4.md`. Node5–Node8 wait until those boxes exist, then run `SCALE-OUT-8.cmd` on every PC. See `docs/deploy/cluster-8pc.md`.
+Node3 and Desktop4 (named Node4) are part of today’s 4-PC go-live. Desktop4 clone: `docs/deploy/desktop4.md`. Desktop5 and Desktop6 are named overflow on WiFi; clone `docs/deploy/desktop5.md` and `docs/deploy/desktop6.md` (**install only**). Node7–Node8 wait until those boxes exist. Do not run `SCALE-OUT-8.cmd` while launch is held. See `docs/deploy/cluster-8pc.md`.
 
 ## Need on the PC
 
@@ -32,17 +32,26 @@ Worker start is held. After Glenn releases the cluster:
 
 ```bat
 cd /d "%USERPROFILE%"
-agent worker start --name "Node5" --verbose
+agent worker start --name "Desktop5" --verbose
 ```
 
-Replace the name with the enrolled node id. Directory must not be `C:\Windows\system32`. `START-WORKER.cmd` fail-closes while hold is on.
+Replace the name with the enrolled node id (`Desktop5`, `Desktop6`, `Node7`, or `Node8`). Directory must not be `C:\Windows\system32`. `START-WORKER.cmd` fail-closes while hold is on.
 
 ## Commands (install only)
+
+Named overflow one-shots (Desktop5 / Desktop6):
+
+```bat
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop5\INSTALL-COS.cmd
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
+```
+
+Unnamed overflow (Node7 / Node8):
 
 ```bat
 cd /d "%USERPROFILE%\Titan-autonomous-"
 dist\titan-chief-win-x64\INSTALL.cmd
-deploy\cluster-node\ENROLL-NODE.cmd Node5
+deploy\cluster-node\ENROLL-NODE.cmd Node7
 ```
 
 Do **not** run `START-WORKER.cmd` or CHECKIN twice until Glenn says all PCs are ready. Never **6220**.

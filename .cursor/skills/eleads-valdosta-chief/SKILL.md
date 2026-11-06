@@ -7,7 +7,7 @@ description: Live Eleads chief-of-staff loop for Glenn Bordine at Valdosta Nissa
 
 This is a live rooftop system. Ban the words pilot, MVP, and prototype in this work. Do not invent customers, stock, payments, APRs, or appointment times.
 
-Read `docs/ops/eleads-valdosta.md`, `docs/deploy/alienware-18.md`, and `docs/deploy/cluster-4pc.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Four-PC delegation: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`.
+Read `docs/ops/eleads-valdosta.md`, `docs/deploy/alienware-18.md`, and `docs/deploy/cluster-4pc.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cluster delegation: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`. Desktop5/Desktop6 install-only playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. Launch stays held.
 
 ## Authorization (Version 1.1)
 

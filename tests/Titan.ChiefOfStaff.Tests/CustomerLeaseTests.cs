@@ -54,7 +54,7 @@ public class CustomerLeaseTests
         var winner = store.TryAcquire("Alienware-18", "28206", "Kim Cole", "P1Email", Now);
         Assert.NotNull(winner);
 
-        foreach (var other in new[] { "Desktop3", "Node3", "Desktop4", "Node4", "Node5", "Node6", "Node7", "Node8" })
+        foreach (var other in new[] { "Desktop3", "Node3", "Desktop4", "Node4", "Desktop5", "Desktop6", "Node5", "Node6", "Node7", "Node8" })
         {
             Assert.Null(store.TryAcquire(other, "28206", "Kim Cole", "any-job", Now));
         }

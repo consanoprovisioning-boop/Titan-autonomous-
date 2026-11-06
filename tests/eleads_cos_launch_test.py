@@ -112,6 +112,9 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertTrue(data["clusterHoldLaunch"])
         self.assertEqual("Alienware-18", data["clusterMain"])
         self.assertEqual("installing", data["desktop4"]["status"])
+        self.assertEqual("installing", data["desktop5"]["status"])
+        self.assertEqual("installing", data["desktop6"]["status"])
+        self.assertEqual(["Desktop4", "Desktop5", "Desktop6"], data["wifiConnected"])
         self.assertIn("held", data["blockers"][0].lower())
         self.assertIn("MAIN", data["blockers"][0])
         self.assertNotIn("START-WORKER.cmd", data["blockers"][0])
@@ -122,6 +125,10 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual("missing", data["cluster"][1]["status"])
         self.assertEqual("Desktop4", data["cluster"][3]["nodeId"])
         self.assertEqual("missing", data["cluster"][3]["status"])
+        self.assertEqual("Desktop5", data["cluster"][4]["nodeId"])
+        self.assertEqual("missing", data["cluster"][4]["status"])
+        self.assertEqual("Desktop6", data["cluster"][5]["nodeId"])
+        self.assertEqual("missing", data["cluster"][5]["status"])
         self.assertEqual("Node8", data["cluster"][7]["nodeId"])
         self.assertEqual("missing", data["cluster"][7]["status"])
         text = ticklog.read_text(encoding="utf-8")
@@ -215,6 +222,54 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertNotIn("CHECKIN.cmd", call_lines)
         self.assertNotIn("powershell", executable.lower())
         self.assertIn("does not start titan.chiefofstaff.exe", script.lower())
+
+    def test_desktop5_and_desktop6_install_cos_is_install_only(self) -> None:
+        hold = json.loads((ROOT / "deploy/cluster-node/cluster-hold.json").read_text(encoding="utf-8"))
+        enroll = (ROOT / "deploy/cluster-node/ENROLL-NODE.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        self.assertTrue(hold["holdLaunch"])
+        self.assertEqual("Alienware-18", hold["clusterMain"])
+        self.assertEqual(["Desktop4", "Desktop5", "Desktop6"], hold["wifiConnected"])
+        self.assertEqual("installing", hold["desktop5"]["status"])
+        self.assertEqual("provisional-28206-P1Call", hold["desktop5"]["lane"])
+        self.assertEqual("installing", hold["desktop6"]["status"])
+        self.assertEqual("provisional-28546-P1Call", hold["desktop6"]["lane"])
+        self.assertIn("Desktop5", enroll)
+        self.assertIn("Desktop6", enroll)
+        for name, node, rooftop_lane in (
+            ("desktop5", "Desktop5", "rooftop 28206 P1 calls provisional"),
+            ("desktop6", "Desktop6", "rooftop 28546 P1 calls provisional"),
+        ):
+            script = (ROOT / f"deploy/{name}/INSTALL-COS.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+            playbook = (ROOT / f"docs/deploy/{name}.md").read_text(encoding="utf-8")
+            executable = "\n".join(
+                line for line in script.splitlines()
+                if not line.lstrip().upper().startswith("REM ")
+            )
+            call_lines = "\n".join(
+                line for line in executable.splitlines()
+                if line.lstrip().lower().startswith("call ")
+            )
+            self.assertIn('cd /d "%USERPROFILE%"', script)
+            self.assertIn("system32", script.lower())
+            self.assertIn("cursor/eleads-cluster-4pc-7dfe", script)
+            self.assertIn("Alienware-18", script)
+            self.assertIn("INSTALL.cmd", script)
+            self.assertIn(f'ENROLL-NODE.cmd" {node}', script)
+            self.assertIn("INSTALLED. LAUNCH HELD.", script)
+            self.assertIn("holdLaunch=true", script)
+            self.assertIn("refuse_start", script)
+            self.assertIn('if /i "%~1"=="START-WORKER"', script)
+            self.assertIn(rooftop_lane, script)
+            self.assertIn("provisional", playbook.lower())
+            self.assertIn("DO NOT launch", playbook)
+            self.assertIn("INSTALL-COS.cmd", playbook)
+            self.assertIn(f"\\\\Alienware-18\\Users\\Glenn R Bordine\\Titan-autonomous-\\deploy\\{name}\\INSTALL-COS.cmd", playbook)
+            self.assertNotIn("eleadcrm.com", executable)
+            self.assertNotIn("agent worker start", executable)
+            self.assertNotIn("START-WORKER", call_lines)
+            self.assertNotIn("CHECKIN.cmd", call_lines)
+            self.assertNotIn("powershell", executable.lower())
+            self.assertIn("does not start titan.chiefofstaff.exe", script.lower())
 
     def test_cluster_hold_blocks_ready_session(self) -> None:
         tmp = Path("/tmp/eleads-cos-hold-test")
@@ -314,7 +369,7 @@ class LaunchGuardTests(unittest.TestCase):
     def test_cluster_inventory_does_not_fabricate_desktop3(self) -> None:
         empty = launch.inventory_cluster({"workers": []})
         self.assertEqual(
-            ["Alienware-18", "Desktop3", "Node3", "Desktop4", "Node5", "Node6", "Node7", "Node8"],
+            ["Alienware-18", "Desktop3", "Node3", "Desktop4", "Desktop5", "Desktop6", "Node7", "Node8"],
             [n["nodeId"] for n in empty],
         )
         self.assertTrue(all(n["status"] == "missing" and n["fabricated"] is False for n in empty))
@@ -352,6 +407,27 @@ class LaunchGuardTests(unittest.TestCase):
         })
         self.assertEqual("Desktop4", alias[3]["nodeId"])
         self.assertEqual("online", alias[3]["status"])
+
+        named5 = launch.inventory_cluster({
+            "workers": [{
+                "workerId": "d5",
+                "machineDisplayName": "DeskTop5",
+                "displayName": "Desktop5#C:\\Users\\Glenn R Bordine",
+            }]
+        })
+        self.assertEqual("Desktop5", named5[4]["nodeId"])
+        self.assertEqual("online", named5[4]["status"])
+        self.assertFalse(named5[4]["fabricated"])
+
+        alias6 = launch.inventory_cluster({
+            "workers": [{
+                "workerId": "n6",
+                "machineDisplayName": "Node6",
+                "displayName": "Node6",
+            }]
+        })
+        self.assertEqual("Desktop6", alias6[5]["nodeId"])
+        self.assertEqual("online", alias6[5]["status"])
 
 
 if __name__ == "__main__":

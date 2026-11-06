@@ -2,8 +2,9 @@ namespace Titan.ChiefOfStaff;
 
 /// <summary>
 /// Local cluster for Titan COS. The live 4-PC go-live set is unchanged:
-/// Alienware-18, Desktop3, Node3, Desktop4 (Node4). Nodes 5–8 are overflow
-/// lanes for the 8-PC scale-out — same clone / %USERPROFILE% worker / CDP 9222 path.
+/// Alienware-18, Desktop3, Node3, Desktop4 (Node4). Desktop5 (Node5) and
+/// Desktop6 (Node6) are named 8-PC overflow; Node7–Node8 stay unnamed until enrolled.
+/// Same clone / %USERPROFILE% worker / CDP 9222 path. Lanes for Desktop5/6 are provisional.
 /// This type only assigns. Cloud Linux never opens Eleads or claims sends.
 /// </summary>
 public enum ClusterLane
@@ -55,6 +56,8 @@ public static class ClusterPartition
     public const string Alienware18 = "Alienware-18";
     public const string Desktop3 = "Desktop3";
     public const string Desktop4 = "Desktop4";
+    public const string Desktop5 = "Desktop5";
+    public const string Desktop6 = "Desktop6";
     public const string Node3Template = "Node3";
     public const string Node4Template = "Node4";
     public const string Node5Template = "Node5";
@@ -64,7 +67,7 @@ public static class ClusterPartition
 
     public static readonly string[] OverflowNodeIds =
     [
-        Node5Template, Node6Template, Node7Template, Node8Template
+        Desktop5, Desktop6, Node5Template, Node6Template, Node7Template, Node8Template
     ];
 
     public static IReadOnlyList<ClusterJobKind> HighVelocityJobs { get; } =
@@ -133,8 +136,9 @@ public static class ClusterPartition
 
     /// <summary>
     /// 8-PC scale-out. PC1–PC4 keep their node ids. When scale-out is on,
-    /// PC1/PC2 narrow to P1 email so Node5/Node6 can take P1 calls without
-    /// colliding. Node3 and Desktop4 (Node4) stay P2/P3. Node7 is SMS; Node8 is appointments.
+    /// PC1/PC2 narrow to P1 email so Desktop5/Desktop6 (Node5/Node6, provisional)
+    /// can take P1 calls without colliding. Node3 and Desktop4 (Node4) stay P2/P3.
+    /// Node7 is SMS; Node8 is appointments.
     /// </summary>
     public static IReadOnlyList<ClusterNodeSpec> ScaleOutNodes { get; } =
     [
@@ -145,7 +149,7 @@ public static class ClusterPartition
             Policy.NissanId,
             ClusterLane.P1Email,
             [ClusterJobKind.OverdueEmailClearance, ClusterJobKind.DailyOrganizerRemainder],
-            "8-PC: Valdosta Nissan 28206 P1 email only. Calls move to Node5; SMS to Node7; appointments to Node8."),
+            "8-PC: Valdosta Nissan 28206 P1 email only. Calls move to Desktop5 (Node5, provisional); SMS to Node7; appointments to Node8."),
         new(
             Desktop3,
             "Desktop3 (PC2, 8-PC email lane)",
@@ -153,25 +157,27 @@ public static class ClusterPartition
             Policy.MitsubishiId,
             ClusterLane.P1Email,
             [ClusterJobKind.OverdueEmailClearance, ClusterJobKind.DailyOrganizerRemainder],
-            "8-PC: Valdosta Mitsubishi 28546 P1 email only. Calls move to Node6; SMS to Node7; appointments to Node8."),
+            "8-PC: Valdosta Mitsubishi 28546 P1 email only. Calls move to Desktop6 (Node6, provisional); SMS to Node7; appointments to Node8."),
         Nodes[2],
         Nodes[3],
         new(
-            Node5Template,
-            "Node5 (PC5, unnamed until enrolled)",
-            "Node5",
+            Desktop5,
+            "Desktop5 (PC5 / Node5)",
+            "Desktop5",
             Policy.NissanId,
             ClusterLane.P1Call,
             [ClusterJobKind.OverdueCallReschedule],
-            "8-PC overflow: Valdosta Nissan 28206 P1 overdue call reschedule. Never mark a call complete if no call occurred."),
+            "Provisional 8-PC overflow: Valdosta Nissan 28206 P1 overdue call reschedule. Final COS tasks wait until Glenn says the cluster is complete. Never mark a call complete if no call occurred. Enroll as Desktop5 or Node5. Do not launch until Glenn releases the hold.",
+            Aliases: [Node5Template]),
         new(
-            Node6Template,
-            "Node6 (PC6, unnamed until enrolled)",
-            "Node6",
+            Desktop6,
+            "Desktop6 (PC6 / Node6)",
+            "Desktop6",
             Policy.MitsubishiId,
             ClusterLane.P1Call,
             [ClusterJobKind.OverdueCallReschedule],
-            "8-PC overflow: Valdosta Mitsubishi 28546 P1 overdue call reschedule."),
+            "Provisional 8-PC overflow: Valdosta Mitsubishi 28546 P1 overdue call reschedule. Final COS tasks wait until Glenn says the cluster is complete. Never mark a call complete if no call occurred. Enroll as Desktop6 or Node6. Do not launch until Glenn releases the hold.",
+            Aliases: [Node6Template]),
         new(
             Node7Template,
             "Node7 (PC7, unnamed until enrolled)",
