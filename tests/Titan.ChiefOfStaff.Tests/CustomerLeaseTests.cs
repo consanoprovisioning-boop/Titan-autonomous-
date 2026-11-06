@@ -75,4 +75,38 @@ public class CustomerLeaseTests
         Assert.Null(second);
         Assert.Equal("Alienware-18", right.Peek("28206", "Lee Park", Now)?.NodeId);
     }
+
+    [Fact]
+    public void Unreadable_lease_file_does_not_grant_a_lease_or_erase_holders()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "titan-lease-" + Guid.NewGuid().ToString("n"), "cluster-leases.json");
+        var holder = new CustomerLeaseStore(path);
+        Assert.NotNull(holder.TryAcquire("Alienware-18", "28206", "Kim Cole", "P1Email", Now));
+        Assert.NotNull(holder.TryAcquire("Alienware-18", "28206", "Lee Park", "P1Email", Now));
+        var intact = File.ReadAllText(path);
+
+        var torn = intact[..Math.Min(24, intact.Length)];
+        File.WriteAllText(path, torn);
+        var other = new CustomerLeaseStore(path);
+        Assert.Null(other.TryAcquire("Node5", "28206", "Kim Cole", "P1Call", Now));
+        Assert.Null(other.TryAcquire("Node5", "28206", "Pat Ruiz", "P1Call", Now));
+        Assert.False(other.Release("Alienware-18", "28206", "Kim Cole", Now));
+        Assert.Equal(torn, File.ReadAllText(path));
+
+        File.WriteAllText(path, "");
+        Assert.Null(other.TryAcquire("Node5", "28206", "Kim Cole", "P1Call", Now));
+        Assert.Equal("", File.ReadAllText(path));
+
+        File.WriteAllText(path, intact);
+        Assert.Null(other.TryAcquire("Node5", "28206", "Kim Cole", "P1Call", Now));
+        Assert.Null(other.TryAcquire("Node5", "28206", "Lee Park", "P1Call", Now));
+        Assert.Equal("Alienware-18", other.Peek("28206", "Kim Cole", Now)?.NodeId);
+        Assert.Equal("Alienware-18", other.Peek("28206", "Lee Park", Now)?.NodeId);
+
+        var emptyList = Path.Combine(Path.GetTempPath(), "titan-lease-" + Guid.NewGuid().ToString("n"), "cluster-leases.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(emptyList)!);
+        File.WriteAllText(emptyList, "[]\n");
+        var fresh = new CustomerLeaseStore(emptyList);
+        Assert.NotNull(fresh.TryAcquire("Node5", "28206", "Pat Ruiz", "P1Call", Now));
+    }
 }
