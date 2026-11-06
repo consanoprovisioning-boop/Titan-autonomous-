@@ -112,6 +112,52 @@ public class AppointmentCommitmentTests
     }
 
     [Fact]
+    public void Ordinary_words_are_not_booked_as_a_calendar_month()
+    {
+        var decided = Eval("Yes I decided 2 pm works");
+        Assert.Equal(AppointmentCommitmentAction.ClarifySlot, decided.Action);
+        Assert.False(decided.ShouldBook);
+        Assert.Null(decided.NewStatus);
+        Assert.Null(decided.SlotEt);
+
+        var mark = Eval("Yes, mark 10 am");
+        Assert.Equal(AppointmentCommitmentAction.ClarifySlot, mark.Action);
+        Assert.False(mark.ShouldBook);
+        Assert.Null(mark.SlotEt);
+
+        // "how about" plus a false month used to count as a day and book the proposed slot.
+        var howAbout = Eval("How about I decided 2 pm?", proposed: Sat10);
+        Assert.Equal(AppointmentCommitmentAction.NoTrigger, howAbout.Action);
+        Assert.False(howAbout.ShouldBook);
+
+        var markSaturday = Eval("Yes, mark Saturday at 10 am");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, markSaturday.Action);
+        Assert.Equal(Sat10, markSaturday.SlotEt);
+
+        Assert.False(Policy.HasCustomerDayAndTime("I decided 2 pm works"));
+        Assert.False(Policy.HasCustomerDayAndTime("Yes, mark 10 am"));
+        Assert.True(Policy.HasCustomerDayAndTime("December 2 at 2 pm"));
+        Assert.True(Policy.HasCustomerDayAndTime("Saturday at 10:30 AM"));
+    }
+
+    [Fact]
+    public void Real_month_names_and_abbreviations_still_book()
+    {
+        var december = Eval("See you December 2 at 2 pm");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, december.Action);
+        Assert.Equal(new DateTimeOffset(2026, 12, 2, 14, 0, 0, TimeSpan.FromHours(-4)), december.SlotEt);
+        Assert.Equal(LeadStatus.AppointmentSet, december.NewStatus);
+
+        var abbreviated = Eval("See you Dec 2 at 2 pm");
+        Assert.Equal(december.SlotEt, abbreviated.SlotEt);
+
+        // March 10, 2026 is already past Sept 25, so the next March 10 is 2027.
+        var march = Eval("I'll be there March 10 at 10am");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, march.Action);
+        Assert.Equal(new DateTimeOffset(2027, 3, 10, 10, 0, 0, TimeSpan.FromHours(-4)), march.SlotEt);
+    }
+
+    [Fact]
     public void Sms_outside_window_queues_reply_but_still_decides_booking()
     {
         var satNight = new DateTimeOffset(2026, 9, 26, 22, 0, 0, TimeSpan.FromHours(-4));
