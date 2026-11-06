@@ -4,7 +4,7 @@ The live **4-PC go-live stays**. Alienware-18, Desktop3, Node3, and Desktop4 (No
 
 **Alienware-18 is MAIN** (coordinator, clone source, lease host). Specialists clone from Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator. WiFi on the LAN is not a Cursor worker.
 
-**Launch is held** until Glenn says all PCs are ready and online. Clone/install/enroll only. Do not `START-WORKER` or CHECKIN-to-send now.
+**Per-node hold.** Desktop4 is released to join. Desktop5 and Desktop6 stay clone/install/enroll only. Do not `START-WORKER` on unreleased overflow nodes. Do not `SCALE-OUT-8.cmd` yet.
 
 Cloud Linux writes this playbook. Glenn clones and installs on each PC. This file does not claim any node is online.
 

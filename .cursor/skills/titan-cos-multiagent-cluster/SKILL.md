@@ -7,11 +7,11 @@ description: Run Titan Chief of Staff on the Valdosta cluster (4-PC go-live plus
 
 Use this skill when Glenn asks to run Titan COS on more than one PC, clone Desktop3, Desktop4, Desktop5, or Desktop6, add more PCs, comb the database, or raise throughput toward 60 actions/hour.
 
-**Launch is held.** Cluster is still being set up. Glenn will say when complete. Then study each PC and assign best-fit COS tasks. Not now. Install/enroll allowed. Do not START-WORKER, place COS, or CHECKIN-to-send until all PCs are ready and online.
+**Per-node hold.** Glenn released **Desktop4** (this PC) to finish setup and join the cluster. `holdLaunch` stays true (`clusterHoldLaunch` remains for unreleased nodes). Desktop5 and Desktop6 stay install-only. Do not START-WORKER, place COS, or CHECKIN-to-send on unreleased nodes.
 
 **Alienware-18 is MAIN:** coordinator, clone source, lease host. Specialists clone from Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator. WiFi on the LAN is not a Cursor worker.
 
-Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
+Long law: `docs/ops/eleads-valdosta.md`. Host runbooks: `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`, `docs/deploy/desktop3.md`, `docs/deploy/desktop4.md`, `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`, `docs/deploy/node-onboarding.md`, `docs/deploy/alienware-18.md`. Governance: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.5.md` (Desktop4 per-node release), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC overlay), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md` (51-role catalog). Continual loop: `.cursor/skills/running-eleads-cos-loop/SKILL.md`.
 
 Ban the words pilot, MVP, and prototype for the Valdosta loop.
 
@@ -21,7 +21,7 @@ Version 1.1 after a **Glenn-verified Eleads session on that PC** (CHECKIN.cmd, V
 
 Still never skipped: consent / DNC / DNT / Stop; rooftops **28206** and **28546** only; identity **Bordine, Glenn**; 72h / 96h holds; customer day and time before Appointment Set; 180-day ownership screen; no invented facts; CRM history is proof.
 
-This cloud Linux agent must not open `eleadcrm.com`, start `Titan.ChiefOfStaff.exe`, type or store the password, or fabricate sends. If workers are offline or launch is held: `sends=[]`. `scripts/launch-eleads-cos-loop.sh` fail-closes while `clusterHoldLaunch=true`.
+This cloud Linux agent must not open `eleadcrm.com`, start `Titan.ChiefOfStaff.exe`, type or store the password, or fabricate sends. If workers are offline or the node is unreleased: `sends=[]`. `scripts/launch-eleads-cos-loop.sh` fail-closes while `clusterHoldLaunch=true` unless a released node has a verified session. Empty `workers=[]` is not a live COS.
 
 ## Inventory first
 
@@ -88,7 +88,7 @@ Ready **8-PC** after `SCALE-OUT-8.cmd` (PC1/PC2 narrow to email):
 | Node7 | both allowed | SMS in window |
 | Node8 | both allowed | Appointment-commit |
 
-Lease: `CustomerLease` (15 min), fingerprint rooftop + customer, exclusive across all eight. Lease host is **Alienware-18** (`TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases`). Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Worker start is held; when released it must `cd /d %USERPROFILE%`.
+Lease: `CustomerLease` (15 min), fingerprint rooftop + customer, exclusive across all eight. Lease host is **Alienware-18** (`TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases`). Enroll with `deploy/cluster-node/ENROLL-NODE.cmd`. Desktop4 worker start is released and must `cd /d %USERPROFILE%`. Other nodes stay held.
 
 ## High-velocity job (60/hour needle)
 
@@ -100,7 +100,7 @@ Cloud does not clone onto Desktop3. Glenn follows `docs/deploy/desktop3.md` (clo
 
 ## Desktop4
 
-Cloud does not clone onto Desktop4. Glenn follows `docs/deploy/desktop4.md` (**install only**). One-shot on Desktop4: `deploy\desktop4\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd`). It clones from Alienware-18 if needed, checks out `cursor/eleads-cluster-4pc-7dfe`, runs `INSTALL.cmd` and `ENROLL-NODE.cmd Desktop4`, then STOPS. It refuses `START-WORKER`. GitHub checkout of that branch is fallback. Enroll `Desktop4` or `Node4` — both map to **provisional** Mitsubishi 28546 P2/P3. Do not START-WORKER or CHECKIN-to-send until Glenn releases the cluster. This agent must not claim Desktop4 is online unless `list-self-hosted-workers` shows it. Cloud Linux cannot run `INSTALL-COS.cmd`.
+Cloud does not clone onto Desktop4. Glenn follows `docs/deploy/desktop4.md`. One-shot on Desktop4: `deploy\desktop4\INSTALL-COS.cmd` (preferred UNC `\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd`). It clones from Alienware-18 if needed, checks out `cursor/eleads-cluster-4pc-7dfe`, runs `INSTALL.cmd` and `ENROLL-NODE.cmd Desktop4`, then STOPS. Next: `START-WORKER.cmd` from `%USERPROFILE%`, CHECKIN twice as Bordine, Glenn on 28546, Chrome CDP 9222. Enroll `Desktop4` or `Node4` — both map to **provisional** Mitsubishi 28546 P2/P3. This agent must not claim Desktop4 is online unless `list-self-hosted-workers` shows it. Cloud Linux cannot run `INSTALL-COS.cmd` or `agent worker start` on his Windows box.
 
 ## Desktop5
 

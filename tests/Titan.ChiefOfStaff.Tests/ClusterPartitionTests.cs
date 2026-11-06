@@ -184,5 +184,27 @@ public class ClusterPartitionTests
         var paths = new HostPaths(root);
         Assert.True(paths.ReadHoldLaunch());
         Assert.True(ClusterPartition.HoldLaunch(paths));
+        Assert.True(ClusterPartition.HoldLaunch(paths, "Desktop4"));
+    }
+
+    [Fact]
+    public void Desktop4_per_node_release_does_not_lift_other_nodes()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-hold-d4-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(root);
+        File.WriteAllText(
+            Path.Combine(root, "cluster-hold.json"),
+            """{"holdLaunch":true,"releasedNodes":["Desktop4"],"clusterMain":"Alienware-18"}""");
+        var paths = new HostPaths(root);
+        Assert.True(paths.ReadHoldLaunch());
+        Assert.Contains("Desktop4", paths.ReadReleasedNodeIds());
+        Assert.True(ClusterPartition.HoldLaunch(paths));
+        Assert.False(ClusterPartition.HoldLaunch(paths, "Desktop4"));
+        Assert.False(ClusterPartition.HoldLaunch(paths, "Node4"));
+        Assert.True(ClusterPartition.HoldLaunch(paths, "Desktop5"));
+        Assert.True(ClusterPartition.HoldLaunch(paths, "Desktop6"));
+        Assert.True(ClusterPartition.HoldLaunch(paths, "Alienware-18"));
+        Assert.True(ClusterPartition.NodeIsReleased("Node4", ["Desktop4"]));
+        Assert.False(ClusterPartition.NodeIsReleased("Desktop5", ["Desktop4"]));
     }
 }

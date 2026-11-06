@@ -1,11 +1,12 @@
 {
   "holdLaunch": true,
+  "releasedNodes": ["Desktop4"],
   "clusterMain": "Alienware-18",
   "leaseHost": "Alienware-18",
   "leaseDirHint": "\\\\Alienware-18\\Users\\Glenn R Bordine\\TitanChief-leases",
   "wifiConnected": ["Desktop4", "Desktop5", "Desktop6"],
   "desktop4": {
-    "status": "installing",
+    "status": "released-for-launch",
     "lane": "provisional-28546-P2P3"
   },
   "desktop5": {
@@ -16,5 +17,5 @@
     "status": "installing",
     "lane": "provisional-28546-P1Call"
   },
-  "reason": "Cluster still being set up. Glenn will say when complete. Then study each PC and assign best-fit COS tasks. Desktop4, Desktop5, and Desktop6 are on WiFi; WiFi is not a Cursor worker. Install and enroll are allowed. Do not START-WORKER, place COS, or CHECKIN-to-send until all PCs are ready and online. Alienware-18 is MAIN (coordinator, clone source, lease host). Desktop4/5/6 are not the coordinator. Lanes remain provisional."
+  "reason": "Glenn released Desktop4 only (this PC) to finish setup and join the live cluster. clusterHoldLaunch stays true for nodes he has not released. Desktop5 and Desktop6 stay install-only. Alienware-18 is MAIN (coordinator, clone source, lease host). WiFi is not a Cursor worker. Cloud Linux must not open Eleads or claim COS live while workers=[]."
 }

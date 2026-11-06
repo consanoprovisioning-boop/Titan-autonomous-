@@ -1,12 +1,12 @@
 @echo off
 setlocal
-title Desktop4 Titan COS install only - launch held
+title Desktop4 Titan COS install - then START-WORKER
 REM One-shot INSTALL only for Desktop4. cmd.exe only. No PowerShell.
 REM Clones from Alienware-18 if the repo is missing, checks out the cluster
 REM branch, copies or publishes dist\titan-chief-win-x64, runs INSTALL.cmd,
 REM runs ENROLL-NODE.cmd Desktop4, then STOPS.
 REM Does not start Titan.ChiefOfStaff.exe. Does not open Eleads.
-REM Does not type a password. Does not START-WORKER. Does not CHECKIN-to-send.
+REM Does not type a password. Does not START-WORKER itself. After install, Glenn runs START-WORKER.cmd.
 
 if /i "%~1"=="START-WORKER" goto :refuse_start
 if /i "%~1"=="START-WORKER.cmd" goto :refuse_start
@@ -41,9 +41,10 @@ set "SRC_REPO=%~dp0..\.."
 set "DIST=%REPO%\dist\titan-chief-win-x64"
 set "AW_DIST=%AW_REPO%\dist\titan-chief-win-x64"
 
-echo Desktop4 Titan COS install-only. Launch is held.
+echo Desktop4 Titan COS install. This PC is released to join the cluster.
 echo Cluster MAIN is Alienware-18. Rooftops 28206 and 28546 only. Never 6220.
-echo Identity Bordine, Glenn. holdLaunch=true. This is not Verify.
+echo Identity Bordine, Glenn. holdLaunch=true for unreleased nodes. releasedNodes=Desktop4.
+echo This installer does not start the worker. This is not Verify.
 echo.
 
 REM --- clone into %%USERPROFILE%% if the repo is missing ---
@@ -99,8 +100,11 @@ where git >nul 2>nul
 if errorlevel 1 goto :have_branch
 if exist "%REPO%\.git" (
   echo Checking out %BRANCH% ...
+  git fetch origin %BRANCH%
   git checkout %BRANCH%
   if errorlevel 1 echo WARNING: git checkout %BRANCH% failed. Continuing with this working copy.
+  git pull --ff-only origin %BRANCH%
+  if errorlevel 1 echo WARNING: git pull %BRANCH% failed. Continuing with this working copy.
 )
 
 :have_branch
@@ -129,7 +133,7 @@ if exist "%DIST%\Titan.ChiefOfStaff.exe" goto :install_host
 :missing_dist
 echo ERROR: Titan.ChiefOfStaff.exe not found in dist\titan-chief-win-x64.
 echo Copy that folder from Alienware-18, then rerun INSTALL-COS.cmd.
-echo Did not start the worker. Launch remains held.
+echo Did not start the worker.
 goto :fail
 
 :install_host
@@ -149,16 +153,16 @@ if errorlevel 1 (
 
 echo.
 echo ============================================================
-echo INSTALLED. LAUNCH HELD.
+echo INSTALLED. DESKTOP4 RELEASED TO JOIN.
 echo Titan COS is installed on Desktop4.
 echo kill.switch is armed. This is not Verify and not send authorization.
 echo Enrolled as Desktop4 (Node4), rooftop 28546 P2/P3 provisional.
-echo Cluster MAIN is Alienware-18. holdLaunch=true.
-echo STOP. Do NOT run START-WORKER.cmd.
-echo Do NOT CHECKIN-to-send. Do NOT place COS.
-echo Wait until Glenn says all PCs are ready and online.
-echo Never 6220. Never start from C:\Windows\system32.
-echo Cloud Linux did not run this installer.
+echo Cluster MAIN is Alienware-18. holdLaunch=true for unreleased nodes.
+echo releasedNodes=Desktop4. Desktop5 and Desktop6 stay install-only.
+echo NEXT on this PC from %%USERPROFILE%%: deploy\desktop4\START-WORKER.cmd
+echo Leave that window open. Then CHECKIN.cmd twice as Bordine, Glenn on 28546.
+echo Leave Chrome on CDP 9222. Do not type verify. Never C:\Windows\system32.
+echo Cloud Linux did not run this installer and cannot start the worker.
 echo ============================================================
 echo.
 pause
@@ -167,9 +171,8 @@ exit /b 0
 
 :refuse_start
 echo.
-echo REFUSED: INSTALL-COS.cmd is install-only. It will not run START-WORKER.
-echo Launch is held. holdLaunch=true. Cluster MAIN is Alienware-18.
-echo Do NOT CHECKIN-to-send. Do NOT place COS. Never 6220.
+echo REFUSED: INSTALL-COS.cmd does not start the worker. Run START-WORKER.cmd next.
+echo Desktop4 is released. Cluster MAIN is Alienware-18. Never 6220.
 echo.
 pause
 endlocal
@@ -188,9 +191,9 @@ exit /b 1
 
 :fail
 echo.
-echo INSTALL-COS failed. Launch remains held. Did not start the worker.
+echo INSTALL-COS failed. Did not start the worker.
 echo Did not open Eleads. Did not start Titan.ChiefOfStaff.exe.
-echo holdLaunch=true. Cluster MAIN is Alienware-18. Never 6220.
+echo Desktop4 is still released; fix install, then START-WORKER. Cluster MAIN is Alienware-18. Never 6220.
 echo.
 pause
 endlocal

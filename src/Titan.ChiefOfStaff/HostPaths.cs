@@ -51,6 +51,9 @@ public sealed class HostPaths
     public bool? ReadHoldLaunch()
         => ReadJsonBool(ClusterHold, "holdLaunch");
 
+    public IReadOnlyList<string> ReadReleasedNodeIds()
+        => ReadJsonStringArray(ClusterHold, "releasedNodes");
+
     public bool ReadScaleOutMode()
     {
         var shared = Environment.GetEnvironmentVariable("TITAN_LEASE_DIR");
@@ -102,6 +105,34 @@ public sealed class HostPaths
         catch (System.Text.Json.JsonException)
         {
             return null;
+        }
+    }
+
+    private static IReadOnlyList<string> ReadJsonStringArray(string path, string property)
+    {
+        if (!File.Exists(path))
+        {
+            return [];
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            if (!doc.RootElement.TryGetProperty(property, out var value)
+                || value.ValueKind != System.Text.Json.JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            return value.EnumerateArray()
+                .Select(item => item.GetString())
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Select(item => item!.Trim())
+                .ToArray();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return [];
         }
     }
 }

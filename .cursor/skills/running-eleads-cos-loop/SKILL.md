@@ -5,7 +5,7 @@ description: Use when a Cursor agent runs the Eleads, eLeads, or CDK chief of st
 
 # Running the Eleads COS loop
 
-Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`. Cluster overlays: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only). Launch is held until Glenn says all PCs are ready. Install/enroll only. Do not START-WORKER or CHECKIN-to-send. Alienware-18 is the coordinator. Desktop5 and Desktop6 lanes stay provisional. WiFi is not a Cursor worker.
+Cursor agent skill. One Core overseer. A small specialist set. Long law: `docs/ops/eleads-valdosta.md`. Decision log: `docs/ops/CHANGELOG.md`. Host runbook: `docs/deploy/alienware-18.md`. Cluster: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`, `docs/deploy/cluster-4pc.md`, `docs/deploy/cluster-8pc.md`. Governance record (filed copy, do not rewrite the Eleads packet): `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.4.0.md`. Cluster overlays: `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.0.md` (4-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.1.md` (8-PC), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.2.md` (Desktop4 named Node4), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.3.md` (hold launch, Alienware-18 MAIN), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.4.md` (Desktop5/Desktop6 named overflow, install only), `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.5.md` (Desktop4 per-node release). Desktop4 is released to join (`releasedNodes`). Other nodes stay held until Glenn says they are ready. Install/enroll only on unreleased nodes. Alienware-18 is the coordinator. Desktop5 and Desktop6 lanes stay provisional and install-only. WiFi is not a Cursor worker.
 
 This is live rooftop work for **Bordine, Glenn**. Ban the words pilot, MVP, and prototype for the Valdosta loop. The governance record’s own “pilot” wording is historical Titan SDK scope (local Draft/Blocked connectors). It is not a label for this loop.
 
@@ -45,6 +45,16 @@ If the host blocker is unchanged and the operator is outside Slack, do not Slack
 ## Launch
 
 One sequence. The cloud command refuses to open Eleads and records ready or blocked in `/cursor/stores/self/eleads-valdosta-state.json`.
+
+On Desktop4 (released to join), Glenn, from `%USERPROFILE%`:
+
+1. `INSTALL-COS.cmd` if Titan is not installed.
+2. Double-click `deploy\desktop4\START-WORKER.cmd`. Leave that window open. Never `C:\Windows\system32`.
+3. Close every Chrome window, including the tray icon.
+4. Double-click `CHECKIN.cmd` beside the host executable.
+5. Sign in as Bordine, Glenn on **28546**. The host does not type the password.
+6. Double-click `CHECKIN.cmd` again. That second run is Verify. Do not type `verify`.
+7. Leave that Chrome window open on CDP 9222.
 
 On Alienware-18, Glenn:
 

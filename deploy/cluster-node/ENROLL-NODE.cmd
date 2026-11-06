@@ -40,7 +40,7 @@ echo Enrolled %NODE% rooftop %ROOF%
 echo File: %ROOT%\node.json
 echo Cluster MAIN is Alienware-18. Lease host is Alienware-18, not this PC.
 echo This is not Verify and not send authorization.
-echo STOP: do not run START-WORKER.cmd or CHECKIN-to-send until Glenn says all PCs are ready.
-echo If this is Desktop5/Desktop6 or Node7-Node8, wait for Glenn; then SCALE-OUT-8.cmd and TITAN_LEASE_DIR on Alienware-18.
+echo If this is Desktop4, next is START-WORKER.cmd from %%USERPROFILE%%. Desktop4 is released to join.
+echo If this is Desktop5/Desktop6 or Node7-Node8, STOP: install-only until Glenn says so. Do not SCALE-OUT-8.cmd yet.
 echo Never 6220. Never start the worker from C:\Windows\system32.
 endlocal

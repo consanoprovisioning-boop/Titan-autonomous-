@@ -130,7 +130,7 @@ public static class ClusterPartition
                 ClusterJobKind.DatabaseComb,
                 ClusterJobKind.TailoredUpgradeEmail
             ],
-            "Provisional Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails after Desktop3 P1. Final COS tasks wait until Glenn says the cluster is complete. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4. Do not launch until Glenn releases the hold.",
+            "Provisional Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails after Desktop3 P1. Glenn released Desktop4 to join the cluster; Desktop5/Desktop6 stay install-only. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4.",
             Aliases: [Node4Template])
     ];
 
@@ -230,11 +230,11 @@ public static class ClusterPartition
         => scaleOut ? ScaleOutNodes : Nodes;
 
     /// <summary>
-    /// Glenn standing order: install/enroll allowed; do not launch workers or
-    /// CHECKIN-to-send until he says all PCs are ready. Fail-closed.
-    /// TITAN_CLUSTER_HOLD_LAUNCH=off is the only override.
+    /// Glenn standing order: install/enroll allowed on unreleased nodes.
+    /// Desktop4 is in releasedNodes and may launch. Other nodes stay fail-closed
+    /// while holdLaunch is true. TITAN_CLUSTER_HOLD_LAUNCH=off is the global override.
     /// </summary>
-    public static bool HoldLaunch(HostPaths? paths)
+    public static bool HoldLaunch(HostPaths? paths, string? nodeId = null)
     {
         var env = Environment.GetEnvironmentVariable("TITAN_CLUSTER_HOLD_LAUNCH")?.Trim();
         if (string.Equals(env, "off", StringComparison.OrdinalIgnoreCase))
@@ -247,8 +247,28 @@ public static class ClusterPartition
             return true;
         }
 
-        return paths?.ReadHoldLaunch() == true;
+        if (paths?.ReadHoldLaunch() != true)
+        {
+            return false;
+        }
+
+        return !NodeIsReleased(nodeId, paths.ReadReleasedNodeIds());
     }
+
+    public static bool NodeIsReleased(string? nodeId, IEnumerable<string>? releasedNodeIds)
+    {
+        var want = CanonicalNodeId(nodeId);
+        if (string.IsNullOrWhiteSpace(want) || releasedNodeIds is null)
+        {
+            return false;
+        }
+
+        return releasedNodeIds.Any(id =>
+            string.Equals(CanonicalNodeId(id), want, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static string CanonicalNodeId(string? nodeId)
+        => Find(nodeId)?.NodeId ?? nodeId?.Trim() ?? "";
 
     public static ClusterNodeSpec? Find(string? nodeId)
         => MatchHint(nodeId, AllKnownNodes);

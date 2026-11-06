@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-06 — Desktop4 per-node release to join cluster TITAN-CHANGE-MULTIAGENT-001 v0.5.5
+
+**Decision (Glenn, this PC = Desktop4 / DeskTop4):** “finish setup and launch COS to add this PC to cluster.” Overrides the previous all-PCs-ready hold **for Desktop4 only**. Desktop5 and Desktop6 stay install-only.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.5.md`. `cluster-hold.json` keeps `"holdLaunch": true` (clusterHoldLaunch remains for unreleased nodes) and adds `"releasedNodes": ["Desktop4"]`. `HOLD-LAUNCH.cmd` allows `START-WORKER` when the node is in `releasedNodes`. v0.5.0–v0.5.4 are not rewritten.
+
+**This cloud inventory:** `list-self-hosted-workers scope=all status=all` → `workers=[]`. COS was **not** placed and **not** launched. `sends=[]`. Cloud Linux did not open Eleads. Glenn must run INSTALL-COS (if needed) then START-WORKER.cmd from `%USERPROFILE%` on Desktop4, then CHECKIN.cmd twice as Bordine, Glenn on 28546.
+
 ## 2026-11-06 — Desktop5 and Desktop6 named overflow INSTALL-COS (install only) TITAN-CHANGE-MULTIAGENT-001 v0.5.4
 
 **Decision (Glenn):** DeskTop4, DeskTop5, and DeskTop6 are connected to the WiFi network. Treat them as named cluster nodes on the LAN. This is not “all PCs ready, launch.”

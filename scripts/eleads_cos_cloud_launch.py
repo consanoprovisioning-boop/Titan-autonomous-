@@ -99,6 +99,27 @@ HOLD_BLOCKER = (
     "Provisional lanes: Desktop4 Mitsubishi 28546 P2/P3; Desktop5 Nissan 28206 P1 calls; "
     "Desktop6 Mitsubishi 28546 P1 calls. This cloud host will not open Eleads."
 )
+DESKTOP4_JOIN_BLOCKER = (
+    "Desktop4 is released to join the cluster. clusterHoldLaunch remains held for unreleased nodes. "
+    "Desktop5 and Desktop6 stay install-only until Glenn says so. Alienware-18 is MAIN. "
+    "workers=[] so COS is not live on this PC. This cloud host will not open Eleads. "
+    "On Desktop4 from %USERPROFILE% (never C:\\Windows\\system32): "
+    "run deploy\\desktop4\\INSTALL-COS.cmd if Titan is not installed, then "
+    "deploy\\desktop4\\START-WORKER.cmd and leave that window open, then CHECKIN.cmd twice "
+    "as Bordine, Glenn on 28546, leave Chrome on CDP 9222. Do not type verify. "
+    "Do not run C:\\Windows\\system32\\Titan.cmd."
+)
+DESKTOP4_ONLINE_CHECKIN_BLOCKER = (
+    "Desktop4 worker is online from %USERPROFILE%. No fresh Verify on this PC. "
+    "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+    "sign in as Bordine, Glenn on 28546, double-click CHECKIN.cmd again, and leave Chrome on CDP 9222. "
+    "clusterHoldLaunch remains for Desktop5/Desktop6. This cloud host will not open Eleads."
+)
+DESKTOP4_SYSTEM32_BLOCKER = (
+    "Desktop4 worker is online in C:\\Windows\\system32. No agent will be placed there. "
+    "Close that worker. From %USERPROFILE% run deploy\\desktop4\\START-WORKER.cmd. "
+    "This cloud host will not open Eleads."
+)
 
 
 class EleadsOpenRefused(RuntimeError):
@@ -285,10 +306,58 @@ def load_cluster_hold(path: Path | None = None) -> dict:
         data["holdLaunch"] = True
     data.setdefault("clusterMain", CLUSTER_MAIN)
     data.setdefault("wifiConnected", ["Desktop4", "Desktop5", "Desktop6"])
+    data.setdefault("releasedNodes", [])
     data.setdefault("desktop4", {"status": "installing", "lane": "provisional-28546-P2P3"})
     data.setdefault("desktop5", {"status": "installing", "lane": "provisional-28206-P1Call"})
     data.setdefault("desktop6", {"status": "installing", "lane": "provisional-28546-P1Call"})
     return data
+
+
+def canonical_node_id(node_id: str | None) -> str:
+    if not node_id:
+        return ""
+    folded = node_id.strip().casefold().replace(" ", "").replace("-", "")
+    aliases = {
+        "desktop4": "Desktop4",
+        "node4": "Desktop4",
+        "desktop5": "Desktop5",
+        "node5": "Desktop5",
+        "desktop6": "Desktop6",
+        "node6": "Desktop6",
+        "alienware18": "Alienware-18",
+        "desktop3": "Desktop3",
+        "node3": "Node3",
+        "node7": "Node7",
+        "node8": "Node8",
+    }
+    return aliases.get(folded, node_id.strip())
+
+
+def released_node_ids(hold: dict) -> list[str]:
+    raw = hold.get("releasedNodes") or []
+    if not isinstance(raw, list):
+        return []
+    seen: list[str] = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            continue
+        name = canonical_node_id(item)
+        if name and name not in seen:
+            seen.append(name)
+    return seen
+
+
+def node_is_released(hold: dict, node_id: str | None) -> bool:
+    want = canonical_node_id(node_id)
+    return bool(want) and want in released_node_ids(hold)
+
+
+def cluster_node_row(cluster: list[dict], node_id: str) -> dict | None:
+    want = canonical_node_id(node_id)
+    for row in cluster:
+        if canonical_node_id(str(row.get("nodeId") or "")) == want:
+            return row
+    return None
 
 
 def specialist_results() -> list[dict]:
@@ -358,11 +427,21 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
 
     stamp = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cluster = inventory_cluster(snapshot)
+    released = released_node_ids(hold)
     if hold_on:
-        blockers = [HOLD_BLOCKER]
         host = "cloud-linux"
         mode = "draft-blocked-local"
         session = ELEADS_SESSION_NONE
+        if node_is_released(hold, "Desktop4"):
+            desktop4 = cluster_node_row(cluster, "Desktop4")
+            if desktop4 and desktop4.get("status") == "online" and desktop4.get("directoryLooksSystem32"):
+                blockers = [DESKTOP4_SYSTEM32_BLOCKER]
+            elif desktop4 and desktop4.get("status") == "online":
+                blockers = [DESKTOP4_ONLINE_CHECKIN_BLOCKER]
+            else:
+                blockers = [DESKTOP4_JOIN_BLOCKER]
+        else:
+            blockers = [HOLD_BLOCKER]
     return {
         "cycleId": f"{'ready' if verified else 'blocked'}-{stamp}",
         "openedAtUtc": stamp,
@@ -393,9 +472,10 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "cluster": cluster,
         "clusterOnlineCount": sum(1 for n in cluster if n["status"] == "online"),
         "clusterHoldLaunch": hold_on,
+        "releasedNodes": released,
         "clusterMain": hold.get("clusterMain") or CLUSTER_MAIN,
         "wifiConnected": hold.get("wifiConnected") or ["Desktop4", "Desktop5", "Desktop6"],
-        "desktop4": hold.get("desktop4") or {"status": "installing", "lane": "provisional-28546-P2P3"},
+        "desktop4": hold.get("desktop4") or {"status": "released-for-launch", "lane": "provisional-28546-P2P3"},
         "desktop5": hold.get("desktop5") or {"status": "installing", "lane": "provisional-28206-P1Call"},
         "desktop6": hold.get("desktop6") or {"status": "installing", "lane": "provisional-28546-P1Call"},
     }

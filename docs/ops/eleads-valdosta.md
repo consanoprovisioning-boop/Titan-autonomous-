@@ -50,7 +50,7 @@ This Linux cloud agent must not:
 - run PowerShell self-extractors or `Set-ExecutionPolicy Bypass`
 - type an Eleads password
 
-If cluster launch is held (`clusterHoldLaunch=true`) or every cluster node is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Install/enroll are allowed. Do not tell Glenn to START-WORKER or CHECKIN-to-send until he says all PCs are ready and online. Alienware-18 is MAIN. Do not invent a Desktop3, Desktop4, Desktop5, or Desktop6 worker. WiFi on the LAN is not a Cursor worker.
+If cluster launch is held (`clusterHoldLaunch=true`) on unreleased nodes, or every cluster node is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Desktop4 is in `releasedNodes` and may START-WORKER / CHECKIN. Desktop5 and Desktop6 stay install-only. Alienware-18 is MAIN. Do not invent a Desktop3, Desktop4, Desktop5, or Desktop6 worker. WiFi on the LAN is not a Cursor worker. `workers=[]` means COS is not live.
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 

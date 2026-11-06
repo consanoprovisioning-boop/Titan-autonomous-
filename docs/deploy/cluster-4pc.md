@@ -4,9 +4,9 @@ Titan Autonomous and Titan Chief of Staff live on all four Windows PCs. Cloud Li
 
 **Alienware-18 is the MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop3, Desktop4, Desktop5, Desktop6, and later nodes are specialists that clone **from** Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator.
 
-**Launch is held.** The cluster is still being set up. Glenn will say when it is complete. Then we study each PC’s devices/ability and assign best-fit COS tasks. Not now. Install and enroll are allowed. Do **not** run `START-WORKER.cmd`, place COS, or CHECKIN-to-send until Glenn says all PCs are ready and online.
+**Per-node hold.** Glenn released **Desktop4** to finish setup and join. `holdLaunch` stays true (`clusterHoldLaunch` remains for unreleased nodes). Desktop5 and Desktop6 stay install-only. Do **not** run `START-WORKER.cmd` on unreleased nodes.
 
-Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn**. CDP **9222**. Workers start from `%USERPROFILE%` after Glenn releases the hold.
+Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn**. CDP **9222**. Desktop4 workers start from `%USERPROFILE%`.
 
 ## Partition
 
@@ -31,8 +31,8 @@ P2 database comb does not send. P3 tailored upgrades send only after P1 and P2 o
 
 What still blocks live sending:
 
-- **Cluster launch hold** (`cluster-hold.json` `holdLaunch=true`) until Glenn says all PCs are ready.
-- No self-hosted worker online (`workers=[]` on the last cloud inventory).
+- **Cluster launch hold** (`holdLaunch=true`) on every node except `releasedNodes` (Desktop4).
+- No self-hosted worker online (`workers=[]` on the last cloud inventory). COS is not live until Glenn runs `START-WORKER.cmd` on Desktop4 from `%USERPROFILE%`.
 - No Glenn Verify on that PC (`CHECKIN.cmd` twice, Chrome left open on 9222).
 - Worker started from `C:\Windows\system32`.
 - This cloud Linux agent — it will not open Eleads or claim sends.
@@ -46,7 +46,7 @@ What still blocks live sending:
 
 ## Per-PC install now (launch held)
 
-One-shots (install only, then STOP). Each refuses `START-WORKER`:
+One-shots. Desktop4 may START-WORKER after install. Desktop5/Desktop6 refuse `START-WORKER`:
 
 ```bat
 \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
@@ -59,9 +59,9 @@ Other PCs:
 1. Clone **from Alienware-18**. GitHub is fallback.
 2. `INSTALL.cmd` once if the host is missing. That is not Verify.
 3. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Desktop4`, `Desktop5`, `Desktop6`, `Node3`–`Node8`).
-4. **STOP.** Do not double-click `START-WORKER.cmd`. Do not CHECKIN-to-send. `START-WORKER.cmd` fail-closes while hold is on.
+4. Desktop4: double-click `START-WORKER.cmd` from `%USERPROFILE%`. Desktop5/Desktop6: **STOP** — install-only.
 
-Held until Glenn releases the cluster: worker from `%USERPROFILE%`, then `CHECKIN.cmd` twice as Bordine, Glenn on **that node’s rooftop**, leave Chrome open. Do not Verify two PCs onto the same rooftop tab set.
+Desktop4 next: `CHECKIN.cmd` twice as Bordine, Glenn on **28546**, leave Chrome open on 9222. Do not Verify two PCs onto the same rooftop tab set.
 
 Alienware-18 detail: `docs/deploy/alienware-18.md`.  
 Desktop3 clone: `docs/deploy/desktop3.md`.  

@@ -21,10 +21,20 @@ public sealed class WorkTick
             return "Blocked: rooftop not 28206/28546.";
         }
 
-        if (ClusterPartition.HoldLaunch(paths))
+        var scaleOut = ClusterPartition.IsScaleOut(
+            presentNodeIds: paths?.ReadEnrolledNodeId() is { } self ? [self] : null,
+            clusterSizeEnv: Environment.GetEnvironmentVariable("TITAN_CLUSTER_SIZE"),
+            modeFileScaleOut: paths?.ReadScaleOutMode() == true);
+        var node = ClusterPartition.Resolve(
+            Environment.MachineName,
+            Environment.GetEnvironmentVariable("TITAN_NODE_NAME"),
+            paths?.ReadEnrolledNodeId(),
+            scaleOut);
+
+        if (ClusterPartition.HoldLaunch(paths, node?.NodeId))
         {
-            store.Log("cluster", "hold", "launch held until Glenn releases the cluster. Alienware-18 is MAIN. No send.", rooftop);
-            return "Blocked: cluster launch is held. Alienware-18 is MAIN. Install only. No send.";
+            store.Log("cluster", "hold", "launch held until Glenn releases this node. Alienware-18 is MAIN. No send.", rooftop);
+            return "Blocked: cluster launch is held for this node. Alienware-18 is MAIN. Install only. No send.";
         }
 
         await page.BringToFrontAsync();
@@ -48,15 +58,6 @@ public sealed class WorkTick
         var ready = 0;
         var skippedLane = 0;
         var leased = 0;
-        var scaleOut = ClusterPartition.IsScaleOut(
-            presentNodeIds: paths?.ReadEnrolledNodeId() is { } self ? [self] : null,
-            clusterSizeEnv: Environment.GetEnvironmentVariable("TITAN_CLUSTER_SIZE"),
-            modeFileScaleOut: paths?.ReadScaleOutMode() == true);
-        var node = ClusterPartition.Resolve(
-            Environment.MachineName,
-            Environment.GetEnvironmentVariable("TITAN_NODE_NAME"),
-            paths?.ReadEnrolledNodeId(),
-            scaleOut);
         if (node is not null && !ClusterPartition.MayWorkRooftop(node, rooftop))
         {
             store.Log("cluster", "rooftop", $"{node.DisplayName} does not own {rooftop}. No send.", rooftop);

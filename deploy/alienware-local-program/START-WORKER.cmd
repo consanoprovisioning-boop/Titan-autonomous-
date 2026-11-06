@@ -5,7 +5,7 @@ REM Alienware-18 worker starter. Run this one file from anywhere by double-click
 REM This does NOT start Titan.ChiefOfStaff.exe and does NOT open Eleads or handle any password.
 REM Fail-closed while cluster hold is on. Alienware-18 is MAIN; still do not launch until Glenn says all PCs are ready.
 
-call "%~dp0..\cluster-node\HOLD-LAUNCH.cmd" "%~dp0..\cluster-node\cluster-hold.json"
+call "%~dp0..\cluster-node\HOLD-LAUNCH.cmd" "%~dp0..\cluster-node\cluster-hold.json" Alienware-18
 if errorlevel 2 (
   pause
   exit /b 2

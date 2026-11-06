@@ -111,13 +111,16 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertTrue(all(row["status"] == "not-run" for row in data["specialistResults"]))
         self.assertTrue(data["clusterHoldLaunch"])
         self.assertEqual("Alienware-18", data["clusterMain"])
-        self.assertEqual("installing", data["desktop4"]["status"])
+        self.assertEqual(["Desktop4"], data["releasedNodes"])
+        self.assertEqual("released-for-launch", data["desktop4"]["status"])
         self.assertEqual("installing", data["desktop5"]["status"])
         self.assertEqual("installing", data["desktop6"]["status"])
         self.assertEqual(["Desktop4", "Desktop5", "Desktop6"], data["wifiConnected"])
         self.assertIn("held", data["blockers"][0].lower())
         self.assertIn("MAIN", data["blockers"][0])
-        self.assertNotIn("START-WORKER.cmd", data["blockers"][0])
+        self.assertIn("START-WORKER.cmd", data["blockers"][0])
+        self.assertIn("Desktop4", data["blockers"][0])
+        self.assertIn("Desktop5", data["blockers"][0])
         self.assertEqual(8, len(data["cluster"]))
         self.assertEqual(0, data["clusterOnlineCount"])
         self.assertTrue(all(node["status"] == "missing" and node["fabricated"] is False for node in data["cluster"]))
@@ -180,11 +183,12 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertIn("\\\\Alienware-18\\Users\\Glenn R Bordine\\Titan-autonomous-", playbook)
         self.assertIn("git clone https://github.com/consanoprovisioning-boop/Titan-autonomous-.git", playbook)
         self.assertIn("provisional", playbook.lower())
-        self.assertIn("DO NOT launch", playbook)
         self.assertIn("HOLD-LAUNCH.cmd", starter)
+        self.assertIn("Desktop4", starter)
         self.assertIn("exit /b 2", hold)
-        self.assertIn("cluster hold is on", starter.lower())
-        self.assertNotIn("C:\\Windows\\system32\\Titan.cmd", playbook)
+        self.assertIn("releasedNodes", hold)
+        self.assertIn("Desktop4 is released", playbook)
+        self.assertIn("Do not run `C:\\Windows\\system32\\Titan.cmd`", playbook)
         self.assertIn("INSTALL-COS.cmd", playbook)
 
     def test_desktop4_install_cos_is_install_only(self) -> None:
@@ -202,15 +206,17 @@ class LaunchGuardTests(unittest.TestCase):
         )
         self.assertTrue(hold["holdLaunch"])
         self.assertEqual("Alienware-18", hold["clusterMain"])
-        self.assertEqual("installing", hold["desktop4"]["status"])
+        self.assertEqual(["Desktop4"], hold["releasedNodes"])
+        self.assertEqual("released-for-launch", hold["desktop4"]["status"])
         self.assertIn('cd /d "%USERPROFILE%"', script)
         self.assertIn("system32", script.lower())
         self.assertIn("cursor/eleads-cluster-4pc-7dfe", script)
         self.assertIn("Alienware-18", script)
         self.assertIn("INSTALL.cmd", script)
         self.assertIn('ENROLL-NODE.cmd" Desktop4', script)
-        self.assertIn("INSTALLED. LAUNCH HELD.", script)
-        self.assertIn("holdLaunch=true", script)
+        self.assertIn("INSTALLED. DESKTOP4 RELEASED TO JOIN.", script)
+        self.assertIn("releasedNodes=Desktop4", script)
+        self.assertIn("START-WORKER.cmd", script)
         self.assertIn("refuse_start", script)
         self.assertIn('if /i "%~1"=="START-WORKER"', script)
         self.assertIn("TITAN_INSTALL_NOPAUSE", script)
@@ -305,6 +311,46 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual("Alienware-18", data["clusterMain"])
         self.assertEqual([], data["sends"])
         self.assertEqual("draft-blocked-local", data["mode"])
+        self.assertEqual(["Desktop4"], data["releasedNodes"])
+        self.assertFalse(data["verify"])
+
+    def test_desktop4_online_worker_is_not_a_verified_send_session(self) -> None:
+        tmp = Path("/tmp/eleads-cos-desktop4-online-test")
+        tmp.mkdir(exist_ok=True)
+        workers = tmp / "workers.json"
+        state_path = tmp / "state.json"
+        ticklog = tmp / "TICKLOG.md"
+        receipt = tmp / "verify.json"
+        workers.write_text(json.dumps({
+            "workers": [{
+                "workerId": "desktop4-userprofile",
+                "machineDisplayName": "DeskTop4",
+                "displayName": "Desktop4#C:\\Users\\Glenn R Bordine",
+            }]
+        }), encoding="utf-8")
+        receipt.write_text(json.dumps({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+        }), encoding="utf-8")
+        code = launch.main([
+            "--workers-file", str(workers),
+            "--verify-receipt", str(receipt),
+            "--state-file", str(state_path),
+            "--ticklog-file", str(ticklog),
+        ])
+        self.assertEqual(3, code)
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertFalse(data["verify"])
+        self.assertTrue(data["clusterHoldLaunch"])
+        self.assertEqual([], data["sends"])
+        self.assertEqual([], data["appointments"])
+        self.assertEqual("online", data["cluster"][3]["status"])
+        self.assertIn("CHECKIN.cmd", data["blockers"][0])
+        self.assertIn("28546", data["blockers"][0])
+        self.assertIn("not C:\\Windows\\system32\\Titan.cmd", data["blockers"][0])
 
     def test_scale_out_script_does_not_open_eleads(self) -> None:
         scale = (ROOT / "deploy/cluster-node/SCALE-OUT-8.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
