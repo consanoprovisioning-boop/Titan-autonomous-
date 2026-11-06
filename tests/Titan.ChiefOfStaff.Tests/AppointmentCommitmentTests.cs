@@ -112,6 +112,39 @@ public class AppointmentCommitmentTests
     }
 
     [Fact]
+    public void Truck_tonnage_is_not_booked_as_a_calendar_date()
+    {
+        var halfTon = Eval("Yes I'll be there Saturday at 10am to see the 1/2 ton");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, halfTon.Action);
+        Assert.Equal(Sat10, halfTon.SlotEt);
+        Assert.Equal(LeadStatus.AppointmentSet, halfTon.NewStatus);
+
+        var threeQuarter = Eval("Yes Saturday at 10am for the 3/4-ton");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, threeQuarter.Action);
+        Assert.Equal(Sat10, threeQuarter.SlotEt);
+
+        var tons = Eval("See you Saturday at 10am, looking at 1/2 tons");
+        Assert.Equal(Sat10, tons.SlotEt);
+
+        // The fraction comes first. The real date after it is still the slot.
+        var laterDate = Eval("Yes the 1/2 ton on 10/5 at 10am");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, laterDate.Action);
+        Assert.Equal(new DateTimeOffset(2026, 10, 5, 10, 0, 0, TimeSpan.FromHours(-4)), laterDate.SlotEt);
+
+        // No weekday and no real date: do not invent January 2 from "1/2 ton".
+        var fractionOnly = Eval("Yes I'll be there at 10am for the 1/2 ton");
+        Assert.Equal(AppointmentCommitmentAction.ClarifySlot, fractionOnly.Action);
+        Assert.False(fractionOnly.ShouldBook);
+        Assert.Null(fractionOnly.SlotEt);
+        Assert.Null(fractionOnly.NewStatus);
+
+        // A slash date that is not a truck size still books.
+        var realDate = Eval("Yes 10/5 at 10am");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, realDate.Action);
+        Assert.Equal(new DateTimeOffset(2026, 10, 5, 10, 0, 0, TimeSpan.FromHours(-4)), realDate.SlotEt);
+    }
+
+    [Fact]
     public void Sms_outside_window_queues_reply_but_still_decides_booking()
     {
         var satNight = new DateTimeOffset(2026, 9, 26, 22, 0, 0, TimeSpan.FromHours(-4));
