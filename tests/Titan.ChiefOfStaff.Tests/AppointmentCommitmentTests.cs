@@ -50,6 +50,27 @@ public class AppointmentCommitmentTests
     }
 
     [Fact]
+    public void Two_offered_slots_book_the_first_pair_not_a_mixed_day_and_time()
+    {
+        // WeekdayMatch used to walk Mon-Sun and grab Monday from the second
+        // option, then pair it with the first clock. "Saturday at 2pm or
+        // Monday at 10am" became Monday 2pm — a visit the customer never named.
+        var saturdayFirst = Eval("How about Saturday at 2pm or Monday at 10am?");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, saturdayFirst.Action);
+        Assert.Equal(new DateTimeOffset(2026, 9, 26, 14, 0, 0, TimeSpan.FromHours(-4)), saturdayFirst.SlotEt);
+        Assert.Contains("Saturday", saturdayFirst.ReplyText);
+        Assert.DoesNotContain("Monday", saturdayFirst.ReplyText);
+
+        var mondayFirst = Eval("How about Monday at 10am or Saturday at 2pm?");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, mondayFirst.Action);
+        Assert.Equal(new DateTimeOffset(2026, 9, 28, 10, 0, 0, TimeSpan.FromHours(-4)), mondayFirst.SlotEt);
+
+        var wednesdayInSecond = Eval("See you Saturday at 10am or Wednesday at 2pm");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, wednesdayInSecond.Action);
+        Assert.Equal(Sat10, wednesdayInSecond.SlotEt);
+    }
+
+    [Fact]
     public void Ambiguous_commitment_asks_for_slot_without_booking()
     {
         var d = Eval("Yes, I'll be there");
