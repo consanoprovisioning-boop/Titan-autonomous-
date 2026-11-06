@@ -246,7 +246,7 @@ public static class AppointmentCommitment
 
     public static DateTimeOffset? TryParseSlot(string text, DateTimeOffset nowEt)
     {
-        var time = TryParseClockTime(text);
+        var time = TryParseClockTime(text, out var timeIndex);
         if (time is null)
         {
             return null;
@@ -280,7 +280,10 @@ public static class AppointmentCommitment
         }
         else
         {
-            var weekday = WeekdayMatch(lower);
+            // Pair the first clock with the weekday next to it. Walking the
+            // Mon-Sun list used to take Monday from the second option and
+            // book Monday 2pm for "Saturday at 2pm or Monday at 10am".
+            var weekday = WeekdayMatch(lower, timeIndex);
             if (weekday is null)
             {
                 return null;
@@ -311,7 +314,7 @@ public static class AppointmentCommitment
         _ => 1
     };
 
-    private static DayOfWeek? WeekdayMatch(string lower)
+    private static DayOfWeek? WeekdayMatch(string lower, int anchorIndex)
     {
         (string, DayOfWeek)[] days =
         [
@@ -323,22 +326,48 @@ public static class AppointmentCommitment
             ("saturday", DayOfWeek.Saturday), ("sat", DayOfWeek.Saturday),
             ("sunday", DayOfWeek.Sunday), ("sun", DayOfWeek.Sunday)
         ];
+
+        DayOfWeek? best = null;
+        var bestBefore = false;
+        var bestDistance = int.MaxValue;
+        var bestLength = 0;
         foreach (var (name, day) in days)
         {
-            if (Regex.IsMatch(lower, $@"\b{name}\b"))
+            foreach (Match hit in Regex.Matches(lower, $@"\b{name}\b"))
             {
-                return day;
+                if (!hit.Success)
+                {
+                    continue;
+                }
+
+                var before = hit.Index <= anchorIndex;
+                var distance = Math.Abs(anchorIndex - hit.Index);
+                var better = best is null
+                    || (before && !bestBefore)
+                    || (before == bestBefore && distance < bestDistance)
+                    || (before == bestBefore && distance == bestDistance && name.Length > bestLength);
+                if (!better)
+                {
+                    continue;
+                }
+
+                best = day;
+                bestBefore = before;
+                bestDistance = distance;
+                bestLength = name.Length;
             }
         }
 
-        return null;
+        return best;
     }
 
-    private static TimeSpan? TryParseClockTime(string text)
+    private static TimeSpan? TryParseClockTime(string text, out int index)
     {
+        index = -1;
         var m = Regex.Match(text, @"\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)\b", RegexOptions.IgnoreCase);
         if (m.Success)
         {
+            index = m.Index;
             var hour = int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) % 12;
             if (m.Groups[3].Value.StartsWith("p", StringComparison.OrdinalIgnoreCase))
             {
@@ -352,12 +381,14 @@ public static class AppointmentCommitment
         m = Regex.Match(text, @"\b([01]?\d|2[0-3]):([0-5]\d)\b");
         if (m.Success)
         {
+            index = m.Index;
             return new TimeSpan(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture), 0);
         }
 
         m = Regex.Match(text, @"\bat\s+(1[0-2]|0?[1-9])\b", RegexOptions.IgnoreCase);
         if (m.Success)
         {
+            index = m.Index;
             // Bare "at 10" with no am/pm: appointment windows are daytime; 7-11
             // reads as AM, 12 as noon, 1-6 as PM inside the windows.
             var hour = int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
