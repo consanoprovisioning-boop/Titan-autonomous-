@@ -104,8 +104,36 @@ public static class Policy
             return false;
         }
 
-        return DayInCorrespondence.IsMatch(correspondence)
+        return DayInCorrespondence.Matches(correspondence).Any(day => IsWeekdayMention(correspondence, day))
                && ClockTimeInCorrespondence.IsMatch(correspondence);
+    }
+
+    /// <summary>
+    /// "sat" and "sun" are ordinary words as well as day abbreviations.
+    /// "I sat at 10:30" and "the sun at 4:00 PM" are not Saturday or Sunday.
+    /// A real abbreviation stands alone: "Sat at 10:30 AM".
+    /// </summary>
+    internal static bool IsWeekdayMention(string text, System.Text.RegularExpressions.Match day)
+    {
+        var word = day.Value;
+        if (word.Equals("sat", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("sun", StringComparison.OrdinalIgnoreCase))
+        {
+            return !PrecededByWord(text, day.Index);
+        }
+
+        return true;
+    }
+
+    private static bool PrecededByWord(string text, int index)
+    {
+        var i = index - 1;
+        while (i >= 0 && char.IsWhiteSpace(text[i]))
+        {
+            i--;
+        }
+
+        return i >= 0 && char.IsLetterOrDigit(text[i]);
     }
 
     public static string? AppointmentSetBlock(string? correspondence)
