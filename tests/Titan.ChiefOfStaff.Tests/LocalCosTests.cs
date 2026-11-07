@@ -173,6 +173,16 @@ public class LocalCosTests
         Assert.Null(FactLedger.QuoteDayAndTime("Called Monday about the Sentra.\nLeft a voicemail at 2:30 PM."));
         var storeHours = "Customer asked about Saturday. We open at 9:00 AM.";
         Assert.Null(FactLedger.QuoteDayAndTime(storeHours));
+        var satNote = "Customer: Pat asked about a Sentra. I sat at 10:30 AM and went over the numbers.";
+        Assert.Null(FactLedger.QuoteDayAndTime(satNote));
+        Assert.Null(FactLedger.QuoteDayAndTime("Customer sat at 2:00 PM."));
+        Assert.Null(FactLedger.QuoteDayAndTime("in the sun at 4:00 PM"));
+        Assert.Equal("Sat 10:30 AM", FactLedger.QuoteDayAndTime("Sat at 10:30 AM"));
+        Assert.Equal("Sunday 4:00 PM", FactLedger.QuoteDayAndTime("Sunday at 4:00 PM"));
+        var satLedger = FactLedger.FromHistory(satNote, "28206", "Bordine, Glenn");
+        var satDraft = GroundedDraft.Sms(satLedger, now, satNote);
+        Assert.True(satDraft.Ok);
+        Assert.DoesNotContain("I have you down", satDraft.Body);
         var storeLedger = FactLedger.FromHistory(storeHours, "28206", "Bordine, Glenn");
         var storeDraft = GroundedDraft.Sms(storeLedger, now, storeHours);
         Assert.True(storeDraft.Ok);

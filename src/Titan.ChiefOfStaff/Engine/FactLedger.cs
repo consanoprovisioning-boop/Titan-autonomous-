@@ -150,6 +150,11 @@ public sealed class FactLedger
         var quotedAt = -1;
         foreach (Match day in DayToken.Matches(history))
         {
+            if (!Policy.IsWeekdayMention(history, day))
+            {
+                continue;
+            }
+
             foreach (Match time in TimeToken.Matches(history))
             {
                 if (!TryLinkedSpan(history, day, time, out var start, out var end))
