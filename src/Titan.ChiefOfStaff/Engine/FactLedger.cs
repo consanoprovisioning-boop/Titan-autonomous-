@@ -167,6 +167,13 @@ public sealed class FactLedger
                     continue;
                 }
 
+                // "Called on Monday at 2:30 PM" and "voicemail at 2:30 PM on Friday"
+                // are activity stamps. The customer did not choose that visit.
+                if (Policy.IsLoggedActivity(history, start))
+                {
+                    continue;
+                }
+
                 if (start < quotedAt)
                 {
                     continue;

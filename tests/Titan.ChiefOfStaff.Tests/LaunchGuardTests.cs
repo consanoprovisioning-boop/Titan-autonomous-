@@ -104,6 +104,11 @@ public class LaunchGuardTests
         Assert.Null(Policy.AppointmentSetBlock("Sat at 10:30 AM"));
         Assert.True(Policy.HasCustomerDayAndTime("Sat at 10:30 AM"));
         Assert.Null(Policy.AppointmentSetBlock("Sunday at 4:00 PM"));
+        Assert.NotNull(Policy.AppointmentSetBlock("Called on Monday at 2:30 PM, no answer."));
+        Assert.False(Policy.HasCustomerDayAndTime("Called on Monday at 2:30 PM, no answer."));
+        Assert.False(Policy.HasCustomerDayAndTime("Emailed on 10/26 at 2:30 PM about the Sentra."));
+        Assert.Null(Policy.AppointmentSetBlock("I can come on Monday at 2:30 PM"));
+        Assert.True(Policy.HasCustomerDayAndTime("I can come on Monday at 2:30 PM"));
     }
 
     [Fact]
