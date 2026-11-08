@@ -179,6 +179,14 @@ public class LocalCosTests
         Assert.Null(FactLedger.QuoteDayAndTime("in the sun at 4:00 PM"));
         Assert.Equal("Sat 10:30 AM", FactLedger.QuoteDayAndTime("Sat at 10:30 AM"));
         Assert.Equal("Sunday 4:00 PM", FactLedger.QuoteDayAndTime("Sunday at 4:00 PM"));
+        Assert.Null(FactLedger.QuoteDayAndTime("Called on Monday at 2:30 PM, no answer."));
+        Assert.Null(FactLedger.QuoteDayAndTime("Left a voicemail at 2:30 PM on Friday."));
+        Assert.Null(FactLedger.QuoteDayAndTime("Emailed on 10/26 at 2:30 PM about the Sentra."));
+        Assert.Null(FactLedger.QuoteDayAndTime("Phone call on Tuesday at 9:00 AM."));
+        Assert.Null(FactLedger.QuoteDayAndTime("Texted on Saturday at 10:30 AM."));
+        Assert.Null(FactLedger.QuoteDayAndTime("Updated on 10/2 at 3:00 PM"));
+        Assert.Equal("Monday 2:30 PM", FactLedger.QuoteDayAndTime("I can come on Monday at 2:30 PM"));
+        Assert.Equal("Saturday 10:30 AM", FactLedger.QuoteDayAndTime("Called on Monday at 9:00 AM. I can come Saturday at 10:30 AM."));
         var satLedger = FactLedger.FromHistory(satNote, "28206", "Bordine, Glenn");
         var satDraft = GroundedDraft.Sms(satLedger, now, satNote);
         Assert.True(satDraft.Ok);
@@ -194,6 +202,19 @@ public class LocalCosTests
         Assert.DoesNotContain("I have you down", email.Body);
         Assert.Contains("Pat", email.Body);
         Assert.Contains("Sentra", email.Body);
+
+        var callLog = "Customer: Pat asked about a Sentra. Called on Monday at 2:30 PM, no answer.";
+        var callLedger = FactLedger.FromHistory(callLog, "28206", "Bordine, Glenn");
+        Assert.Null(callLedger.Get("customerDayTime"));
+        var callDraft = GroundedDraft.Sms(callLedger, now, callLog);
+        Assert.True(callDraft.Ok);
+        Assert.DoesNotContain("I have you down", callDraft.Body);
+
+        var visit = "Customer: Pat can come on Monday at 2:30 PM.";
+        var visitLedger = FactLedger.FromHistory(visit, "28206", "Bordine, Glenn");
+        var visitDraft = GroundedDraft.Sms(visitLedger, now, visit);
+        Assert.True(visitDraft.Ok);
+        Assert.Contains("I have you down for Monday 2:30 PM", visitDraft.Body);
     }
 
     [Fact]

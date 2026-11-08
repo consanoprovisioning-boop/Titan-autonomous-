@@ -115,6 +115,11 @@ public static class Policy
     /// </summary>
     internal static bool IsWeekdayMention(string text, System.Text.RegularExpressions.Match day)
     {
+        if (IsLoggedActivity(text, day.Index))
+        {
+            return false;
+        }
+
         var word = day.Value;
         if (word.Equals("sat", StringComparison.OrdinalIgnoreCase)
             || word.Equals("sun", StringComparison.OrdinalIgnoreCase))
@@ -123,6 +128,23 @@ public static class Policy
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// A CRM activity stamp names when the store called, emailed, or texted.
+    /// "Called on Monday at 2:30 PM" is that stamp, not the customer choosing a visit.
+    /// The verb sits immediately in front of the day or the clock, with only on/at/around between.
+    /// </summary>
+    internal static bool IsLoggedActivity(string text, int index)
+    {
+        if (index <= 0)
+        {
+            return false;
+        }
+
+        var from = Math.Max(0, index - 48);
+        var prefix = text.Substring(from, index - from);
+        return LoggedActivity.IsMatch(prefix);
     }
 
     private static bool PrecededByWord(string text, int index)
@@ -148,6 +170,10 @@ public static class Policy
 
     private static readonly System.Text.RegularExpressions.Regex DayInCorrespondence = new(
         @"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}\b",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static readonly System.Text.RegularExpressions.Regex LoggedActivity = new(
+        @"\b(?:called|e-?mailed|texted|voicemail|contacted|phoned|phone\s+call|updated|created)\s+(?:(?:on|at|around)\s+)?$",
         System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static readonly System.Text.RegularExpressions.Regex ClockTimeInCorrespondence = new(
