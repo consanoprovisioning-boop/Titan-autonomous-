@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -50,6 +51,13 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertFalse(launch.appointment_set_allowed(None))
         self.assertTrue(launch.appointment_set_allowed("Saturday at 10:30 AM"))
         self.assertTrue(launch.appointment_set_allowed("Wednesday at 2 pm"))
+        self.assertFalse(launch.appointment_set_allowed("I sat at 10:30 AM and went over the numbers."))
+        self.assertFalse(launch.appointment_set_allowed("Called on Monday at 2:30 PM, no answer."))
+        self.assertFalse(launch.appointment_set_allowed("Are you open Saturday at 9:00 AM?"))
+        self.assertFalse(launch.appointment_set_allowed("maybe 12 at 2 pm"))
+        self.assertFalse(launch.appointment_set_allowed("The 1/2 ton at 10:30 AM is the one I want."))
+        self.assertTrue(launch.appointment_set_allowed("I can come May 5 at 2:00 PM"))
+        self.assertTrue(launch.appointment_set_allowed("I can come on Monday at 2:30 PM"))
 
     def test_cloud_host_refuses_to_open_eleads(self) -> None:
         source = (ROOT / "scripts" / "eleads_cos_cloud_launch.py").read_text(encoding="utf-8")
@@ -59,24 +67,22 @@ class LaunchGuardTests(unittest.TestCase):
             self.assertNotIn(banned, wrapper)
         with self.assertRaises(launch.EleadsOpenRefused):
             launch.open_eleads("https://www.eleadcrm.com/evo2/fresh/login.asp")
-        code = launch.main([
-            "--navigate",
-            "https://www.eleadcrm.com/evo2/fresh/login.asp",
-            "--state-file",
-            "/tmp/eleads-must-not-write-state.json",
-            "--ticklog-file",
-            "/tmp/eleads-must-not-write-ticklog.md",
-        ])
-        self.assertEqual(2, code)
-        self.assertFalse(Path("/tmp/eleads-must-not-write-state.json").exists())
+        with tempfile.TemporaryDirectory() as folder:
+            state_file = Path(folder) / "state.json"
+            ticklog = Path(folder) / "TICKLOG.md"
+            code = launch.main([
+                "--navigate",
+                "https://www.eleadcrm.com/evo2/fresh/login.asp",
+                "--state-file",
+                str(state_file),
+                "--ticklog-file",
+                str(ticklog),
+            ])
+            self.assertEqual(2, code)
+            self.assertFalse(state_file.exists())
 
     def test_offline_worker_records_blocked_without_a_numbered_tick(self) -> None:
-        tmp = Path("/tmp/eleads-cos-launch-test")
-        if tmp.exists():
-            for child in tmp.iterdir():
-                child.unlink()
-        else:
-            tmp.mkdir()
+        tmp = Path(tempfile.mkdtemp(prefix="eleads-cos-launch-"))
         workers = tmp / "workers.json"
         state_path = tmp / "state.json"
         ticklog = tmp / "TICKLOG.md"
@@ -173,6 +179,55 @@ class LaunchGuardTests(unittest.TestCase):
             "rooftop": "6220",
             "identity": "Bordine, Glenn",
         }))
+
+    def test_retired_worker_does_not_hide_or_authorize_the_live_machine(self) -> None:
+        retired = next(iter(launch.RETIRED_ALIENWARE_WORKER_IDS))
+        live = launch.ALIENWARE_WORKER_ID
+        receipt = {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+        }
+        hidden = {
+            "workers": [
+                {"workerId": retired, "directory": r"C:\TitanChief", "machineDisplayName": "old-pc"},
+                {
+                    "workerId": live,
+                    "directory": r"C:\Windows\system32",
+                    "machineDisplayName": "Alienware-18",
+                },
+            ]
+        }
+        chosen = launch.alienware_worker(hidden)
+        self.assertIsNotNone(chosen)
+        self.assertEqual(live, chosen["workerId"])
+        self.assertTrue(launch.worker_directory_is_system32(chosen))
+        blocked = launch.build_state(hidden, receipt, datetime(2026, 11, 9, 15, 0, tzinfo=timezone.utc))
+        self.assertFalse(blocked["verify"])
+        self.assertTrue(blocked["workerOnline"])
+        self.assertIn("system32", blocked["blockers"][0])
+
+        current = {
+            "workers": [
+                {"workerId": retired, "directory": r"C:\TitanChief"},
+                {
+                    "workerId": live,
+                    "directory": r"C:\Users\glenn\TitanChief",
+                    "machineDisplayName": "Alienware-18",
+                },
+            ]
+        }
+        ready = launch.build_state(current, receipt, datetime(2026, 11, 9, 15, 0, tzinfo=timezone.utc))
+        self.assertTrue(ready["verify"])
+        self.assertEqual(live, ready["workerId"])
+
+        only_retired = {"workers": [{"workerId": retired, "directory": r"C:\TitanChief"}]}
+        stale = launch.build_state(only_retired, receipt, datetime(2026, 11, 9, 15, 0, tzinfo=timezone.utc))
+        self.assertFalse(stale["verify"])
+        self.assertTrue(stale["workerOnline"])
+        self.assertIn("retired", stale["blockers"][0])
 
 
 if __name__ == "__main__":

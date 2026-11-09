@@ -9,7 +9,7 @@ public sealed class LearningStore : IDisposable
     public LearningStore(HostPaths paths)
     {
         paths.EnsureDataTree();
-        _connection = new SqliteConnection($"Data Source={paths.LearningDatabase}");
+        _connection = new SqliteConnection($"Data Source={paths.LearningDatabase};Pooling=False");
         _connection.Open();
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
@@ -138,7 +138,12 @@ public sealed class LearningStore : IDisposable
         return new EfficiencySnapshot(reader.GetInt32(0), reader.GetInt32(1), reader.GetInt32(2), Convert.ToInt32(reader.GetDouble(3)));
     }
 
-    public void Dispose() => _connection.Dispose();
+    public void Dispose()
+    {
+        _connection.Close();
+        SqliteConnection.ClearPool(_connection);
+        _connection.Dispose();
+    }
 }
 
 public sealed record EfficiencySnapshot(int Cycles, int Qualified, int Sent, int AverageDurationMs);

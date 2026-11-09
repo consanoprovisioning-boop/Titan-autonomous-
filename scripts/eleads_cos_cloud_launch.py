@@ -75,45 +75,104 @@ def sms_open(instant: datetime) -> bool:
 
 
 def appointment_set_allowed(correspondence: str | None) -> bool:
+    """A customer visit is one linked day and clock time, not two stray words."""
     import re
 
     if correspondence is None or not correspondence.strip():
         return False
-    has_day = re.search(
+    day_re = re.compile(
         r"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|"
         r"mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|"
         r"\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b|"
-        r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}\b",
-        correspondence,
+        r"\b(?:january|february|march|april|may|june|july|august|september|sept|"
+        r"october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}\b",
         re.IGNORECASE,
     )
-    has_time = re.search(
-        r"\b(?:[01]?\d|2[0-3]):[0-5]\d\b|"
+    time_re = re.compile(
         r"\b(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b|"
-        r"\bat\s+(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\b",
-        correspondence,
+        r"\b(?:[01]?\d|2[0-3]):[0-5]\d\b",
         re.IGNORECASE,
     )
-    return has_day is not None and has_time is not None
+    logged = re.compile(
+        r"\b(?:called|e-?mailed|texted|voicemail|contacted|phoned|phone\s+call|updated|created)"
+        r"\s+(?:(?:on|at|around)\s+)?$",
+        re.IGNORECASE,
+    )
+    hours = re.compile(r"\b(?:hours|open|opens|opening|close|closes|closing|closed)\b[\s:.-]*$", re.IGNORECASE)
+    link = re.compile(r"\b(?:at|on|around)\b", re.IGNORECASE)
+
+    def usable_day(match: re.Match[str]) -> bool:
+        prefix = correspondence[max(0, match.start() - 48):match.start()]
+        if logged.search(prefix) or hours.search(prefix):
+            return False
+        word = match.group(0)
+        if re.fullmatch(r"sat|sun", word, re.IGNORECASE):
+            earlier = prefix.rstrip()
+            if earlier and earlier[-1].isalnum():
+                return False
+        if "/" in word:
+            rest = correspondence[match.end():]
+            if re.match(r"^\s*-?\s*tons?\b", rest, re.IGNORECASE):
+                return False
+        return True
+
+    def linked(day: re.Match[str], clock: re.Match[str]) -> bool:
+        if day.end() <= clock.start():
+            between = correspondence[day.end():clock.start()]
+        elif clock.end() <= day.start():
+            between = correspondence[clock.end():day.start()]
+        else:
+            return False
+        if len(between) > 24 or link.search(between) is None:
+            return False
+        remainder = link.sub("", between)
+        return not any(ch.isalnum() for ch in remainder)
+
+    for day in day_re.finditer(correspondence):
+        if not usable_day(day):
+            continue
+        for clock in time_re.finditer(correspondence):
+            if linked(day, clock):
+                return True
+    return False
+
+
+def _worker_rows(snapshot: dict) -> list[dict]:
+    workers = snapshot.get("workers") or []
+    if not isinstance(workers, list):
+        return []
+    return [row for row in workers if isinstance(row, dict)]
+
+
+def _worker_id(row: dict) -> str:
+    return str(row.get("workerId") or "")
+
+
+def _looks_like_alienware(row: dict) -> bool:
+    labels = " ".join(
+        str(row.get(key) or "")
+        for key in ("machineDisplayName", "displayName", "hostname")
+    )
+    return labels.startswith("Alienware-18") or "Alienware-18" in labels
 
 
 def alienware_worker(snapshot: dict) -> dict | None:
-    workers = snapshot.get("workers") or []
-    if not isinstance(workers, list):
-        return None
-    for row in workers:
-        if not isinstance(row, dict):
-            continue
-        worker_id = str(row.get("workerId") or "")
-        if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
+    """Prefer the current worker id, then an Alienware-18 name, then a retired id."""
+    rows = _worker_rows(snapshot)
+    for row in rows:
+        if _worker_id(row) == ALIENWARE_WORKER_ID:
             return row
-        labels = " ".join(
-            str(row.get(key) or "")
-            for key in ("machineDisplayName", "displayName", "hostname")
-        )
-        if labels.startswith("Alienware-18") or "Alienware-18" in labels:
+    for row in rows:
+        if _looks_like_alienware(row) and _worker_id(row) not in RETIRED_ALIENWARE_WORKER_IDS:
+            return row
+    for row in rows:
+        if _worker_id(row) in RETIRED_ALIENWARE_WORKER_IDS:
             return row
     return None
+
+
+def worker_is_retired(row: dict | None) -> bool:
+    return isinstance(row, dict) and _worker_id(row) in RETIRED_ALIENWARE_WORKER_IDS
 
 
 def worker_is_online(snapshot: dict) -> bool:
@@ -169,7 +228,8 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     online = row is not None
     seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
     system32 = worker_directory_is_system32(row)
-    verified = online and verify_receipt_ok(receipt) and not system32
+    retired = worker_is_retired(row)
+    verified = online and verify_receipt_ok(receipt) and not system32 and not retired
     workers = snapshot.get("workers") or []
     worker_count = len(workers) if isinstance(workers, list) else 0
     if verified:
@@ -184,6 +244,15 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
             "Glenn must run CHECKIN.cmd from %LOCALAPPDATA%\\TitanChief\\app, "
             "sign in as Bordine, Glenn, run CHECKIN.cmd again, and leave Chrome open. "
             "This cloud host will not open Eleads."
+        ]
+        host = "cloud-linux"
+        mode = "draft-blocked-local"
+        session = ELEADS_SESSION_NONE
+    elif online and retired:
+        blockers = [
+            f"Worker {seen_id} is a retired Alienware id. It cannot authorize Eleads. "
+            "Start the current Alienware-18 worker and run CHECKIN.cmd from "
+            "%LOCALAPPDATA%\\TitanChief\\app. This cloud host will not open Eleads."
         ]
         host = "cloud-linux"
         mode = "draft-blocked-local"

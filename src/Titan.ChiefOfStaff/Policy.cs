@@ -98,24 +98,23 @@ public static class Policy
     }
 
     public static bool HasCustomerDayAndTime(string? correspondence)
-    {
-        if (string.IsNullOrWhiteSpace(correspondence))
-        {
-            return false;
-        }
-
-        return DayInCorrespondence.Matches(correspondence).Any(day => IsWeekdayMention(correspondence, day))
-               && ClockTimeInCorrespondence.IsMatch(correspondence);
-    }
+        => !string.IsNullOrWhiteSpace(correspondence)
+           && FactLedger.QuoteDayAndTime(correspondence) is not null;
 
     /// <summary>
     /// "sat" and "sun" are ordinary words as well as day abbreviations.
     /// "I sat at 10:30" and "the sun at 4:00 PM" are not Saturday or Sunday.
     /// A real abbreviation stands alone: "Sat at 10:30 AM".
+    /// Store hours and a truck size are not a customer visit.
     /// </summary>
     internal static bool IsWeekdayMention(string text, System.Text.RegularExpressions.Match day)
     {
         if (IsLoggedActivity(text, day.Index))
+        {
+            return false;
+        }
+
+        if (IsStoreHoursLead(text, day.Index) || IsTruckSize(text, day))
         {
             return false;
         }
@@ -128,6 +127,33 @@ public static class Policy
         }
 
         return true;
+    }
+
+    private static bool IsStoreHoursLead(string text, int index)
+    {
+        if (index <= 0)
+        {
+            return false;
+        }
+
+        var from = Math.Max(0, index - 48);
+        var prefix = text.Substring(from, index - from);
+        return StoreHoursLead.IsMatch(prefix);
+    }
+
+    private static bool IsTruckSize(string text, System.Text.RegularExpressions.Match day)
+    {
+        if (!day.Value.Contains('/'))
+        {
+            return false;
+        }
+
+        var rest = text[(day.Index + day.Length)..];
+        return System.Text.RegularExpressions.Regex.IsMatch(
+            rest,
+            @"^\s*-?\s*tons?\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
     }
 
     /// <summary>
@@ -168,16 +194,12 @@ public static class Policy
         return null;
     }
 
-    private static readonly System.Text.RegularExpressions.Regex DayInCorrespondence = new(
-        @"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}\b",
-        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-
     private static readonly System.Text.RegularExpressions.Regex LoggedActivity = new(
         @"\b(?:called|e-?mailed|texted|voicemail|contacted|phoned|phone\s+call|updated|created)\s+(?:(?:on|at|around)\s+)?$",
         System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
-    private static readonly System.Text.RegularExpressions.Regex ClockTimeInCorrespondence = new(
-        @"\b(?:[01]?\d|2[0-3]):[0-5]\d\b|\b(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b|\bat\s+(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\b",
+    private static readonly System.Text.RegularExpressions.Regex StoreHoursLead = new(
+        @"\b(?:hours|open|opens|opening|close|closes|closing|closed)\b[\s:.-]*$",
         System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     public static bool AppointmentWindowOpen(DateTimeOffset candidateEt, bool customerRequestedTuesday)

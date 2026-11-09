@@ -60,43 +60,82 @@ public static class LaunchHost
                 }
                 catch (Exception ex)
                 {
-                    store.WriteHeartbeat(store.ReadHeartbeat() with
+                    var lost = store.ReadHeartbeat() with
                     {
                         State = HostState.AwaitingSignIn.ToString(),
                         LastError = ex.Message
-                    });
+                    };
+                    SessionRecord.Save(paths, store, lost, glennVerified: false);
                     return CycleSnapshot.BlockedCycle("Lost Eleads session. Sign in again as Bordine, Glenn. " + ex.Message);
                 }
 
                 if (eleads.DetectedRooftop == Policy.ForbiddenTkoId || Policy.IsForbiddenRooftop(eleads.DetectedRooftop))
                 {
-                    store.WriteHeartbeat(store.ReadHeartbeat() with
+                    var blocked = store.ReadHeartbeat() with
                     {
                         State = HostState.BlockedForbiddenRooftop.ToString(),
                         LastError = "forbidden rooftop"
-                    });
+                    };
+                    SessionRecord.Save(paths, store, blocked, glennVerified: false);
                     return CycleSnapshot.BlockedCycle("TKO 6220 blocked.");
                 }
 
-                if (!eleads.LoggedIn || eleads.Page is null || !Policy.IsAllowedRooftop(eleads.DetectedRooftop))
+                if (eleads.LoggedIn && eleads.Page is null)
                 {
+                    return CycleSnapshot.BlockedCycle("Eleads is logged in, but Titan could not bind that Chrome tab. No send was made.");
+                }
+
+                if (!eleads.LoggedIn || !Policy.IsAllowedRooftop(eleads.DetectedRooftop))
+                {
+                    var waiting = store.ReadHeartbeat() with
+                    {
+                        State = HostState.AwaitingSignIn.ToString(),
+                        LastError = "session not logged in"
+                    };
+                    SessionRecord.Save(paths, store, waiting, glennVerified: false);
                     return CycleSnapshot.BlockedCycle("Session is not verified. Sign in as Bordine, Glenn. Titan will not type the password.");
                 }
 
                 var et = EasternClock.Now();
                 var first = eleads.DetectedRooftop!;
-                var firstTick = await new WorkTick().RunAsync(eleads.Page, store, learning, first, et);
+                var firstTick = await new WorkTick().RunAsync(eleads.Page!, store, learning, first, et);
+                if (firstTick.StartsWith("Blocked:", StringComparison.Ordinal))
+                {
+                    var blockedTick = store.ReadHeartbeat() with
+                    {
+                        State = HostState.BlockedForbiddenRooftop.ToString(),
+                        Rooftop = first,
+                        LastError = firstTick
+                    };
+                    SessionRecord.Save(paths, store, blockedTick, glennVerified: false);
+                    return CycleSnapshot.BlockedCycle(firstTick);
+                }
                 var other = DualRooftop.OtherAllowed(first);
                 var nissan = first == Policy.NissanId ? firstTick : "pending switch";
                 var mitsubishi = first == Policy.MitsubishiId ? firstTick : "pending switch";
                 var cycleSent = firstTick.Contains("CRM-proven send", StringComparison.Ordinal) && !firstTick.Contains("0 CRM-proven", StringComparison.Ordinal) ? 1 : 0;
                 if (other is not null)
                 {
-                    var switched = await DualRooftop.SwitchAsync(eleads.Page, learning, first, other);
+                    var switched = await DualRooftop.SwitchAsync(eleads.Page!, learning, first, other);
                     await eleads.InspectAsync();
                     if (eleads.LoggedIn && eleads.Page is not null && eleads.DetectedRooftop == other)
                     {
                         var secondTick = await new WorkTick().RunAsync(eleads.Page, store, learning, other, EasternClock.Now());
+                        if (secondTick.StartsWith("Blocked:", StringComparison.Ordinal))
+                        {
+                            SessionRecord.Save(
+                                paths,
+                                store,
+                                store.ReadHeartbeat() with
+                                {
+                                    State = HostState.BlockedForbiddenRooftop.ToString(),
+                                    Rooftop = other,
+                                    LastError = secondTick
+                                },
+                                glennVerified: false);
+                            return CycleSnapshot.BlockedCycle(secondTick);
+                        }
+
                         if (other == Policy.NissanId)
                         {
                             nissan = secondTick;
@@ -127,14 +166,17 @@ public static class LaunchHost
                 }
 
                 var snap = learning.Snapshot();
-                store.WriteHeartbeat(new Heartbeat(
-                    HostState.Looping.ToString(),
-                    eleads.DetectedRooftop,
-                    verifiedAt,
-                    EasternClock.Now().ToString("o"),
-                    null,
-                    Policy.SmsOpen(EasternClock.Now())));
-                CommandRouter.WriteHeartbeatFile(paths, store.ReadHeartbeat());
+                SessionRecord.Save(
+                    paths,
+                    store,
+                    new Heartbeat(
+                        HostState.Looping.ToString(),
+                        eleads.DetectedRooftop,
+                        verifiedAt,
+                        EasternClock.Now().ToString("o"),
+                        null,
+                        Policy.SmsOpen(EasternClock.Now())),
+                    glennVerified: true);
                 return new CycleSnapshot(
                     true,
                     false,
@@ -191,7 +233,11 @@ public static class LaunchHost
 
             if (eleads.DetectedRooftop == Policy.ForbiddenTkoId)
             {
-                store.WriteHeartbeat(new Heartbeat(HostState.BlockedForbiddenRooftop.ToString(), Policy.ForbiddenTkoId, null, null, "TKO 6220 blocked", Policy.SmsOpen(EasternClock.Now())));
+                SessionRecord.Save(
+                    paths,
+                    store,
+                    new Heartbeat(HostState.BlockedForbiddenRooftop.ToString(), Policy.ForbiddenTkoId, null, null, "TKO 6220 blocked", Policy.SmsOpen(EasternClock.Now())),
+                    glennVerified: false);
                 overlay.Publish(OverlayState.Waiting("TKO 6220 is blocked. Switch to 28206 or 28546."));
                 await Task.Delay(3000);
                 continue;
@@ -201,9 +247,7 @@ public static class LaunchHost
             {
                 var et = EasternClock.Now();
                 var beat = new Heartbeat(HostState.VerifiedIdle.ToString(), eleads.DetectedRooftop, et.ToString("o"), null, null, Policy.SmsOpen(et));
-                store.WriteHeartbeat(beat);
-                CommandRouter.WriteHeartbeatFile(paths, beat);
-                VerifyMarker.Write(paths, beat.State, beat.Rooftop, Policy.Identity, beat.VerifiedAt, true);
+                SessionRecord.Save(paths, store, beat, glennVerified: true);
                 store.Log("host", "verify", $"Verified rooftop {eleads.DetectedRooftop} as {Policy.Identity}.", eleads.DetectedRooftop);
                 overlay.Publish(new OverlayState(
                     "Titan COS",

@@ -10,7 +10,7 @@ public sealed class HostStore : IDisposable
     public HostStore(HostPaths paths)
     {
         paths.EnsureDataTree();
-        _connection = new SqliteConnection($"Data Source={paths.Database}");
+        _connection = new SqliteConnection($"Data Source={paths.Database};Pooling=False");
         _connection.Open();
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
@@ -140,7 +140,12 @@ public sealed class HostStore : IDisposable
         return lines;
     }
 
-    public void Dispose() => _connection.Dispose();
+    public void Dispose()
+    {
+        _connection.Close();
+        SqliteConnection.ClearPool(_connection);
+        _connection.Dispose();
+    }
 }
 
 public sealed record Heartbeat(
