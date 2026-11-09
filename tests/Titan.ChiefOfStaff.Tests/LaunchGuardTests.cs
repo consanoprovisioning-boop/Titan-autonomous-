@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Titan.ChiefOfStaff;
 using Titan.ChiefOfStaff.Eleads;
 using Xunit;
@@ -109,6 +110,15 @@ public class LaunchGuardTests
         Assert.False(Policy.HasCustomerDayAndTime("Emailed on 10/26 at 2:30 PM about the Sentra."));
         Assert.Null(Policy.AppointmentSetBlock("I can come on Monday at 2:30 PM"));
         Assert.True(Policy.HasCustomerDayAndTime("I can come on Monday at 2:30 PM"));
+        Assert.NotNull(Policy.AppointmentSetBlock("Customer asked about Saturday. We open at 9:00 AM."));
+        Assert.False(Policy.HasCustomerDayAndTime("Are you open Saturday at 9:00 AM?"));
+        Assert.False(Policy.HasCustomerDayAndTime("Looking at a 1/2 ton. Call me sometime."));
+        Assert.False(Policy.HasCustomerDayAndTime("maybe 12 at 2 pm"));
+        Assert.True(Policy.HasCustomerDayAndTime("I can come May 5 at 2:00 PM"));
+        Assert.Null(FactLedger.QuoteDayAndTime("Customer asked about Saturday. We open at 9:00 AM."));
+        Assert.Equal("May 5 2:00 PM", FactLedger.QuoteDayAndTime("I can come May 5 at 2:00 PM"));
+        Assert.Null(FactLedger.QuoteDayAndTime("The 1/2 ton at 10:30 AM is the one I want."));
+        Assert.Equal("Saturday 10:30 AM", FactLedger.QuoteDayAndTime("The 1/2 ton is nice. I can come Saturday at 10:30 AM."));
     }
 
     [Fact]
@@ -134,5 +144,71 @@ public class LaunchGuardTests
             EleadsOpenGuard.LoginUrl,
             EleadsOpenGuard.NavigationTarget(isCloudLinux: false, allowNavigate: true, currentUrl: "about:blank"));
         Assert.Null(EleadsOpenGuard.NavigationTarget(isCloudLinux: false, allowNavigate: false, currentUrl: "about:blank"));
+    }
+
+    [Fact]
+    public void Tick_keeps_verify_when_the_logged_in_tab_has_no_page_handle()
+    {
+        var unbound = TickAdmission.Inspect(loggedIn: true, pageBound: false, rooftop: "28206");
+        Assert.False(unbound.ClearVerifiedSession);
+        Assert.Equal(6, unbound.ExitCode);
+        Assert.Equal(HostState.VerifiedIdle, unbound.State);
+
+        var ready = TickAdmission.Inspect(loggedIn: true, pageBound: true, rooftop: "28546");
+        Assert.Equal(0, ready.ExitCode);
+        Assert.False(ready.ClearVerifiedSession);
+    }
+
+    [Fact]
+    public void Tick_clears_verify_when_the_session_or_rooftop_is_rejected()
+    {
+        var loggedOut = TickAdmission.Inspect(loggedIn: false, pageBound: true, rooftop: "28206");
+        Assert.True(loggedOut.ClearVerifiedSession);
+        Assert.Equal(HostState.AwaitingSignIn, loggedOut.State);
+        Assert.Equal(6, loggedOut.ExitCode);
+
+        var forbidden = TickAdmission.Inspect(loggedIn: true, pageBound: true, rooftop: "6220");
+        Assert.True(forbidden.ClearVerifiedSession);
+        Assert.Equal(HostState.BlockedForbiddenRooftop, forbidden.State);
+        Assert.Equal(7, forbidden.ExitCode);
+
+        var blocked = TickAdmission.AfterWork("Blocked: TKO Autogroup detected.");
+        Assert.True(blocked.ClearVerifiedSession);
+        Assert.Equal(7, blocked.ExitCode);
+        Assert.Equal(0, TickAdmission.AfterWork("Tick 28206: 0 visible rows, 0 qualified, 0 held.").ExitCode);
+    }
+
+    [Fact]
+    public void Saving_a_rejected_session_clears_the_verify_receipt()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-record-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            SessionRecord.Save(paths, store, new Heartbeat("VerifiedIdle", "28206", "2026-10-16T12:00:00-04:00", null, null, true), true);
+            using (var verified = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker)))
+            {
+                Assert.True(verified.RootElement.GetProperty("glennVerified").GetBoolean());
+            }
+
+            SessionRecord.Save(
+                paths,
+                store,
+                new Heartbeat("BlockedForbiddenRooftop", "6220", null, null, "Forbidden rooftop. TKO 6220 is blocked.", false),
+                false);
+            using var doc = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            Assert.False(doc.RootElement.GetProperty("glennVerified").GetBoolean());
+            Assert.Equal("BlockedForbiddenRooftop", doc.RootElement.GetProperty("state").GetString());
+            Assert.Equal("6220", doc.RootElement.GetProperty("rooftop").GetString());
+            Assert.Equal("BlockedForbiddenRooftop", store.ReadHeartbeat().State);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 }

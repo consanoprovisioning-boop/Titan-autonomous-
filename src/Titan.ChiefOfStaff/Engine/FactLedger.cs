@@ -139,7 +139,7 @@ public sealed class FactLedger
 
     public static string? QuoteDayAndTime(string history)
     {
-        if (string.IsNullOrWhiteSpace(history) || !Policy.HasCustomerDayAndTime(history))
+        if (string.IsNullOrWhiteSpace(history))
         {
             return null;
         }
@@ -245,7 +245,7 @@ public sealed class FactLedger
     }
 
     private static readonly Regex DayToken = new(
-        @"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b",
+        @"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b|\b(?:january|february|march|april|may|june|july|august|september|sept|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}\b",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     private static readonly Regex TimeToken = new(
