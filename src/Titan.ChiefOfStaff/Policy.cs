@@ -199,7 +199,7 @@ public static class Policy
         System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static readonly System.Text.RegularExpressions.Regex StoreHoursLead = new(
-        @"\b(?:hours|open|opens|opening|close|closes|closing|closed)\b[\s:.-]*$",
+        @"\b(?:hours|open|opens|opening|close|closes|closing|closed)\b[\s:.-]*(?:(?:on|at|around)\s+)?$",
         System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     public static bool AppointmentWindowOpen(DateTimeOffset candidateEt, bool customerRequestedTuesday)

@@ -54,6 +54,8 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertFalse(launch.appointment_set_allowed("I sat at 10:30 AM and went over the numbers."))
         self.assertFalse(launch.appointment_set_allowed("Called on Monday at 2:30 PM, no answer."))
         self.assertFalse(launch.appointment_set_allowed("Are you open Saturday at 9:00 AM?"))
+        self.assertFalse(launch.appointment_set_allowed("Are you open on Saturday at 9:00 AM?"))
+        self.assertFalse(launch.appointment_set_allowed("What time do you close on Saturday at 5:00 PM?"))
         self.assertFalse(launch.appointment_set_allowed("maybe 12 at 2 pm"))
         self.assertFalse(launch.appointment_set_allowed("The 1/2 ton at 10:30 AM is the one I want."))
         self.assertTrue(launch.appointment_set_allowed("I can come May 5 at 2:00 PM"))

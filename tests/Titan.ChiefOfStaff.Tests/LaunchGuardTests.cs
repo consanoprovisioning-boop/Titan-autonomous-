@@ -112,6 +112,8 @@ public class LaunchGuardTests
         Assert.True(Policy.HasCustomerDayAndTime("I can come on Monday at 2:30 PM"));
         Assert.NotNull(Policy.AppointmentSetBlock("Customer asked about Saturday. We open at 9:00 AM."));
         Assert.False(Policy.HasCustomerDayAndTime("Are you open Saturday at 9:00 AM?"));
+        Assert.False(Policy.HasCustomerDayAndTime("Are you open on Saturday at 9:00 AM?"));
+        Assert.False(Policy.HasCustomerDayAndTime("What time do you close on Saturday at 5:00 PM?"));
         Assert.False(Policy.HasCustomerDayAndTime("Looking at a 1/2 ton. Call me sometime."));
         Assert.False(Policy.HasCustomerDayAndTime("maybe 12 at 2 pm"));
         Assert.True(Policy.HasCustomerDayAndTime("I can come May 5 at 2:00 PM"));
@@ -202,6 +204,86 @@ public class LaunchGuardTests
             Assert.Equal("BlockedForbiddenRooftop", doc.RootElement.GetProperty("state").GetString());
             Assert.Equal("6220", doc.RootElement.GetProperty("rooftop").GetString());
             Assert.Equal("BlockedForbiddenRooftop", store.ReadHeartbeat().State);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void Looping_heartbeat_keeps_a_verified_idle_receipt()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-loop-receipt-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            SessionRecord.Save(
+                paths,
+                store,
+                new Heartbeat("Looping", "28206", "2026-10-16T12:00:00-04:00", "2026-10-16T12:15:00-04:00", null, true),
+                true);
+            Assert.Equal("Looping", store.ReadHeartbeat().State);
+            using var doc = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            Assert.True(doc.RootElement.GetProperty("glennVerified").GetBoolean());
+            Assert.Equal("VerifiedIdle", doc.RootElement.GetProperty("state").GetString());
+            Assert.Equal("28206", doc.RootElement.GetProperty("rooftop").GetString());
+            Assert.Equal(Policy.Identity, doc.RootElement.GetProperty("identity").GetString());
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void Stop_and_kill_clear_the_verify_receipt_after_a_live_cycle()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-exit-receipt-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            var kill = new KillSwitch(paths);
+            kill.Arm();
+            using var store = new HostStore(paths);
+            SessionRecord.Save(
+                paths,
+                store,
+                new Heartbeat("Looping", "28546", "2026-10-16T12:00:00-04:00", "2026-10-16T12:15:00-04:00", null, true),
+                true);
+
+            File.WriteAllText(paths.StopFlag, "stop");
+            LaunchHost.WriteExitReceipt(paths, store, kill);
+            using (var stopped = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker)))
+            {
+                Assert.False(stopped.RootElement.GetProperty("glennVerified").GetBoolean());
+                Assert.Equal("AwaitingVerify", stopped.RootElement.GetProperty("state").GetString());
+            }
+
+            Assert.Equal(0, CommandRouter.Stop(paths));
+            using (var afterStop = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker)))
+            {
+                Assert.False(afterStop.RootElement.GetProperty("glennVerified").GetBoolean());
+            }
+
+            SessionRecord.Save(
+                paths,
+                store,
+                new Heartbeat("Looping", "28546", "2026-10-16T12:00:00-04:00", "2026-10-16T12:20:00-04:00", null, true),
+                true);
+            File.WriteAllText(paths.KillSwitch, "tripped" + Environment.NewLine);
+            LaunchHost.WriteExitReceipt(paths, store, kill);
+            using var tripped = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            Assert.False(tripped.RootElement.GetProperty("glennVerified").GetBoolean());
+            Assert.Equal("KillTripped", tripped.RootElement.GetProperty("state").GetString());
+            Assert.Equal("KillTripped", store.ReadHeartbeat().State);
         }
         finally
         {

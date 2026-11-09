@@ -173,6 +173,8 @@ public class LocalCosTests
         Assert.Null(FactLedger.QuoteDayAndTime("Called Monday about the Sentra.\nLeft a voicemail at 2:30 PM."));
         var storeHours = "Customer asked about Saturday. We open at 9:00 AM.";
         Assert.Null(FactLedger.QuoteDayAndTime(storeHours));
+        Assert.Null(FactLedger.QuoteDayAndTime("Are you open on Saturday at 9:00 AM?"));
+        Assert.Null(FactLedger.QuoteDayAndTime("What time do you close on Saturday at 5:00 PM?"));
         var satNote = "Customer: Pat asked about a Sentra. I sat at 10:30 AM and went over the numbers.";
         Assert.Null(FactLedger.QuoteDayAndTime(satNote));
         Assert.Null(FactLedger.QuoteDayAndTime("Customer sat at 2:00 PM."));
@@ -195,6 +197,11 @@ public class LocalCosTests
         var storeDraft = GroundedDraft.Sms(storeLedger, now, storeHours);
         Assert.True(storeDraft.Ok);
         Assert.DoesNotContain("I have you down", storeDraft.Body);
+        var openOn = "Are you open on Saturday at 9:00 AM?";
+        var openOnLedger = FactLedger.FromHistory(openOn, "28206", "Bordine, Glenn");
+        var openOnDraft = GroundedDraft.Sms(openOnLedger, now, openOn);
+        Assert.True(openOnDraft.Ok);
+        Assert.DoesNotContain("I have you down", openOnDraft.Body);
         var ledger = FactLedger.FromHistory(activity, "28206", "Bordine, Glenn");
         Assert.Null(ledger.Get("customerDayTime"));
         var email = GroundedDraft.Email(ledger, now, activity);

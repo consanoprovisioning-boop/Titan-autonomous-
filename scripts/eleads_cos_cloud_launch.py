@@ -98,7 +98,10 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
         r"\s+(?:(?:on|at|around)\s+)?$",
         re.IGNORECASE,
     )
-    hours = re.compile(r"\b(?:hours|open|opens|opening|close|closes|closing|closed)\b[\s:.-]*$", re.IGNORECASE)
+    hours = re.compile(
+        r"\b(?:hours|open|opens|opening|close|closes|closing|closed)\b[\s:.-]*(?:(?:on|at|around)\s+)?$",
+        re.IGNORECASE,
+    )
     link = re.compile(r"\b(?:at|on|around)\b", re.IGNORECASE)
 
     def usable_day(match: re.Match[str]) -> bool:

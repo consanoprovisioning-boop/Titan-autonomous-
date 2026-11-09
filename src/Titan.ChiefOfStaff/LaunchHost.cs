@@ -35,13 +35,14 @@ public static class LaunchHost
         var signedIn = await WaitForVerifyAsync(paths, kill, store, overlay, TimeSpan.FromHours(12));
         if (!signedIn)
         {
+            WriteExitReceipt(paths, store, kill);
             return 6;
         }
 
         verifiedAt = store.ReadHeartbeat().VerifiedAt ?? EasternClock.Now().ToString("o");
         var loop = new ContinuousLoop();
         using var cts = new CancellationTokenSource();
-        return await loop.RunAsync(
+        var code = await loop.RunAsync(
             paths,
             kill,
             overlay,
@@ -49,6 +50,7 @@ public static class LaunchHost
             {
                 if (!kill.IsArmed() || File.Exists(paths.StopFlag) || overlay.Closed)
                 {
+                    WriteExitReceipt(paths, store, kill);
                     return CycleSnapshot.BlockedCycle("stopped");
                 }
 
@@ -166,6 +168,12 @@ public static class LaunchHost
                 }
 
                 var snap = learning.Snapshot();
+                if (!kill.IsArmed() || File.Exists(paths.StopFlag) || overlay.Closed)
+                {
+                    WriteExitReceipt(paths, store, kill);
+                    return CycleSnapshot.BlockedCycle("stopped");
+                }
+
                 SessionRecord.Save(
                     paths,
                     store,
@@ -191,6 +199,23 @@ public static class LaunchHost
             },
             DelayAsync,
             cts.Token);
+        WriteExitReceipt(paths, store, kill);
+        return code;
+    }
+
+    public static void WriteExitReceipt(HostPaths paths, HostStore store, KillSwitch kill)
+    {
+        var tripped = !kill.IsArmed();
+        var beat = store.ReadHeartbeat();
+        SessionRecord.Save(
+            paths,
+            store,
+            beat with
+            {
+                State = tripped ? HostState.KillTripped.ToString() : HostState.AwaitingVerify.ToString(),
+                LastError = tripped ? "kill.switch is not armed." : "stopped"
+            },
+            glennVerified: false);
     }
 
     public static SelfInstallResult Prepare(HostPaths paths, KillSwitch kill, string sourceDir)
