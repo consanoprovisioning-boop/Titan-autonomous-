@@ -97,21 +97,36 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
-def alienware_worker(snapshot: dict) -> dict | None:
+def _worker_rows(snapshot: dict) -> list[dict]:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
-        return None
-    for row in workers:
-        if not isinstance(row, dict):
-            continue
-        worker_id = str(row.get("workerId") or "")
-        if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
+        return []
+    return [row for row in workers if isinstance(row, dict)]
+
+
+def _worker_id(row: dict) -> str:
+    return str(row.get("workerId") or "")
+
+
+def _looks_like_alienware(row: dict) -> bool:
+    labels = " ".join(
+        str(row.get(key) or "")
+        for key in ("machineDisplayName", "displayName", "hostname")
+    )
+    return labels.startswith("Alienware-18") or "Alienware-18" in labels
+
+
+def alienware_worker(snapshot: dict) -> dict | None:
+    """Prefer the current worker id, then an Alienware-18 name, then a retired id."""
+    rows = _worker_rows(snapshot)
+    for row in rows:
+        if _worker_id(row) == ALIENWARE_WORKER_ID:
             return row
-        labels = " ".join(
-            str(row.get(key) or "")
-            for key in ("machineDisplayName", "displayName", "hostname")
-        )
-        if labels.startswith("Alienware-18") or "Alienware-18" in labels:
+    for row in rows:
+        if _looks_like_alienware(row):
+            return row
+    for row in rows:
+        if _worker_id(row) in RETIRED_ALIENWARE_WORKER_IDS:
             return row
     return None
 

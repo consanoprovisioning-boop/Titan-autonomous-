@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Titan.ChiefOfStaff;
 using Titan.ChiefOfStaff.Eleads;
 using Xunit;
@@ -108,5 +109,100 @@ public class LaunchGuardTests
             EleadsOpenGuard.LoginUrl,
             EleadsOpenGuard.NavigationTarget(isCloudLinux: false, allowNavigate: true, currentUrl: "about:blank"));
         Assert.Null(EleadsOpenGuard.NavigationTarget(isCloudLinux: false, allowNavigate: false, currentUrl: "about:blank"));
+    }
+
+    [Fact]
+    public void Tick_keeps_verify_when_the_logged_in_tab_has_no_page_handle()
+    {
+        var unbound = TickAdmission.Inspect(loggedIn: true, pageBound: false, rooftop: "28206");
+        Assert.False(unbound.ClearVerifiedSession);
+        Assert.Equal(6, unbound.ExitCode);
+        Assert.Equal(HostState.VerifiedIdle, unbound.State);
+
+        var ready = TickAdmission.Inspect(loggedIn: true, pageBound: true, rooftop: "28546");
+        Assert.Equal(0, ready.ExitCode);
+        Assert.False(ready.ClearVerifiedSession);
+    }
+
+    [Fact]
+    public void Tick_clears_verify_when_the_session_or_rooftop_is_rejected()
+    {
+        var loggedOut = TickAdmission.Inspect(loggedIn: false, pageBound: true, rooftop: "28206");
+        Assert.True(loggedOut.ClearVerifiedSession);
+        Assert.Equal(HostState.AwaitingVerify, loggedOut.State);
+        Assert.Equal(6, loggedOut.ExitCode);
+
+        var forbidden = TickAdmission.Inspect(loggedIn: true, pageBound: true, rooftop: "6220");
+        Assert.True(forbidden.ClearVerifiedSession);
+        Assert.Equal(HostState.BlockedForbiddenRooftop, forbidden.State);
+        Assert.Equal(7, forbidden.ExitCode);
+
+        var blocked = TickAdmission.AfterWork("Blocked: TKO Autogroup detected.");
+        Assert.True(blocked.ClearVerifiedSession);
+        Assert.Equal(7, blocked.ExitCode);
+        Assert.Equal(0, TickAdmission.AfterWork("Tick 28206: 0 visible rows, 0 qualified, 0 held.").ExitCode);
+    }
+
+    [Fact]
+    public void Saving_a_rejected_session_clears_the_verify_receipt()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-record-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            SessionRecord.Save(paths, store, new Heartbeat("VerifiedIdle", "28206", "2026-10-16T12:00:00-04:00", null, null, true), true);
+            using (var verified = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker)))
+            {
+                Assert.True(verified.RootElement.GetProperty("glennVerified").GetBoolean());
+            }
+
+            SessionRecord.Save(
+                paths,
+                store,
+                new Heartbeat("BlockedForbiddenRooftop", "6220", null, null, "Forbidden rooftop. TKO 6220 is blocked.", false),
+                false);
+            using var doc = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            Assert.False(doc.RootElement.GetProperty("glennVerified").GetBoolean());
+            Assert.Equal("BlockedForbiddenRooftop", doc.RootElement.GetProperty("state").GetString());
+            Assert.Equal("6220", doc.RootElement.GetProperty("rooftop").GetString());
+            Assert.Equal("BlockedForbiddenRooftop", store.ReadHeartbeat().State);
+            using var heartbeat = JsonDocument.Parse(File.ReadAllText(paths.Heartbeat));
+            Assert.Equal("BlockedForbiddenRooftop", heartbeat.RootElement.GetProperty("State").GetString());
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Fact]
+    public void Session_lock_waits_until_the_holder_releases_it()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-lock-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var held = new SessionLock(paths);
+            Assert.True(held.Acquired);
+            using (var denied = SessionLock.Acquire(paths, TimeSpan.FromMilliseconds(120)))
+            {
+                Assert.False(denied.Acquired);
+            }
+
+            held.Dispose();
+            using var acquired = SessionLock.Acquire(paths, TimeSpan.FromSeconds(1));
+            Assert.True(acquired.Acquired);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
     }
 }

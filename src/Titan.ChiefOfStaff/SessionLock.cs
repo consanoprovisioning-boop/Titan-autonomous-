@@ -19,5 +19,21 @@ public sealed class SessionLock : IDisposable
         }
     }
 
+    public static SessionLock Acquire(HostPaths paths, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (true)
+        {
+            var gate = new SessionLock(paths);
+            if (gate.Acquired || DateTime.UtcNow >= deadline)
+            {
+                return gate;
+            }
+
+            gate.Dispose();
+            Thread.Sleep(50);
+        }
+    }
+
     public void Dispose() => _stream?.Dispose();
 }

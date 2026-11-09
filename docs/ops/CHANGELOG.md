@@ -1,5 +1,9 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-09 — Verify receipt follows the live session
+
+A retired worker row listed ahead of Alienware-18 no longer hides the live worker, so a `C:\Windows\system32` directory on the live machine still blocks placement. `verify.json` is cleared when install, stop, a tripped kill switch, or a rejected tick leaves the verified session. A logged-in tab that Playwright did not bind no longer erases Verify. A tick that reports a TKO block no longer exits 0.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

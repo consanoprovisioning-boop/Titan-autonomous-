@@ -158,6 +158,111 @@ class LaunchGuardTests(unittest.TestCase):
             "loginClaim": False,
         }))
 
+    def _receipt(self) -> dict:
+        return {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "verifiedAt": "2026-10-16T12:00:00-04:00",
+            "loginClaim": False,
+        }
+
+    def test_live_worker_beats_a_retired_row_and_still_blocks_system32(self) -> None:
+        retired = "2bd89263-dc03-4936-9b04-6bc709799f66"
+        live = launch.ALIENWARE_WORKER_ID
+        snapshot = {
+            "workers": [
+                {"workerId": retired, "displayName": "stale", "directory": r"D:\work"},
+                {
+                    "workerId": live,
+                    "displayName": "Alienware-18",
+                    "directory": r"C:\Windows\system32",
+                },
+            ]
+        }
+        chosen = launch.alienware_worker(snapshot)
+        self.assertIsNotNone(chosen)
+        assert chosen is not None
+        self.assertEqual(live, chosen["workerId"])
+        state = launch.build_state(
+            snapshot,
+            self._receipt(),
+            datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc),
+        )
+        self.assertFalse(state["verify"])
+        self.assertEqual("draft-blocked-local", state["mode"])
+        self.assertEqual("none-and-must-not-open-from-cloud", state["eleadsSession"])
+        self.assertIn("system32", state["blockers"][0].casefold())
+        self.assertIn(live, state["blockers"][0])
+
+    def test_clean_live_worker_is_not_hidden_by_a_retired_system32_row(self) -> None:
+        retired = "2bd89263-dc03-4936-9b04-6bc709799f66"
+        live = launch.ALIENWARE_WORKER_ID
+        snapshot = {
+            "workers": [
+                {
+                    "workerId": retired,
+                    "displayName": "old",
+                    "directory": r"C:\Windows\system32",
+                },
+                {
+                    "workerId": live,
+                    "displayName": "Alienware-18",
+                    "directory": r"D:\Titan",
+                },
+            ]
+        }
+        state = launch.build_state(
+            snapshot,
+            self._receipt(),
+            datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc),
+        )
+        self.assertTrue(state["verify"])
+        self.assertEqual("v1.1-execute", state["mode"])
+        self.assertEqual(live, state["workerId"])
+        self.assertEqual([], state["blockers"])
+
+    def test_alienware_name_beats_a_retired_id(self) -> None:
+        retired = "2bd89263-dc03-4936-9b04-6bc709799f66"
+        named = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+        snapshot = {
+            "workers": [
+                {"workerId": retired, "displayName": "stale"},
+                {
+                    "workerId": named,
+                    "machineDisplayName": "Alienware-18",
+                    "directory": r"C:\Windows\system32",
+                },
+            ]
+        }
+        chosen = launch.alienware_worker(snapshot)
+        self.assertIsNotNone(chosen)
+        assert chosen is not None
+        self.assertEqual(named, chosen["workerId"])
+        state = launch.build_state(
+            snapshot,
+            self._receipt(),
+            datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc),
+        )
+        self.assertFalse(state["verify"])
+        self.assertIn("system32", state["blockers"][0].casefold())
+
+    def test_retired_worker_still_counts_when_it_is_the_only_row(self) -> None:
+        retired = "2bd89263-dc03-4936-9b04-6bc709799f66"
+        snapshot = {"workers": [{"workerId": retired, "displayName": "Alienware-18"}]}
+        chosen = launch.alienware_worker(snapshot)
+        self.assertIsNotNone(chosen)
+        assert chosen is not None
+        self.assertEqual(retired, chosen["workerId"])
+        state = launch.build_state(
+            snapshot,
+            None,
+            datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc),
+        )
+        self.assertTrue(state["workerOnline"])
+        self.assertFalse(state["verify"])
+
     def test_login_claim_is_not_verify(self) -> None:
         self.assertFalse(launch.verify_receipt_ok({
             "loginClaim": True,
