@@ -7,8 +7,27 @@ public static class EleadsOpenGuard
     public static bool IsCloudLinuxHost => !OperatingSystem.IsWindows();
 
     public static bool IsEleadsUrl(string? url)
-        => !string.IsNullOrWhiteSpace(url)
-           && url.Contains("eleadcrm.com", StringComparison.OrdinalIgnoreCase);
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        if (!string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var host = uri.Host;
+        return host.Equals("eleadcrm.com", StringComparison.OrdinalIgnoreCase)
+            || host.EndsWith(".eleadcrm.com", StringComparison.OrdinalIgnoreCase);
+    }
 
     public static string? NavigationTarget(bool isCloudLinux, bool allowNavigate, string? currentUrl)
         => NavigationTarget(isCloudLinux, allowNavigate, new[] { currentUrl });
