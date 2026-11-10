@@ -1,5 +1,9 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-10 — CHECKIN requires an eleadcrm.com host
+
+A page whose URL only mentions `eleadcrm.com` in a query, fragment, userinfo, or other host is not an Eleads session. CHECKIN no longer writes `glennVerified` from that page, and it still opens the login URL when no real Eleads host is open. A `eleadcrm.com` host, including a subdomain, still verifies.
+
 ## 2026-10-16 — CHECKIN reads every CDP page and frame
 
 CHECKIN was attached to port 9222 and still returned exit 6 because it inspected only the first page and the main frame. A later Eleads tab, or a child frame on that tab, never counted. A blank first tab was sent to the login URL.

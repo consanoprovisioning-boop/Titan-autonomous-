@@ -134,6 +134,39 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Foreign_url_that_mentions_eleadcrm_is_not_a_signed_in_session()
+    {
+        var searchUrl = "https://www.google.com/search?q=eleadcrm.com+Valdosta+Nissan+28206+Glenn";
+        var search = new PageSnapshot(
+            searchUrl,
+            [new FrameSnapshot(searchUrl, "Valdosta Nissan 28206\nGlenn Bordine\nLeave Chrome open")]);
+
+        var verdict = EleadsInspection.Evaluate(search);
+        Assert.False(EleadsOpenGuard.IsEleadsUrl(searchUrl));
+        Assert.False(verdict.LoggedIn);
+        Assert.False(EleadsInspection.Choose([search]).LoggedIn);
+        Assert.Equal(
+            EleadsOpenGuard.LoginUrl,
+            EleadsOpenGuard.NavigationTarget(false, true, new[] { searchUrl }));
+
+        Assert.False(EleadsOpenGuard.IsEleadsUrl("https://eleadcrm.com.evil.example/login"));
+        Assert.False(EleadsOpenGuard.IsEleadsUrl("https://noteleadcrm.com/login"));
+        Assert.False(EleadsOpenGuard.IsEleadsUrl("https://eleadcrm.com@evil.example/login"));
+        Assert.False(EleadsOpenGuard.IsEleadsUrl("https://evil.example/redirect?next=https://www.eleadcrm.com/login"));
+        Assert.True(EleadsOpenGuard.IsEleadsUrl("https://eleadcrm.com/evo2/fresh/elead.aspx"));
+        Assert.True(EleadsOpenGuard.IsEleadsUrl("https://portal.eleadcrm.com/app"));
+
+        var real = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\nGlenn Bordine")]);
+        Assert.True(EleadsInspection.Evaluate(real).LoggedIn);
+        Assert.Equal("28206", EleadsInspection.Evaluate(real).DetectedRooftop);
+        Assert.Null(EleadsOpenGuard.NavigationTarget(false, true, new[] { searchUrl, real.Url }));
+    }
+
+    [Fact]
     public void Login_url_opens_only_when_no_eleads_page_exists()
     {
         Assert.Equal(
