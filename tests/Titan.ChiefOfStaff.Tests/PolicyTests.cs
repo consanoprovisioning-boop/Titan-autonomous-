@@ -122,4 +122,23 @@ public class PolicyTests
         var glenn = new OrganizerRow("Pat", "Bordine, Glenn", WorkQueue.NewLeads, now.AddHours(-2), now, false, "note yesterday");
         Assert.Null(WorkOrder.HoldReason(glenn, now));
     }
+
+    [Fact]
+    public void List_row_naming_nissan_titan_does_not_skip_the_other_consultant_hold()
+    {
+        var now = new DateTimeOffset(2026, 9, 25, 12, 0, 0, TimeSpan.FromHours(-4));
+        var rows = WorkTick.ParseVisibleRows(
+            "Smith, Pat | Nissan Titan | new lead | internet\nJones, Pat | titanium package | fresh lead",
+            WorkQueue.NewLeads);
+        Assert.Equal(2, rows.Count);
+        Assert.All(rows, row => Assert.False(row.TitanTouched));
+        Assert.All(rows, row => Assert.Contains("96h", WorkOrder.HoldReason(row, now) ?? ""));
+
+        var glennRows = WorkTick.ParseVisibleRows(
+            "Bordine, Glenn | Nissan Titan | new lead",
+            WorkQueue.NewLeads);
+        Assert.Single(glennRows);
+        Assert.False(glennRows[0].TitanTouched);
+        Assert.Null(WorkOrder.HoldReason(glennRows[0], now));
+    }
 }

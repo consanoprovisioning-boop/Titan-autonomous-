@@ -71,7 +71,9 @@ public sealed class WorkTick
                 Queue: queue,
                 LastContact: null,
                 OpenedAt: null,
-                TitanTouched: raw.Contains("Titan", StringComparison.OrdinalIgnoreCase),
+                // List text cannot prove this host already worked the lead.
+                // "Titan" is the Nissan truck, and "titanium" contains those letters.
+                TitanTouched: false,
                 HistoryText: raw));
         }
 
