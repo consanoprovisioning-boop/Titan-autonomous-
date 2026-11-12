@@ -35,9 +35,29 @@ public static class Policy
             return false;
         }
 
-        return text.Contains(ForbiddenTkoId, StringComparison.Ordinal)
-            || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
+        if (text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (string.Equals(text.Trim(), ForbiddenTkoId, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        // Phones ending in 6220, zip 62201, and stock N6220 are not the TKO store.
+        // A bounded 6220 still rejects "(6220)", "?store=6220", and "Dealer 6220".
+        var withoutPhones = PhoneNumber.Replace(text, " ");
+        return ForbiddenStoreToken.IsMatch(withoutPhones);
     }
+
+    private static readonly System.Text.RegularExpressions.Regex PhoneNumber = new(
+        @"\b(?:\+?1[\s.\-]?)?(?:\(\d{3}\)[\s.\-]?|\d{3}[\s.\-])\d{3}[\s.\-]\d{4}\b|\b\d{3}[\s.\-]\d{4}\b",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static readonly System.Text.RegularExpressions.Regex ForbiddenStoreToken = new(
+        @"(?<![A-Za-z0-9])6220(?![A-Za-z0-9])(?!\s+[A-Za-z0-9.]+\s+(?:street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|lane|ln|court|ct|place|pl|parkway|pkwy|highway|hwy|circle|cir|trail|trl|way)\.?\b)",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     public static bool SmsOpen(DateTimeOffset nowEt)
     {
