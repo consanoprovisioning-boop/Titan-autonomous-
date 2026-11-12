@@ -102,6 +102,49 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Valdosta_page_with_phone_or_zip_6220_still_verifies()
+    {
+        var valdosta = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\nBordine, Glenn\n(229) 555-6220\nZip 62201\nStock N6220\n6220 Main Street")]);
+        var verdict = EleadsInspection.Evaluate(valdosta);
+        Assert.False(verdict.Forbidden);
+        Assert.True(verdict.LoggedIn);
+        Assert.Equal("28206", verdict.DetectedRooftop);
+        Assert.Equal("Verified rooftop 28206 as Bordine, Glenn.", EleadsInspection.Describe(verdict));
+
+        var chosen = EleadsInspection.Choose([valdosta]);
+        Assert.True(chosen.LoggedIn);
+        Assert.Equal("28206", chosen.DetectedRooftop);
+
+        Assert.False(Policy.IsForbiddenRooftop("(229) 555-6220"));
+        Assert.False(Policy.IsForbiddenRooftop("229-555-6220"));
+        Assert.False(Policy.IsForbiddenRooftop("555-6220"));
+        Assert.False(Policy.IsForbiddenRooftop("Zip 62201"));
+        Assert.False(Policy.IsForbiddenRooftop("Stock N6220"));
+        Assert.False(Policy.IsForbiddenRooftop("6220 Main Street"));
+        Assert.True(Policy.IsForbiddenRooftop("6220"));
+        Assert.True(Policy.IsForbiddenRooftop(" 6220 "));
+        Assert.True(Policy.IsForbiddenRooftop("https://www.eleadcrm.com/evo2/fresh/elead.aspx?store=6220"));
+        Assert.True(Policy.IsForbiddenRooftop("store #6220"));
+        Assert.True(Policy.IsForbiddenRooftop("Dealer 6220"));
+        var urlOnly = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx?store=6220",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx?store=6220",
+                "Daily Organizer")]));
+        Assert.True(urlOnly.Forbidden);
+        Assert.False(urlOnly.LoggedIn);
+
+        var rows = WorkTick.ParseVisibleRows(
+            "Smith, Pat | new lead | (229) 555-6220",
+            WorkQueue.NewLeads);
+        Assert.Single(rows);
+    }
+
+    [Fact]
     public void Login_page_mentioning_6220_does_not_hide_a_valdosta_session()
     {
         var login = new PageSnapshot(
