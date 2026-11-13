@@ -92,25 +92,64 @@ public sealed class EleadsSession : IAsyncDisposable
 
     public static string? DetectRooftop(string text, string url)
     {
-        foreach (var id in Policy.AllowedRooftops)
-        {
-            if (text.Contains(id, StringComparison.Ordinal) || url.Contains(id, StringComparison.Ordinal))
-            {
-                return id;
-            }
-        }
-
-        if (text.Contains("Valdosta Nissan", StringComparison.OrdinalIgnoreCase))
+        var nissanNamed = text.Contains("Valdosta Nissan", StringComparison.OrdinalIgnoreCase);
+        var mitsubishiNamed = text.Contains("Valdosta Mitsubishi", StringComparison.OrdinalIgnoreCase);
+        if (nissanNamed && !mitsubishiNamed)
         {
             return Policy.NissanId;
         }
 
-        if (text.Contains("Valdosta Mitsubishi", StringComparison.OrdinalIgnoreCase))
+        if (mitsubishiNamed && !nissanNamed)
         {
             return Policy.MitsubishiId;
         }
 
-        return null;
+        // A customer zip, phone, or stock number can contain 28206 or 28546.
+        // The dealer name is the store. Digits are used only when the page names
+        // neither store, or names both and the URL carries a single store id.
+        if (nissanNamed && mitsubishiNamed)
+        {
+            return UniqueBoundedStoreId(url);
+        }
+
+        return UniqueBoundedStoreId(text + "\n" + url);
+    }
+
+    private static string? UniqueBoundedStoreId(string haystack)
+    {
+        var nissan = ContainsBoundedStoreId(haystack, Policy.NissanId);
+        var mitsubishi = ContainsBoundedStoreId(haystack, Policy.MitsubishiId);
+        if (nissan == mitsubishi)
+        {
+            return null;
+        }
+
+        return nissan ? Policy.NissanId : Policy.MitsubishiId;
+    }
+
+    private static bool ContainsBoundedStoreId(string haystack, string id)
+    {
+        var start = 0;
+        while (start <= haystack.Length - id.Length)
+        {
+            var at = haystack.IndexOf(id, start, StringComparison.Ordinal);
+            if (at < 0)
+            {
+                return false;
+            }
+
+            var beforeOk = at == 0 || !char.IsDigit(haystack[at - 1]);
+            var after = at + id.Length;
+            var afterOk = after >= haystack.Length || !char.IsDigit(haystack[after]);
+            if (beforeOk && afterOk)
+            {
+                return true;
+            }
+
+            start = at + 1;
+        }
+
+        return false;
     }
 
     public static bool IsEleadsUrl(string? url) => EleadsOpenGuard.IsEleadsUrl(url);

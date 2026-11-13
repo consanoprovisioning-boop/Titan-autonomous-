@@ -82,7 +82,28 @@ public class PolicyTests
     {
         Assert.Equal("28206", EleadsSession.DetectRooftop("Valdosta Nissan store 28206", "https://www.eleadcrm.com/"));
         Assert.Equal("28546", EleadsSession.DetectRooftop("Valdosta Mitsubishi", "https://www.eleadcrm.com/"));
+        Assert.Equal("28206", EleadsSession.DetectRooftop("28206 Glenn", "https://www.eleadcrm.com/app"));
         Assert.Null(EleadsSession.DetectRooftop("pick a store", "https://www.eleadcrm.com/evo2/fresh/login.asp"));
+    }
+
+    [Fact]
+    public void Dealer_name_wins_over_another_stores_digits_in_customer_data()
+    {
+        const string mitsubishiWithCharlotteZip = "Valdosta Mitsubishi\nBordine, Glenn\nCustomer zip 28206";
+        Assert.Equal("28546", EleadsSession.DetectRooftop(mitsubishiWithCharlotteZip, "https://www.eleadcrm.com/evo2/fresh/elead.aspx"));
+
+        const string nissanWithMitsubishiDigits = "Valdosta Nissan\nBordine, Glenn\nstock 28546 phone 2292854610";
+        Assert.Equal("28206", EleadsSession.DetectRooftop(nissanWithMitsubishiDigits, "https://www.eleadcrm.com/evo2/fresh/elead.aspx"));
+
+        Assert.Null(EleadsSession.DetectRooftop("customer id 12820699", "https://www.eleadcrm.com/app"));
+        Assert.Equal(
+            "28546",
+            EleadsSession.DetectRooftop(
+                "Valdosta Nissan compared with Valdosta Mitsubishi",
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx?store=28546"));
+        Assert.Null(EleadsSession.DetectRooftop(
+            "Valdosta Nissan compared with Valdosta Mitsubishi",
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx"));
     }
 
     [Fact]
