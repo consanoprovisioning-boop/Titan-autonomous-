@@ -67,6 +67,19 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Mitsubishi_page_with_customer_zip_28206_verifies_as_mitsubishi()
+    {
+        var verdict = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Mitsubishi\nBordine, Glenn\nCustomer zip 28206")]));
+        Assert.True(verdict.LoggedIn);
+        Assert.Equal("28546", verdict.DetectedRooftop);
+        Assert.Equal(Policy.Identity, verdict.IdentityHint);
+    }
+
+    [Fact]
     public void Login_form_and_non_eleads_page_do_not_verify()
     {
         var login = EleadsInspection.Evaluate(new PageSnapshot(
