@@ -182,6 +182,43 @@ public class CheckInVerifyTests
             Assert.False(doc.RootElement.GetProperty("loginClaim").GetBoolean());
             Assert.Equal(Path.Combine(root, "verify.json"), paths.VerifyMarker);
 
+            var live = new Heartbeat("VerifiedIdle", "28206", "2026-10-16T12:00:00-04:00", null, null, true);
+            VerifyMarker.Publish(paths, live);
+            json = File.ReadAllText(paths.VerifyMarker);
+            using (var liveDoc = JsonDocument.Parse(json))
+            {
+                Assert.True(liveDoc.RootElement.GetProperty("glennVerified").GetBoolean());
+                Assert.Equal("VerifiedIdle", liveDoc.RootElement.GetProperty("state").GetString());
+                Assert.Equal("Bordine, Glenn", liveDoc.RootElement.GetProperty("identity").GetString());
+                Assert.Equal("28206", liveDoc.RootElement.GetProperty("rooftop").GetString());
+            }
+
+            var stopped = live with { State = HostState.AwaitingVerify.ToString(), LastError = "stopped" };
+            VerifyMarker.Publish(paths, stopped);
+            json = File.ReadAllText(paths.VerifyMarker);
+            using (var stoppedDoc = JsonDocument.Parse(json))
+            {
+                Assert.False(stoppedDoc.RootElement.GetProperty("glennVerified").GetBoolean());
+                Assert.Equal("AwaitingVerify", stoppedDoc.RootElement.GetProperty("state").GetString());
+                Assert.Equal("28206", stoppedDoc.RootElement.GetProperty("rooftop").GetString());
+            }
+
+            var heartbeat = File.ReadAllText(paths.Heartbeat);
+            Assert.Contains("AwaitingVerify", heartbeat, StringComparison.Ordinal);
+            Assert.Contains("stopped", heartbeat, StringComparison.Ordinal);
+
+            var blocked = live with { State = HostState.BlockedForbiddenRooftop.ToString(), LastError = "forbidden rooftop" };
+            VerifyMarker.Publish(paths, blocked);
+            json = File.ReadAllText(paths.VerifyMarker);
+            using (var blockedDoc = JsonDocument.Parse(json))
+            {
+                Assert.False(blockedDoc.RootElement.GetProperty("glennVerified").GetBoolean());
+                Assert.Equal("BlockedForbiddenRooftop", blockedDoc.RootElement.GetProperty("state").GetString());
+            }
+
+            Assert.False(VerifyMarker.IsLiveVerification(new Heartbeat("VerifiedIdle", "6220", "t", null, null, false)));
+            Assert.False(VerifyMarker.IsLiveVerification(stopped));
+
             VerifyMarker.Write(paths, "BlockedForbiddenRooftop", "6220", null, null, false);
             json = File.ReadAllText(paths.VerifyMarker);
             using var rejected = JsonDocument.Parse(json);
