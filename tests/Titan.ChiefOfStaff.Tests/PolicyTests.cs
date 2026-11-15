@@ -18,7 +18,11 @@ public class PolicyTests
     public void Tko_text_is_forbidden()
     {
         Assert.True(Policy.IsForbiddenRooftop("The TKO Autogroup (6220)"));
+        Assert.True(Policy.IsForbiddenRooftop("6220"));
+        Assert.True(Policy.IsForbiddenRooftop("store=6220"));
         Assert.False(Policy.IsForbiddenRooftop("Valdosta Nissan 28206"));
+        Assert.False(Policy.IsForbiddenRooftop("Opportunity 162203"));
+        Assert.False(Policy.IsForbiddenRooftop("62201"));
     }
 
     [Fact]
@@ -82,6 +86,8 @@ public class PolicyTests
     {
         Assert.Equal("28206", EleadsSession.DetectRooftop("Valdosta Nissan store 28206", "https://www.eleadcrm.com/"));
         Assert.Equal("28546", EleadsSession.DetectRooftop("Valdosta Mitsubishi", "https://www.eleadcrm.com/"));
+        Assert.Equal("28206", EleadsSession.DetectRooftop("desk", "https://www.eleadcrm.com/evo2/fresh/elead.aspx?store=28206"));
+        Assert.Null(EleadsSession.DetectRooftop("Opportunity 1282067", "https://www.eleadcrm.com/opportunity/12820699"));
         Assert.Null(EleadsSession.DetectRooftop("pick a store", "https://www.eleadcrm.com/evo2/fresh/login.asp"));
     }
 

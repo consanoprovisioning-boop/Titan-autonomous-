@@ -35,8 +35,38 @@ public static class Policy
             return false;
         }
 
-        return text.Contains(ForbiddenTkoId, StringComparison.Ordinal)
-            || text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase);
+        return text.Contains("TKO Autogroup", StringComparison.OrdinalIgnoreCase)
+            || ContainsBoundedId(text, ForbiddenTkoId);
+    }
+
+    public static bool ContainsBoundedId(string? text, string id)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(id))
+        {
+            return false;
+        }
+
+        var start = 0;
+        while (start <= text.Length - id.Length)
+        {
+            var found = text.IndexOf(id, start, StringComparison.Ordinal);
+            if (found < 0)
+            {
+                return false;
+            }
+
+            var beforeIsDigit = found > 0 && text[found - 1] is >= '0' and <= '9';
+            var after = found + id.Length;
+            var afterIsDigit = after < text.Length && text[after] is >= '0' and <= '9';
+            if (!beforeIsDigit && !afterIsDigit)
+            {
+                return true;
+            }
+
+            start = found + 1;
+        }
+
+        return false;
     }
 
     public static bool SmsOpen(DateTimeOffset nowEt)

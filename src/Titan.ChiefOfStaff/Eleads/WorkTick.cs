@@ -2,14 +2,16 @@ using Microsoft.Playwright;
 
 namespace Titan.ChiefOfStaff.Eleads;
 
+public sealed record TickResult(string Message, bool Blocked);
+
 public sealed class WorkTick
 {
-    public async Task<string> RunAsync(IPage page, HostStore store, string rooftop, DateTimeOffset nowEt)
+    public async Task<TickResult> RunAsync(IPage page, HostStore store, string rooftop, DateTimeOffset nowEt)
     {
         if (Policy.IsForbiddenRooftop(rooftop) || !Policy.IsAllowedRooftop(rooftop))
         {
             store.Log("guard", "rooftop", "blocked", rooftop);
-            return "Blocked: rooftop not 28206/28546.";
+            return new TickResult("Blocked: rooftop not 28206/28546.", true);
         }
 
         await page.BringToFrontAsync();
@@ -17,14 +19,14 @@ public sealed class WorkTick
         if (Policy.IsForbiddenRooftop(body))
         {
             store.Log("guard", "tko", "blocked", rooftop);
-            return "Blocked: TKO Autogroup detected.";
+            return new TickResult("Blocked: TKO Autogroup detected.", true);
         }
 
         var organizer = await EnsureOrganizerAsync(page);
         if (organizer is null)
         {
             store.Log("organizer", "open", "not visible", rooftop);
-            return "Daily Organizer is not visible. In Eleads set status Open and contact type All, then tick again. No send was made.";
+            return new TickResult("Daily Organizer is not visible. In Eleads set status Open and contact type All, then tick again. No send was made.", false);
         }
 
         var smsOpen = Policy.SmsOpen(nowEt);
@@ -52,7 +54,7 @@ public sealed class WorkTick
             }
         }
 
-        return $"Tick {rooftop}: {seen} visible rows, {ready} qualified, {held} held. Sends only after a live composer is filled from the profile and CRM history shows the completed activity. SMS {(smsOpen ? "open" : "closed")}.";
+        return new TickResult($"Tick {rooftop}: {seen} visible rows, {ready} qualified, {held} held. Sends only after a live composer is filled from the profile and CRM history shows the completed activity. SMS {(smsOpen ? "open" : "closed")}.", false);
     }
 
     public static IReadOnlyList<OrganizerRow> ParseVisibleRows(string organizerText, WorkQueue queue)
