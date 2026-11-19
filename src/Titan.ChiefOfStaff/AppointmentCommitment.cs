@@ -109,8 +109,7 @@ public static class AppointmentCommitment
                 Reason: "Commitment without a concrete day/time and none proposed. Ask for the specific day+time; do not book or set Appointment Set.");
         }
 
-        if (request.CurrentStatus == LeadStatus.AppointmentSet
-            || (request.ExistingAppointmentSlotEt is not null && request.ExistingAppointmentSlotEt.Value == slot.Value))
+        if (request.ExistingAppointmentSlotEt is not null && request.ExistingAppointmentSlotEt.Value == slot.Value)
         {
             return new AppointmentCommitmentDecision(
                 AppointmentCommitmentAction.AlreadyBooked,
@@ -224,6 +223,12 @@ public static class AppointmentCommitment
             return true;
         }
 
+        if (text.Contains('?'))
+        {
+            reason = "Question without commitment language. Answer normally; no scheduling trigger.";
+            return false;
+        }
+
         var commitment = Regex.IsMatch(text,
             @"\b(yes|yeah|yep|yup|ok|okay|sounds good|that works|works for me|perfect|confirmed?|i'?ll be there|i will be there|see you|book it|schedule it|i can (come|make it)|i'?ll come|come in|be there|count me in|sure)\b",
             RegexOptions.IgnoreCase);
@@ -232,12 +237,6 @@ public static class AppointmentCommitment
         {
             reason = "Customer commitment language detected.";
             return true;
-        }
-
-        if (text.Contains('?'))
-        {
-            reason = "Question without commitment language. Answer normally; no scheduling trigger.";
-            return false;
         }
 
         reason = "No appointment commitment language. Soft interest does not trigger scheduling.";

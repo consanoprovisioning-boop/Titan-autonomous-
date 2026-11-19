@@ -3,6 +3,26 @@ setlocal
 title Alienware-18 Cursor Worker - LEAVE THIS WINDOW OPEN
 REM Alienware-18 worker starter. Run this one file from anywhere by double-clicking it.
 REM This does NOT start Titan.ChiefOfStaff.exe and does NOT open Eleads or handle any password.
+REM Fail-closed while cluster hold is on. Alienware-18 is MAIN; still do not launch until Glenn says all PCs are ready.
+
+set "HOLD=%~dp0cluster-node\HOLD-LAUNCH.cmd"
+set "HOLDJSON=%~dp0cluster-node\cluster-hold.json"
+if exist "%HOLD%" goto :hold_ok
+set "HOLD=%~dp0..\cluster-node\HOLD-LAUNCH.cmd"
+set "HOLDJSON=%~dp0..\cluster-node\cluster-hold.json"
+if exist "%HOLD%" goto :hold_ok
+echo.
+echo HOLD: Cluster launch helper was not found. Fail closed. Do NOT start the Cursor worker.
+echo Alienware-18 is the MAIN computer. Do not place COS on a held node.
+echo.
+pause
+exit /b 2
+:hold_ok
+call "%HOLD%" "%HOLDJSON%" Alienware-18
+if errorlevel 1 (
+  pause
+  exit /b 2
+)
 
 cd /d "%USERPROFILE%"
 if /i "%CD%"=="C:\Windows\System32" (

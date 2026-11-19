@@ -149,6 +149,27 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual(text, ticklog.read_text(encoding="utf-8"))
         self.assertEqual(data["cycleId"], json.loads(state_path.read_text(encoding="utf-8"))["cycleId"])
 
+    def test_alienware_worker_consults_cluster_hold_from_deploy_and_dist(self) -> None:
+        deploy = (ROOT / "deploy/alienware-local-program/START-WORKER.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        dist = (ROOT / "dist/titan-chief-win-x64/START-WORKER.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        publish = (ROOT / "scripts/publish-win-x64.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        for starter in (deploy, dist):
+            self.assertIn("HOLD-LAUNCH.cmd", starter)
+            self.assertIn(r"%~dp0cluster-node\HOLD-LAUNCH.cmd", starter)
+            self.assertIn(r"%~dp0..\cluster-node\HOLD-LAUNCH.cmd", starter)
+            self.assertIn("Alienware-18", starter)
+            self.assertIn("if errorlevel 1", starter)
+            self.assertIn("exit /b 2", starter)
+            self.assertIn("Cluster launch helper was not found", starter)
+        self.assertEqual(deploy, dist)
+        self.assertIn(
+            r"copy /Y deploy\alienware-local-program\START-WORKER.cmd dist\titan-chief-win-x64\START-WORKER.cmd",
+            publish,
+        )
+        self.assertIn("copy /Y deploy\\cluster-node\\*.* dist\\titan-chief-win-x64\\cluster-node\\", publish)
+        self.assertTrue((ROOT / "dist/titan-chief-win-x64/cluster-node/HOLD-LAUNCH.cmd").is_file())
+        self.assertTrue((ROOT / "dist/titan-chief-win-x64/cluster-node/cluster-hold.json").is_file())
+
     def test_desktop3_worker_starts_from_userprofile(self) -> None:
         starter = (ROOT / "deploy/desktop3/START-WORKER.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
         executable = "\n".join(

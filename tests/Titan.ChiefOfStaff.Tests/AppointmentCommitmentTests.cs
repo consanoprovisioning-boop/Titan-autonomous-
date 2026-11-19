@@ -62,6 +62,9 @@ public class AppointmentCommitmentTests
 
     [Theory]
     [InlineData("What time do you close on Saturday?")]
+    [InlineData("Can you confirm Saturday at 10am?")]
+    [InlineData("Could you confirm Saturday at 10?")]
+    [InlineData("Is Saturday at 10am ok?")]
     [InlineData("I'm interested, just looking for now")]
     [InlineData("Maybe Saturday at 10")]
     [InlineData("I can't come in Saturday at 10am")]
@@ -109,6 +112,18 @@ public class AppointmentCommitmentTests
         Assert.False(d.ShouldBook);
         Assert.False(d.ShouldReplyNow);
         Assert.Null(d.ReplyText);
+    }
+
+    [Fact]
+    public void Appointment_set_with_a_new_slot_reschedules()
+    {
+        var monday11 = new DateTimeOffset(2026, 9, 28, 11, 0, 0, TimeSpan.FromHours(-4));
+        var d = Eval("See you Monday at 11am", status: LeadStatus.AppointmentSet, existing: Sat10);
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, d.Action);
+        Assert.True(d.ShouldBook);
+        Assert.Equal(monday11, d.SlotEt);
+        Assert.Equal(LeadStatus.AppointmentSet, d.NewStatus);
+        Assert.True(d.ShouldReplyNow);
     }
 
     [Fact]
