@@ -352,6 +352,53 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertIn("28546", data["blockers"][0])
         self.assertIn("not C:\\Windows\\system32\\Titan.cmd", data["blockers"][0])
 
+    def test_desktop6_acer_userprofile_worker_is_not_a_verified_send_session(self) -> None:
+        tmp = Path("/tmp/eleads-cos-desktop6-online-test")
+        tmp.mkdir(exist_ok=True)
+        workers = tmp / "workers.json"
+        state_path = tmp / "state.json"
+        ticklog = tmp / "TICKLOG.md"
+        receipt = tmp / "verify.json"
+        workers.write_text(json.dumps({
+            "workers": [{
+                "workerId": "3b6886be-8df5-5399-a9f8-0b8c65e254b4",
+                "machineDisplayName": "DeskTop6ACER",
+                "displayName": "c:\\\\Users\\\\glenn\\\\OneDrive\\\\Desktop @ DeskTop6ACER",
+            }]
+        }), encoding="utf-8")
+        receipt.write_text(json.dumps({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+        }), encoding="utf-8")
+        code = launch.main([
+            "--workers-file", str(workers),
+            "--verify-receipt", str(receipt),
+            "--state-file", str(state_path),
+            "--ticklog-file", str(ticklog),
+        ])
+        self.assertEqual(3, code)
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertFalse(data["verify"])
+        self.assertFalse(data["glennVerified"])
+        self.assertTrue(data["workerOnline"])
+        self.assertEqual("3b6886be-8df5-5399-a9f8-0b8c65e254b4", data["workerId"])
+        self.assertEqual([], data["sends"])
+        self.assertEqual([], data["appointments"])
+        self.assertEqual("online", data["cluster"][5]["status"])
+        self.assertEqual("Desktop6", data["cluster"][5]["nodeId"])
+        self.assertFalse(data["cluster"][5]["directoryLooksSystem32"])
+        self.assertEqual("missing", data["cluster"][0]["status"])
+        self.assertEqual("missing", data["cluster"][3]["status"])
+        self.assertIn("CHECKIN.cmd", data["blockers"][0])
+        self.assertIn("28546", data["blockers"][0])
+        self.assertIn("not C:\\Windows\\system32\\Titan.cmd", data["blockers"][0])
+        self.assertIn("DeskTop6ACER", data["blockers"][0])
+        self.assertNotIn("workers=[]", data["blockers"][0])
+        self.assertEqual("none-and-must-not-open-from-cloud", data["eleadsSession"])
+
     def test_scale_out_script_does_not_open_eleads(self) -> None:
         scale = (ROOT / "deploy/cluster-node/SCALE-OUT-8.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
         enroll = (ROOT / "deploy/cluster-node/ENROLL-NODE.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
@@ -474,6 +521,18 @@ class LaunchGuardTests(unittest.TestCase):
         })
         self.assertEqual("Desktop6", alias6[5]["nodeId"])
         self.assertEqual("online", alias6[5]["status"])
+
+        acer6 = launch.inventory_cluster({
+            "workers": [{
+                "workerId": "3b6886be-8df5-5399-a9f8-0b8c65e254b4",
+                "machineDisplayName": "DeskTop6ACER",
+                "displayName": r"c:\Users\glenn\OneDrive\Desktop @ DeskTop6ACER",
+            }]
+        })
+        self.assertEqual("Desktop6", acer6[5]["nodeId"])
+        self.assertEqual("online", acer6[5]["status"])
+        self.assertFalse(acer6[5]["directoryLooksSystem32"])
+        self.assertFalse(acer6[5]["fabricated"])
 
 
 if __name__ == "__main__":

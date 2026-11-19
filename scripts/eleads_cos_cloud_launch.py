@@ -56,7 +56,7 @@ CLUSTER_NODES = (
         "nodeId": "Desktop6",
         "rooftop": "28546",
         "lane": "P1Call",
-        "hostnameHints": ("Desktop6", "DESKTOP6", "DeskTop6", "Node6"),
+        "hostnameHints": ("Desktop6", "DESKTOP6", "DeskTop6", "DeskTop6ACER", "Node6"),
         "provisional": True,
     },
     {
@@ -118,6 +118,22 @@ DESKTOP4_ONLINE_CHECKIN_BLOCKER = (
 DESKTOP4_SYSTEM32_BLOCKER = (
     "Desktop4 worker is online in C:\\Windows\\system32. No agent will be placed there. "
     "Close that worker. From %USERPROFILE% run deploy\\desktop4\\START-WORKER.cmd. "
+    "This cloud host will not open Eleads."
+)
+DESKTOP6_ONLINE_CHECKIN_BLOCKER = (
+    "Desktop6 (DeskTop6ACER) worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
+    "No fresh Verify on this PC. "
+    "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+    "sign in as Bordine, Glenn on 28546, double-click CHECKIN.cmd again, and leave Chrome on CDP 9222. "
+    "This cloud Linux host cannot CreateAgent/PLACE COS and cannot START-WORKER.cmd. "
+    "Alienware-18 MAIN and Desktop4 are missing. This cloud host will not open Eleads."
+)
+DESKTOP5_ONLINE_CHECKIN_BLOCKER = (
+    "Desktop5 worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
+    "No fresh Verify on this PC. "
+    "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+    "sign in as Bordine, Glenn on 28206, double-click CHECKIN.cmd again, and leave Chrome on CDP 9222. "
+    "This cloud Linux host cannot CreateAgent/PLACE COS and cannot START-WORKER.cmd. "
     "This cloud host will not open Eleads."
 )
 
@@ -360,6 +376,35 @@ def cluster_node_row(cluster: list[dict], node_id: str) -> dict | None:
     return None
 
 
+def first_online_userprofile_node(cluster: list[dict]) -> dict | None:
+    for row in cluster:
+        if row.get("status") == "online" and not row.get("directoryLooksSystem32"):
+            return row
+    return None
+
+
+def checkin_blocker_for_online_node(node: dict) -> str:
+    node_id = canonical_node_id(str(node.get("nodeId") or ""))
+    if node_id == "Desktop4":
+        return DESKTOP4_ONLINE_CHECKIN_BLOCKER
+    if node_id == "Desktop6":
+        return DESKTOP6_ONLINE_CHECKIN_BLOCKER
+    if node_id == "Desktop5":
+        return DESKTOP5_ONLINE_CHECKIN_BLOCKER
+    rooftop = str(node.get("rooftop") or "28206").split("+", 1)[0]
+    worker_id = str(node.get("workerId") or "")
+    label = node_id or "cluster-node"
+    return (
+        f"{label} worker {worker_id} is online from %USERPROFILE% (not C:\\Windows\\system32). "
+        "No fresh Verify on this PC. "
+        "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+        f"sign in as Bordine, Glenn on {rooftop}, double-click CHECKIN.cmd again, "
+        "and leave Chrome on CDP 9222. "
+        "This cloud Linux host cannot CreateAgent/PLACE COS and cannot START-WORKER.cmd. "
+        "This cloud host will not open Eleads."
+    )
+
+
 def specialist_results() -> list[dict]:
     return [
         {
@@ -428,18 +473,27 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     stamp = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cluster = inventory_cluster(snapshot)
     released = released_node_ids(hold)
+    live_node = first_online_userprofile_node(cluster)
+    any_cluster_online = any(n.get("status") == "online" for n in cluster)
+    if live_node and live_node.get("workerId"):
+        seen_id = str(live_node.get("workerId") or seen_id)
     if hold_on:
         host = "cloud-linux"
         mode = "draft-blocked-local"
         session = ELEADS_SESSION_NONE
+        verified = False
         if node_is_released(hold, "Desktop4"):
             desktop4 = cluster_node_row(cluster, "Desktop4")
             if desktop4 and desktop4.get("status") == "online" and desktop4.get("directoryLooksSystem32"):
                 blockers = [DESKTOP4_SYSTEM32_BLOCKER]
             elif desktop4 and desktop4.get("status") == "online":
                 blockers = [DESKTOP4_ONLINE_CHECKIN_BLOCKER]
+            elif live_node:
+                blockers = [checkin_blocker_for_online_node(live_node)]
             else:
                 blockers = [DESKTOP4_JOIN_BLOCKER]
+        elif live_node:
+            blockers = [checkin_blocker_for_online_node(live_node)]
         else:
             blockers = [HOLD_BLOCKER]
     return {
@@ -466,7 +520,7 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "ownershipScreenDays": OWNERSHIP_SCREEN_DAYS,
         "eleadsSession": session,
         "workerId": seen_id,
-        "workerOnline": online,
+        "workerOnline": any_cluster_online,
         "timerTick": None,
         "openedFromThisProcess": False,
         "cluster": cluster,
