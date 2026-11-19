@@ -107,9 +107,12 @@ public class ClusterPartitionTests
         Assert.Equal(4, ClusterPartition.OverflowNodes.Count);
         Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Node4"]));
         Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Alienware-18", "Desktop3", "Node3", "Desktop4"]));
-        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Node5"]));
-        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Desktop5"]));
-        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Desktop6"]));
+        Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Node5"]));
+        Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Desktop5"]));
+        Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["Desktop6"]));
+        Assert.False(ClusterPartition.IsScaleOut(presentNodeIds: ["DeskTop6ACER"]));
+        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Node7"]));
+        Assert.True(ClusterPartition.IsScaleOut(presentNodeIds: ["Node8"]));
         Assert.True(ClusterPartition.IsScaleOut(clusterSizeEnv: "8"));
         Assert.True(ClusterPartition.IsScaleOut(modeFileScaleOut: true));
         Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.EffectiveSpec("Alienware-18", scaleOut: false)!.Lane);
@@ -154,12 +157,36 @@ public class ClusterPartitionTests
         Assert.Equal("Desktop5", ClusterPartition.Resolve(null, null, "Desktop5")?.NodeId);
         Assert.Equal("Desktop6", ClusterPartition.Resolve(null, null, "Node6")?.NodeId);
         Assert.Equal("Desktop6", ClusterPartition.Resolve("DeskTop6", null, null)?.NodeId);
+        Assert.Equal("Desktop6", ClusterPartition.Resolve("DeskTop6ACER", null, null)?.NodeId);
         Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: false)!.Lane);
         Assert.Equal(ClusterLane.P1Email, ClusterPartition.Resolve("Alienware-18", null, null, scaleOut: true)!.Lane);
         Assert.Equal("Desktop4", ClusterPartition.Resolve(null, null, "Node4", scaleOut: true)?.NodeId);
         Assert.Equal(ClusterLane.P2P3DatabaseUpgrade, ClusterPartition.EffectiveSpec("Desktop4", scaleOut: true)!.Lane);
         Assert.Equal(ClusterLane.P1Call, ClusterPartition.EffectiveSpec("Desktop5", scaleOut: true)!.Lane);
         Assert.Equal(ClusterLane.P1Call, ClusterPartition.EffectiveSpec("Desktop6", scaleOut: true)!.Lane);
+        Assert.Equal(ClusterLane.P1Organizer, ClusterPartition.EffectiveSpec("Desktop6", scaleOut: false)!.Lane);
+    }
+
+    [Fact]
+    public void Desktop6_covers_mitsubishi_p1_without_stealing_nissan()
+    {
+        var desktop6 = ClusterPartition.EffectiveSpec("Desktop6", scaleOut: false)!;
+        var empty = DailyUpgradeProgress.Empty;
+        Assert.Equal("Desktop6", desktop6.NodeId);
+        Assert.Equal(Policy.MitsubishiId, desktop6.RooftopId);
+        Assert.Equal(ClusterLane.P1Organizer, desktop6.Lane);
+        Assert.Contains(ClusterJobKind.OverdueEmailClearance, desktop6.Jobs);
+        Assert.Contains(ClusterJobKind.OverdueCallReschedule, desktop6.Jobs);
+        Assert.Contains(ClusterJobKind.DailyOrganizerRemainder, desktop6.Jobs);
+        Assert.Contains(ClusterJobKind.SmsInWindow, desktop6.Jobs);
+        Assert.Contains(ClusterJobKind.AppointmentCommitFastPath, desktop6.Jobs);
+        Assert.True(ClusterPartition.MayWorkRooftop(desktop6, "28546"));
+        Assert.False(ClusterPartition.MayWorkRooftop(desktop6, "28206"));
+        Assert.False(ClusterPartition.MayWorkRooftop(desktop6, "6220"));
+        Assert.True(ClusterPartition.MayWorkQueue(desktop6, WorkQueue.Overdue, empty));
+        Assert.False(ClusterPartition.MayWorkQueue(desktop6, WorkQueue.Database, empty));
+        Assert.Equal(4, ClusterPartition.Nodes.Count);
+        Assert.Contains(ClusterPartition.CoveringNodes, n => n.NodeId == "Desktop6");
     }
 
     [Fact]
@@ -206,5 +233,27 @@ public class ClusterPartitionTests
         Assert.True(ClusterPartition.HoldLaunch(paths, "Alienware-18"));
         Assert.True(ClusterPartition.NodeIsReleased("Node4", ["Desktop4"]));
         Assert.False(ClusterPartition.NodeIsReleased("Desktop5", ["Desktop4"]));
+    }
+
+    [Fact]
+    public void Desktop6_per_node_release_does_not_lift_desktop5_or_nissan_main()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-hold-d6-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(root);
+        File.WriteAllText(
+            Path.Combine(root, "cluster-hold.json"),
+            """{"holdLaunch":true,"releasedNodes":["Desktop4","Desktop6"],"clusterMain":"Alienware-18"}""");
+        var paths = new HostPaths(root);
+        Assert.True(paths.ReadHoldLaunch());
+        Assert.Contains("Desktop6", paths.ReadReleasedNodeIds());
+        Assert.True(ClusterPartition.HoldLaunch(paths));
+        Assert.False(ClusterPartition.HoldLaunch(paths, "Desktop6"));
+        Assert.False(ClusterPartition.HoldLaunch(paths, "Node6"));
+        Assert.False(ClusterPartition.HoldLaunch(paths, "DeskTop6ACER"));
+        Assert.False(ClusterPartition.HoldLaunch(paths, "Desktop4"));
+        Assert.True(ClusterPartition.HoldLaunch(paths, "Desktop5"));
+        Assert.True(ClusterPartition.HoldLaunch(paths, "Alienware-18"));
+        Assert.True(ClusterPartition.NodeIsReleased("Node6", ["Desktop4", "Desktop6"]));
+        Assert.False(ClusterPartition.NodeIsReleased("Desktop5", ["Desktop4", "Desktop6"]));
     }
 }

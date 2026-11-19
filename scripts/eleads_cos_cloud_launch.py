@@ -55,9 +55,16 @@ CLUSTER_NODES = (
     {
         "nodeId": "Desktop6",
         "rooftop": "28546",
-        "lane": "P1Call",
+        "lane": "P1Organizer",
         "hostnameHints": ("Desktop6", "DESKTOP6", "DeskTop6", "DeskTop6ACER", "Node6"),
         "provisional": True,
+        "jobs": (
+            "OverdueEmailClearance",
+            "OverdueCallReschedule",
+            "DailyOrganizerRemainder",
+            "SmsInWindow",
+            "AppointmentCommitFastPath",
+        ),
     },
     {
         "nodeId": "Node7",
@@ -101,12 +108,24 @@ HOLD_BLOCKER = (
 )
 DESKTOP4_JOIN_BLOCKER = (
     "Desktop4 is released to join the cluster. clusterHoldLaunch remains held for unreleased nodes. "
-    "Desktop5 and Desktop6 stay install-only until Glenn says so. Alienware-18 is MAIN. "
+    "Desktop5 stays install-only until Glenn says so. Desktop6 (DeskTop6ACER) is also released. "
+    "Alienware-18 is MAIN. "
     "workers=[] so COS is not live on this PC. This cloud host will not open Eleads. "
     "On Desktop4 from %USERPROFILE% (never C:\\Windows\\system32): "
     "run deploy\\desktop4\\INSTALL-COS.cmd if Titan is not installed, then "
     "deploy\\desktop4\\START-WORKER.cmd and leave that window open, then CHECKIN.cmd twice "
     "as Bordine, Glenn on 28546, leave Chrome on CDP 9222. Do not type verify. "
+    "Do not run C:\\Windows\\system32\\Titan.cmd."
+)
+DESKTOP6_JOIN_BLOCKER = (
+    "Desktop6 (DeskTop6ACER) is released to join the cluster with Mitsubishi 28546 P1 jobs. "
+    "clusterHoldLaunch remains held for unreleased nodes. Desktop5 stays install-only. "
+    "Alienware-18 is MAIN Nissan 28206 — Desktop6 must not steal it. "
+    "workers=[] so COS is not live on this PC. This cloud host will not open Eleads. "
+    "On DeskTop6ACER from %USERPROFILE% (never C:\\Windows\\system32): "
+    "run deploy\\desktop6\\INSTALL-COS.cmd if Titan is not installed, then "
+    "deploy\\desktop6\\START-WORKER.cmd and leave that window open, then "
+    "%LOCALAPPDATA%\\TitanChief\\app\\TICK.cmd. "
     "Do not run C:\\Windows\\system32\\Titan.cmd."
 )
 DESKTOP4_ONLINE_CHECKIN_BLOCKER = (
@@ -121,12 +140,17 @@ DESKTOP4_SYSTEM32_BLOCKER = (
     "This cloud host will not open Eleads."
 )
 DESKTOP6_ONLINE_CHECKIN_BLOCKER = (
-    "Desktop6 (DeskTop6ACER) worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
-    "No fresh Verify on this PC. "
-    "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
-    "sign in as Bordine, Glenn on 28546, double-click CHECKIN.cmd again, and leave Chrome on CDP 9222. "
-    "This cloud Linux host cannot CreateAgent/PLACE COS and cannot START-WORKER.cmd. "
-    "Alienware-18 MAIN and Desktop4 are missing. This cloud host will not open Eleads."
+    "Desktop6 (DeskTop6ACER) is in the cluster with Mitsubishi 28546 P1 jobs. "
+    "Cursor worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
+    "Cloud Linux has no CreateAgent/place-worker API, so Titan COS is not running on that worker. "
+    "On DeskTop6ACER from %USERPROFILE% (never C:\\Windows\\system32): "
+    "double-click %LOCALAPPDATA%\\TitanChief\\app\\TICK.cmd "
+    "(or %USERPROFILE%\\Titan-autonomous-\\deploy\\alienware-local-program\\TICK.cmd). "
+    "The Cursor worker is already running — do not start a second worker. "
+    "Do not run C:\\Windows\\system32\\Titan.cmd. "
+    "Assigned jobs: overdue emails first, then reschedule overdue calls, then organizer remainder; "
+    "SMS 08:00-21:00 ET; appointment-commit fast path if replies. P2/P3 only after 28546 P1 is clear. "
+    "Do not take Nissan 28206. This cloud host will not open Eleads."
 )
 DESKTOP5_ONLINE_CHECKIN_BLOCKER = (
     "Desktop5 worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
@@ -234,6 +258,7 @@ def inventory_cluster(snapshot: dict) -> list[dict]:
             "workerId": str(row.get("workerId") or ""),
             "directoryLooksSystem32": worker_directory_is_system32(row),
             "fabricated": False,
+            "jobs": list(node.get("jobs") or []),
         }
     inventory = []
     for node in CLUSTER_NODES:
@@ -248,6 +273,7 @@ def inventory_cluster(snapshot: dict) -> list[dict]:
             "workerId": None,
             "directoryLooksSystem32": False,
             "fabricated": False,
+            "jobs": list(node.get("jobs") or []),
         })
     return inventory
 
@@ -325,7 +351,7 @@ def load_cluster_hold(path: Path | None = None) -> dict:
     data.setdefault("releasedNodes", [])
     data.setdefault("desktop4", {"status": "installing", "lane": "provisional-28546-P2P3"})
     data.setdefault("desktop5", {"status": "installing", "lane": "provisional-28206-P1Call"})
-    data.setdefault("desktop6", {"status": "installing", "lane": "provisional-28546-P1Call"})
+    data.setdefault("desktop6", {"status": "released-for-launch", "lane": "provisional-28546-P1Organizer"})
     return data
 
 
@@ -531,7 +557,11 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "wifiConnected": hold.get("wifiConnected") or ["Desktop4", "Desktop5", "Desktop6"],
         "desktop4": hold.get("desktop4") or {"status": "released-for-launch", "lane": "provisional-28546-P2P3"},
         "desktop5": hold.get("desktop5") or {"status": "installing", "lane": "provisional-28206-P1Call"},
-        "desktop6": hold.get("desktop6") or {"status": "installing", "lane": "provisional-28546-P1Call"},
+        "desktop6": hold.get("desktop6") or {"status": "released-for-launch", "lane": "provisional-28546-P1Organizer"},
+        "loggedIn": bool((hold.get("desktop6") or {}).get("loggedIn") or (hold.get("desktop6") or {}).get("loginClaim")),
+        "loginClaim": bool((hold.get("desktop6") or {}).get("loginClaim")),
+        "cosStartedOnWorker": False,
+        "assignedJobs": list((hold.get("desktop6") or {}).get("jobs") or []),
     }
 
 

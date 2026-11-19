@@ -4,7 +4,7 @@ The live **4-PC go-live stays**. Alienware-18, Desktop3, Node3, and Desktop4 (No
 
 **Alienware-18 is MAIN** (coordinator, clone source, lease host). Specialists clone from Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator. WiFi on the LAN is not a Cursor worker.
 
-**Per-node hold.** Desktop4 is released to join. Desktop5 and Desktop6 stay clone/install/enroll only. Do not `START-WORKER` on unreleased overflow nodes. Do not `SCALE-OUT-8.cmd` yet.
+**Per-node hold.** Desktop4 and Desktop6 (DeskTop6ACER) are released to join. Desktop5 stays clone/install/enroll only. Desktop6 covers Mitsubishi 28546 P1 organizer until SCALE-OUT-8. Do not `START-WORKER` on unreleased overflow nodes. Do not `SCALE-OUT-8.cmd` yet.
 
 Cloud Linux writes this playbook. Glenn clones and installs on each PC. This file does not claim any node is online.
 
@@ -32,7 +32,7 @@ Turn scale-out on with `deploy\cluster-node\SCALE-OUT-8.cmd` on every PC (and se
 | PC3 | Node3 | 28206 | P2/P3 | Comb Nissan DB, then tailored upgrades |
 | PC4 | Desktop4 (Node4, provisional) | 28546 | P2/P3 | Comb Mitsubishi DB, then tailored upgrades |
 | PC5 | Desktop5 (Node5, **provisional**) | 28206 | P1 calls | Reschedule overdue Nissan **calls**. Never mark a call complete if no call occurred. Final COS tasks wait for Glenn’s per-PC study |
-| PC6 | Desktop6 (Node6, **provisional**) | 28546 | P1 calls | Reschedule overdue Mitsubishi **calls**. Final COS tasks wait for Glenn’s per-PC study |
+| PC6 | Desktop6 (Node6 / DeskTop6ACER, **provisional, released**) | 28546 | P1 organizer until SCALE-OUT-8; P1 calls after | Now: Mitsubishi P1 overdue emails, overdue calls, organizer remainder, SMS, appt-commit. After SCALE-OUT-8: calls only |
 | PC7 | Node7 | 28206 and 28546 | SMS in window | Eligible SMS 08:00–21:00 ET. One customer lease still blocks the other nodes |
 | PC8 | Node8 | 28206 and 28546 | Appointment-commit | Fast path when day and time are already in correspondence. Lease preempts other lanes |
 
@@ -58,14 +58,14 @@ Do not spawn 51 agents on one PC. Do not Verify two PCs into TKO 6220.
 
 ## What Glenn does when the next 4 boxes arrive
 
-On **Desktop5** and **Desktop6** (named overflow; install only, then STOP):
+On **Desktop5** (named overflow; install only, then STOP) and **Desktop6** (released covering Mitsubishi P1):
 
 ```bat
 \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop5\INSTALL-COS.cmd
 \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
 ```
 
-Those files refuse `START-WORKER`. Playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. Enroll `Desktop5`/`Node5` or `Desktop6`/`Node6`. Do **not** run `SCALE-OUT-8.cmd` yet.
+Desktop5 refuses `START-WORKER`. Desktop6 is released: next is `START-WORKER.cmd` if the worker is not already running, then `TICK.cmd`. Playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. Enroll `Desktop5`/`Node5` or `Desktop6`/`Node6`. Do **not** run `SCALE-OUT-8.cmd` yet.
 
 On **each remaining unnamed PC** (clone from Alienware-18, enroll Node7 or Node8). **Install only while launch is held:**
 

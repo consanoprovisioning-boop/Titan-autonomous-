@@ -1,6 +1,6 @@
 {
   "holdLaunch": true,
-  "releasedNodes": ["Desktop4"],
+  "releasedNodes": ["Desktop4", "Desktop6"],
   "clusterMain": "Alienware-18",
   "leaseHost": "Alienware-18",
   "leaseDirHint": "\\\\Alienware-18\\Users\\Glenn R Bordine\\TitanChief-leases",
@@ -14,8 +14,20 @@
     "lane": "provisional-28206-P1Call"
   },
   "desktop6": {
-    "status": "installing",
-    "lane": "provisional-28546-P1Call"
+    "status": "released-for-launch",
+    "lane": "provisional-28546-P1Organizer",
+    "hostname": "DeskTop6ACER",
+    "workerId": "3b6886be-8df5-5399-a9f8-0b8c65e254b4",
+    "loggedIn": true,
+    "loginClaim": true,
+    "loginClaimSource": "Glenn 2026-11-19 CHECKIN.cmd claimed logged in on DeskTop6ACER. Login claim is not Verify.",
+    "jobs": [
+      "OverdueEmailClearance",
+      "OverdueCallReschedule",
+      "DailyOrganizerRemainder",
+      "SmsInWindow",
+      "AppointmentCommitFastPath"
+    ]
   },
-  "reason": "Glenn released Desktop4 only (this PC) to finish setup and join the live cluster. clusterHoldLaunch stays true for nodes he has not released. Desktop5 and Desktop6 stay install-only. Alienware-18 is MAIN (coordinator, clone source, lease host). WiFi is not a Cursor worker. Cloud Linux must not open Eleads or claim COS live while workers=[]."
+  "reason": "Glenn released Desktop6 (DeskTop6ACER / this PC) to start Titan COS and take Mitsubishi 28546 P1 jobs now. Desktop4 stays released. Desktop5 stays install-only. Alienware-18 remains MAIN Nissan 28206 P1 (offline; Desktop6 must not steal it). holdLaunch stays true for unreleased nodes. Do not SCALE-OUT-8. Cloud Linux must not open Eleads or fabricate sends."
 }

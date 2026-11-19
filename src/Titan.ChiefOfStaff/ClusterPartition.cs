@@ -2,9 +2,10 @@ namespace Titan.ChiefOfStaff;
 
 /// <summary>
 /// Local cluster for Titan COS. The live 4-PC go-live set is unchanged:
-/// Alienware-18, Desktop3, Node3, Desktop4 (Node4). Desktop5 (Node5) and
-/// Desktop6 (Node6) are named 8-PC overflow; Node7–Node8 stay unnamed until enrolled.
-/// Same clone / %USERPROFILE% worker / CDP 9222 path. Lanes for Desktop5/6 are provisional.
+/// Alienware-18, Desktop3, Node3, Desktop4 (Node4). Desktop5 (Node5) stays
+/// 8-PC overflow / install-only. Desktop6 (Node6 / DeskTop6ACER) is released
+/// to cover Mitsubishi 28546 P1 while Desktop3 is missing; Node7–Node8 stay
+/// unnamed until enrolled. Same clone / %USERPROFILE% worker / CDP 9222 path.
 /// This type only assigns. Cloud Linux never opens Eleads or claims sends.
 /// </summary>
 public enum ClusterLane
@@ -130,7 +131,7 @@ public static class ClusterPartition
                 ClusterJobKind.DatabaseComb,
                 ClusterJobKind.TailoredUpgradeEmail
             ],
-            "Provisional Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails after Desktop3 P1. Glenn released Desktop4 to join the cluster; Desktop5/Desktop6 stay install-only. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4.",
+            "Provisional Valdosta Mitsubishi 28546 P2/P3 — comb database then tailored upgrade emails after 28546 P1 is clear. Glenn released Desktop4 to join; Desktop6 covers Mitsubishi P1 while Desktop3 is missing. Desktop5 stays install-only. Cloud does not copy files onto Desktop4. Enroll as Desktop4 or Node4.",
             Aliases: [Node4Template])
     ];
 
@@ -176,8 +177,8 @@ public static class ClusterPartition
             Policy.MitsubishiId,
             ClusterLane.P1Call,
             [ClusterJobKind.OverdueCallReschedule],
-            "Provisional 8-PC overflow: Valdosta Mitsubishi 28546 P1 overdue call reschedule. Final COS tasks wait until Glenn says the cluster is complete. Never mark a call complete if no call occurred. Enroll as Desktop6 or Node6. Do not launch until Glenn releases the hold.",
-            Aliases: [Node6Template]),
+            "8-PC overflow: Valdosta Mitsubishi 28546 P1 overdue call reschedule only. Until SCALE-OUT-8, Desktop6 covers full Mitsubishi P1 (see CoveringNodes). Never mark a call complete if no call occurred. Enroll as Desktop6 or Node6.",
+            Aliases: [Node6Template, "DeskTop6ACER"]),
         new(
             Node7Template,
             "Node7 (PC7, unnamed until enrolled)",
@@ -201,8 +202,33 @@ public static class ClusterPartition
     public static IReadOnlyList<ClusterNodeSpec> OverflowNodes { get; } =
         ScaleOutNodes.Where(n => OverflowNodeIds.Contains(n.NodeId, StringComparer.OrdinalIgnoreCase)).ToArray();
 
+    /// <summary>
+    /// Released overflow PCs that cover a missing 4-PC P1 seat until SCALE-OUT-8.
+    /// Desktop6 (DeskTop6ACER) takes Mitsubishi 28546 P1 organizer jobs now.
+    /// Presence of Desktop6 alone does not turn on 8-PC scale-out.
+    /// </summary>
+    public static IReadOnlyList<ClusterNodeSpec> CoveringNodes { get; } =
+    [
+        new(
+            Desktop6,
+            "Desktop6 (PC6 / Node6 / DeskTop6ACER, covering Mitsubishi P1)",
+            "Desktop6",
+            Policy.MitsubishiId,
+            ClusterLane.P1Organizer,
+            [
+                ClusterJobKind.AppointmentCommitFastPath,
+                ClusterJobKind.OverdueEmailClearance,
+                ClusterJobKind.OverdueCallReschedule,
+                ClusterJobKind.DailyOrganizerRemainder,
+                ClusterJobKind.SmsInWindow
+            ],
+            "Provisional covering: Valdosta Mitsubishi 28546 P1 — overdue emails first, then overdue call reschedule, Daily Organizer remainder, SMS 08:00–21:00 ET, appointment-commit fast path. Glenn assigned these jobs now on DeskTop6ACER. Do not take Nissan 28206. P2/P3 only after this rooftop P1 is clear. Enroll as Desktop6, Node6, or DeskTop6ACER.",
+            Aliases: [Node6Template, "DeskTop6ACER"])
+    ];
+
     public static IReadOnlyList<ClusterNodeSpec> AllKnownNodes { get; } =
-        Nodes.Concat(OverflowNodes).ToArray();
+        Nodes.Concat(CoveringNodes).Concat(OverflowNodes.Where(n =>
+            !CoveringNodes.Any(c => string.Equals(c.NodeId, n.NodeId, StringComparison.OrdinalIgnoreCase)))).ToArray();
 
     public static bool IsOverflowNode(string? nodeId)
         => !string.IsNullOrWhiteSpace(nodeId)
@@ -223,16 +249,20 @@ public static class ClusterPartition
             return true;
         }
 
-        return presentNodeIds?.Any(IsOverflowNode) == true;
+        // Desktop5/Desktop6 presence is covering or install-only, not SCALE-OUT-8.
+        // Only Node7/Node8 (or the mode file / TITAN_CLUSTER_SIZE=8) turn scale-out on.
+        return presentNodeIds?.Any(id =>
+            string.Equals(CanonicalNodeId(id), Node7Template, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(CanonicalNodeId(id), Node8Template, StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     public static IReadOnlyList<ClusterNodeSpec> ActiveNodes(bool scaleOut)
-        => scaleOut ? ScaleOutNodes : Nodes;
+        => scaleOut ? ScaleOutNodes : Nodes.Concat(CoveringNodes).ToArray();
 
     /// <summary>
     /// Glenn standing order: install/enroll allowed on unreleased nodes.
-    /// Desktop4 is in releasedNodes and may launch. Other nodes stay fail-closed
-    /// while holdLaunch is true. TITAN_CLUSTER_HOLD_LAUNCH=off is the global override.
+    /// Desktop4 and Desktop6 are in releasedNodes and may launch. Other nodes stay
+    /// fail-closed while holdLaunch is true. TITAN_CLUSTER_HOLD_LAUNCH=off is the global override.
     /// </summary>
     public static bool HoldLaunch(HostPaths? paths, string? nodeId = null)
     {

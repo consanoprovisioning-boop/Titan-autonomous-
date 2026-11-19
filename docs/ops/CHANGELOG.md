@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-19 — Desktop6 (DeskTop6ACER) per-node release + Mitsubishi 28546 P1 jobs TITAN-CHANGE-MULTIAGENT-001 v0.5.6
+
+**Decision (Glenn, this PC = Desktop6 / DeskTop6ACER):** “logged in start Titan COS on this PC put into cluster and give jobs.” Overrides the previous install-only hold **for Desktop6 only**. Desktop4 stays released. Desktop5 stays install-only. Alienware-18 stays MAIN Nissan 28206 P1 — Desktop6 must not steal it.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.6.md`. `cluster-hold.json` keeps `"holdLaunch": true` and sets `"releasedNodes": ["Desktop4", "Desktop6"]`. Covering lane: Desktop6 = Mitsubishi **28546 P1 organizer** (overdue emails first, then overdue call reschedule, then organizer remainder, SMS 08:00–21:00 ET, appointment-commit). Presence of Desktop6 does not turn on SCALE-OUT-8. v0.5.0–v0.5.5 are not rewritten.
+
+**This cloud inventory:** `list-self-hosted-workers scope=all status=all` → DeskTop6ACER worker `3b6886be-8df5-5399-a9f8-0b8c65e254b4` ONLINE from `%USERPROFILE%` (not system32), idle, eligibleForSubagent. cursor-cloud has no CreateAgent/place-worker API, so COS was **not** placed. CHECKIN.cmd claimed logged in (login claim, not Verify). `sends=[]`. Cloud Linux did not open Eleads. Remaining human step: on DeskTop6ACER double-click `%LOCALAPPDATA%\TitanChief\app\TICK.cmd`. Do not run `C:\Windows\system32\Titan.cmd`.
+
 ## 2026-11-06 — Desktop4 per-node release to join cluster TITAN-CHANGE-MULTIAGENT-001 v0.5.5
 
 **Decision (Glenn, this PC = Desktop4 / DeskTop4):** “finish setup and launch COS to add this PC to cluster.” Overrides the previous all-PCs-ready hold **for Desktop4 only**. Desktop5 and Desktop6 stay install-only.

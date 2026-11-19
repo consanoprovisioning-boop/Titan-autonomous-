@@ -4,7 +4,7 @@ Titan Autonomous and Titan Chief of Staff live on all four Windows PCs. Cloud Li
 
 **Alienware-18 is the MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop3, Desktop4, Desktop5, Desktop6, and later nodes are specialists that clone **from** Alienware-18. Do not make Desktop4, Desktop5, or Desktop6 the coordinator.
 
-**Per-node hold.** Glenn released **Desktop4** to finish setup and join. `holdLaunch` stays true (`clusterHoldLaunch` remains for unreleased nodes). Desktop5 and Desktop6 stay install-only. Do **not** run `START-WORKER.cmd` on unreleased nodes.
+**Per-node hold.** Glenn released **Desktop4** and **Desktop6 (DeskTop6ACER)** to join. `holdLaunch` stays true (`clusterHoldLaunch` remains for unreleased nodes). Desktop5 stays install-only. Do **not** run `START-WORKER.cmd` on unreleased nodes.
 
 Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn**. CDP **9222**. Desktop4 workers start from `%USERPROFILE%`.
 
@@ -17,7 +17,7 @@ Rooftops **28206** and **28546** only. Never **6220**. Identity **Bordine, Glenn
 | PC3 | Node3 (enroll a real hostname) | Valdosta Nissan 28206 | P2/P3 | Comb the Nissan database, then tailored upgrade emails |
 | PC4 | Desktop4 (Node4, **provisional**) | Valdosta Mitsubishi 28546 | P2/P3 | Comb the Mitsubishi database, then tailored upgrade emails. Final COS tasks wait for Glenn’s per-PC study |
 
-Desktop5 (Node5) and Desktop6 (Node6) are **named 8-PC overflow** PCs on WiFi, not 4-PC go-live seats. Provisional: Desktop5 ≈ Nissan 28206 P1 calls; Desktop6 ≈ Mitsubishi 28546 P1 calls. See `docs/deploy/cluster-8pc.md`. WiFi ≠ Cursor worker.
+Desktop5 (Node5) is **named 8-PC overflow**, install-only. Desktop6 (Node6 / DeskTop6ACER) is **released** and covers Mitsubishi 28546 P1 organizer while Desktop3 is missing (overdue emails, overdue call reschedule, organizer remainder, SMS 08:00–21:00 ET, appointment-commit). That covering does **not** turn on `SCALE-OUT-8`. See `docs/deploy/cluster-8pc.md`. WiFi ≠ Cursor worker.
 
 P2/P3 on a rooftop stay closed until that rooftop’s P1 overdue / organizer work is clear. Appointment-commit fast path (PR #16) preempts the rooftop owner. Daily upgrade order (PR #17) is P1 → P2 → P3.
 
@@ -31,9 +31,9 @@ P2 database comb does not send. P3 tailored upgrades send only after P1 and P2 o
 
 What still blocks live sending:
 
-- **Cluster launch hold** (`holdLaunch=true`) on every node except `releasedNodes` (Desktop4).
-- No self-hosted worker online (`workers=[]` on the last cloud inventory). COS is not live until Glenn runs `START-WORKER.cmd` on Desktop4 from `%USERPROFILE%`.
-- No Glenn Verify on that PC (`CHECKIN.cmd` twice, Chrome left open on 9222).
+- **Cluster launch hold** (`holdLaunch=true`) on every node except `releasedNodes` (Desktop4, Desktop6).
+- Cloud Linux has no CreateAgent/place-worker API. A Cursor worker online on DeskTop6ACER is not Titan COS until Glenn runs `TICK.cmd` on that PC.
+- No host-side COS tick on that PC. Login claim is not Verify.
 - Worker started from `C:\Windows\system32`.
 - This cloud Linux agent — it will not open Eleads or claim sends.
 
@@ -46,7 +46,7 @@ What still blocks live sending:
 
 ## Per-PC install now (launch held)
 
-One-shots. Desktop4 may START-WORKER after install. Desktop5/Desktop6 refuse `START-WORKER`:
+One-shots. Desktop4 and Desktop6 may START-WORKER after install. Desktop5 refuses `START-WORKER`:
 
 ```bat
 \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop4\INSTALL-COS.cmd
@@ -59,7 +59,7 @@ Other PCs:
 1. Clone **from Alienware-18**. GitHub is fallback.
 2. `INSTALL.cmd` once if the host is missing. That is not Verify.
 3. Enroll: `deploy\cluster-node\ENROLL-NODE.cmd Alienware-18` (or `Desktop3`, `Desktop4`, `Desktop5`, `Desktop6`, `Node3`–`Node8`).
-4. Desktop4: double-click `START-WORKER.cmd` from `%USERPROFILE%`. Desktop5/Desktop6: **STOP** — install-only.
+4. Desktop4 / Desktop6: double-click `START-WORKER.cmd` from `%USERPROFILE%` if the worker is not already running. Desktop5: **STOP** — install-only. Desktop6 next is `TICK.cmd`.
 
 Desktop4 next: `CHECKIN.cmd` twice as Bordine, Glenn on **28546**, leave Chrome open on 9222. Do not Verify two PCs onto the same rooftop tab set.
 

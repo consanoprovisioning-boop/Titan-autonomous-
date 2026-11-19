@@ -1,6 +1,6 @@
 # Desktop4 — install Titan from Alienware-18, then join the cluster
 
-**Cloud did not copy files onto Desktop4.** This playbook is what Glenn runs **on Desktop4**. Desktop4 is released to join. Desktop5 and Desktop6 stay install-only.
+**Cloud did not copy files onto Desktop4.** This playbook is what Glenn runs **on Desktop4**. Desktop4 is released to join. Desktop6 (DeskTop6ACER) is also released. Desktop5 stays install-only.
 
 **Alienware-18 is the PC cluster MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop4 is a specialist that clones **from** Alienware-18. Do not make Desktop4 the coordinator.
 
@@ -145,7 +145,7 @@ Install on Desktop4 is done. **Now** join the cluster:
 2. Close every Chrome window and the tray icon.
 3. `CHECKIN.cmd` beside `Titan.ChiefOfStaff.exe`, sign in as Bordine, Glenn on **28546**, `CHECKIN.cmd` again. Leave Chrome on CDP 9222. Do not type `verify`. Do not run `C:\Windows\system32\Titan.cmd`.
 
-Provisional job: Mitsubishi 28546 P2/P3 after Desktop3 P1 is clear. Desktop5 and Desktop6 stay install-only.
+Provisional job: Mitsubishi 28546 P2/P3 after 28546 P1 is clear (Desktop6 covers that P1 while Desktop3 is missing). Desktop5 stays install-only.
 
 ## Cloud attach
 

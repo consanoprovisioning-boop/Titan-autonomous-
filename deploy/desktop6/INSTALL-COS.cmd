@@ -1,12 +1,12 @@
 @echo off
 setlocal
-title Desktop6 Titan COS install only - launch held
-REM One-shot INSTALL only for Desktop6. cmd.exe only. No PowerShell.
+title Desktop6 Titan COS install - released to join
+REM One-shot INSTALL for Desktop6 (DeskTop6ACER). cmd.exe only. No PowerShell.
 REM Clones from Alienware-18 if the repo is missing, checks out the cluster
 REM branch, copies or publishes dist\titan-chief-win-x64, runs INSTALL.cmd,
 REM runs ENROLL-NODE.cmd Desktop6, then STOPS.
 REM Does not start Titan.ChiefOfStaff.exe. Does not open Eleads.
-REM Does not type a password. Does not START-WORKER. Does not CHECKIN-to-send.
+REM Does not type a password. Does not START-WORKER. Desktop6 is released.
 
 if /i "%~1"=="START-WORKER" goto :refuse_start
 if /i "%~1"=="START-WORKER.cmd" goto :refuse_start
@@ -41,9 +41,11 @@ set "SRC_REPO=%~dp0..\.."
 set "DIST=%REPO%\dist\titan-chief-win-x64"
 set "AW_DIST=%AW_REPO%\dist\titan-chief-win-x64"
 
-echo Desktop6 Titan COS install-only. Launch is held.
+echo Desktop6 Titan COS install. This PC is released to join.
 echo Cluster MAIN is Alienware-18. Rooftops 28206 and 28546 only. Never 6220.
-echo Identity Bordine, Glenn. holdLaunch=true. This is not Verify.
+echo Identity Bordine, Glenn. holdLaunch=true for unreleased nodes. releasedNodes includes Desktop6.
+echo Assigned jobs: Mitsubishi 28546 P1 overdue emails, overdue calls, organizer remainder, SMS, appt-commit.
+echo This is not Verify.
 echo.
 
 REM --- clone into %%USERPROFILE%% if the repo is missing ---
@@ -149,16 +151,19 @@ if errorlevel 1 (
 
 echo.
 echo ============================================================
-echo INSTALLED. LAUNCH HELD.
-echo Titan COS is installed on Desktop6.
+echo INSTALLED. DESKTOP6 RELEASED TO JOIN.
+echo Titan COS is installed on Desktop6 (DeskTop6ACER).
 echo kill.switch is armed. This is not Verify and not send authorization.
-echo Enrolled as Desktop6 (Node6), rooftop 28546 P1 calls provisional.
-echo Cluster MAIN is Alienware-18. holdLaunch=true.
-echo STOP. Do NOT run START-WORKER.cmd.
-echo Do NOT CHECKIN-to-send. Do NOT place COS.
-echo Wait until Glenn says all PCs are ready and online.
-echo Never 6220. Never start from C:\Windows\system32.
-echo Cloud Linux did not run this installer.
+echo Enrolled as Desktop6 (Node6), rooftop 28546 P1 organizer provisional.
+echo Jobs: overdue emails first, then overdue call reschedule, then organizer remainder.
+echo SMS 08:00-21:00 ET. Appointment-commit fast path if replies.
+echo Do not take Nissan 28206. P2/P3 only after 28546 P1 is clear.
+echo Cluster MAIN is Alienware-18. holdLaunch=true for unreleased nodes.
+echo releasedNodes=Desktop4,Desktop6. Desktop5 stays install-only.
+echo NEXT on this PC from %%USERPROFILE%%: if the Cursor worker is not already
+echo running, deploy\desktop6\START-WORKER.cmd. Then TICK.cmd beside Titan.ChiefOfStaff.exe.
+echo Do not run C:\Windows\system32\Titan.cmd.
+echo Cloud Linux did not run this installer and cannot start the worker or COS.
 echo ============================================================
 echo.
 pause
@@ -167,9 +172,8 @@ exit /b 0
 
 :refuse_start
 echo.
-echo REFUSED: INSTALL-COS.cmd is install-only. It will not run START-WORKER.
-echo Launch is held. holdLaunch=true. Cluster MAIN is Alienware-18.
-echo Do NOT CHECKIN-to-send. Do NOT place COS. Never 6220.
+echo REFUSED: INSTALL-COS.cmd does not start the worker. Run START-WORKER.cmd next if it is not already running.
+echo Desktop6 is released. Cluster MAIN is Alienware-18. Never 6220.
 echo.
 pause
 endlocal

@@ -7,7 +7,7 @@ description: Live Eleads chief-of-staff loop for Glenn Bordine at Valdosta Nissa
 
 This is a live rooftop system. Ban the words pilot, MVP, and prototype in this work. Do not invent customers, stock, payments, APRs, or appointment times.
 
-Read `docs/ops/eleads-valdosta.md`, `docs/deploy/alienware-18.md`, and `docs/deploy/cluster-4pc.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cluster delegation: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`. Desktop5/Desktop6 install-only playbooks: `docs/deploy/desktop5.md`, `docs/deploy/desktop6.md`. Desktop4 is released to join; other nodes stay held.
+Read `docs/ops/eleads-valdosta.md`, `docs/deploy/alienware-18.md`, and `docs/deploy/cluster-4pc.md` before acting. Source packet (preserved as filed): `docs/ops/sources/Eleads-operating-instructions.md`. Decision log: `docs/ops/CHANGELOG.md`. Continual loop with deployed sub-agents: `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cluster delegation: `.cursor/skills/titan-cos-multiagent-cluster/SKILL.md`. Desktop5 install-only: `docs/deploy/desktop5.md`. Desktop6 released playbook: `docs/deploy/desktop6.md`. Desktop4 and Desktop6 are released to join; Desktop5 stays held.
 
 ## Authorization (Version 1.1)
 
@@ -30,7 +30,7 @@ Exact-draft is **not** a hard stop under V1.1. The original PDF/RTF/source packe
 
 If Alienware-18 is offline or not Glenn-verified: do not claim CRM work. Inventory blockers, update `/cursor/stores/self/eleads-valdosta-state.json` and `TICKLOG.md`, Slack only when the host blocker **changes** or a Bordine lead is actually worked. Compaction/continuation mid-wait is not a new numbered tick.
 
-Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It refuses to open Eleads and records ready or blocked. Alienware-18 is MAIN. Desktop4 may START-WORKER / CHECKIN. Desktop5 and Desktop6 stay install-only.
+Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-cos-loop/SKILL.md`. Cloud attach is `scripts/launch-eleads-cos-loop.sh`. It refuses to open Eleads and records ready or blocked. Alienware-18 is MAIN. Desktop4 and Desktop6 may START-WORKER. Desktop6 covering jobs are Mitsubishi 28546 P1. Desktop5 stays install-only.
 
 ## Work order (while session live)
 

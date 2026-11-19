@@ -1,27 +1,20 @@
-# Desktop6 — install Titan from Alienware-18 (no launch)
+# Desktop6 — install Titan from Alienware-18, then join the cluster
 
-**Cloud did not copy files onto Desktop6.** This playbook is what Glenn runs **on Desktop6**. Clone, install, and enroll only.
+**Cloud did not copy files onto Desktop6.** This playbook is what Glenn runs **on Desktop6 (DeskTop6ACER)**. Desktop6 is released to join. Desktop5 stays install-only.
 
-**Alienware-18 is the PC cluster MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop6 is a specialist that clones **from** Alienware-18. Do not make Desktop6 the coordinator. Desktop4 is also not the coordinator.
+**Alienware-18 is the PC cluster MAIN computer:** coordinator, clone source, and lease host (`TITAN_LEASE_DIR` on Alienware-18). Desktop6 is a specialist that clones **from** Alienware-18. Do not make Desktop6 the coordinator. Desktop6 must **not** take Nissan **28206**.
 
-**Provisional lane (not final):** named **Node6**, rooftop **Valdosta Mitsubishi 28546**, 8-PC overflow **P1 calls**. This is **not** a 4-PC go-live seat. Glenn will say when the cluster is complete. Then we study each PC’s devices/ability and assign best-fit COS tasks. Not now. Do not run `SCALE-OUT-8.cmd` yet.
+**Provisional jobs (Glenn assigned now, device study later):** named **Node6**, rooftop **Valdosta Mitsubishi 28546**, P1 organizer. Order: overdue emails first (no extra approval after Verify), then reschedule overdue calls, then organizer remainder. SMS **08:00–21:00** ET. Appointment-commit fast path if replies. P2/P3 only after that rooftop P1 is clear.
 
-WiFi on the LAN is not a Cursor worker. Never **6220**. Identity **Bordine, Glenn**. Worker directory **`%USERPROFILE%`**, never `C:\Windows\system32`. Chrome CDP **9222**. SMS **08:00–21:00** ET. Ownership screen **180 days**. P1 before P2/P3. Never mark a call complete if no call occurred.
+Never **6220**. Identity **Bordine, Glenn**. Worker directory **`%USERPROFILE%`**, never `C:\Windows\system32`. Chrome CDP **9222**. Ownership screen **180 days**. P1 before P2/P3.
 
-## DO NOT launch
+## Desktop6 is released
 
-Until Glenn says **all PCs are ready and online**, do **not**:
+Glenn released **this PC** (DeskTop6ACER) to start Titan COS and take Mitsubishi 28546 P1 jobs now. `cluster-hold.json` keeps `"holdLaunch": true` (clusterHoldLaunch remains for unreleased nodes) and lists `"releasedNodes": ["Desktop4", "Desktop6"]`. `START-WORKER.cmd` on Desktop6 is allowed. Do not start the worker from `C:\Windows\system32`. Cloud Linux cannot run `agent worker start` or `TICK.cmd` on this Windows box, and has no CreateAgent/place-worker API.
 
-- run `START-WORKER.cmd`
-- run `agent worker start`
-- CHECKIN-to-send / Verify as go-live
-- place a COS agent on Desktop6
-- start `Titan.ChiefOfStaff.exe`
-- turn on 8-PC scale-out
+A Cursor worker already online from `%USERPROFILE%` (including `C:\Users\glenn\OneDrive\Desktop`) is the cluster worker. Do not start a second worker. That worker process is **not** Titan COS.
 
-`START-WORKER.cmd` fail-closes while `deploy\cluster-node\cluster-hold.json` has `"holdLaunch": true`. Install and enroll are allowed.
-
-## One-shot on Desktop6 (install only)
+## One-shot on Desktop6 (install, then START COS)
 
 Command Prompt on Desktop6, from `%USERPROFILE%`. Never `C:\Windows\system32`.
 
@@ -45,7 +38,7 @@ If the repo is already under `%USERPROFILE%\Titan-autonomous-`:
 "%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd"
 ```
 
-That one file clones from Alienware-18 if the repo is missing, checks out `cursor/eleads-cluster-4pc-7dfe`, copies or publishes `dist\titan-chief-win-x64`, runs `INSTALL.cmd`, runs `ENROLL-NODE.cmd Desktop6`, prints **INSTALLED. LAUNCH HELD.**, and **STOPS**. It refuses `START-WORKER`. It does not CHECKIN-to-send. Cloud Linux cannot run this file.
+That one file clones from Alienware-18 if the repo is missing, checks out `cursor/eleads-cluster-4pc-7dfe`, copies or publishes `dist\titan-chief-win-x64`, runs `INSTALL.cmd`, runs `ENROLL-NODE.cmd Desktop6`, prints **INSTALLED. DESKTOP6 RELEASED TO JOIN.**, and **STOPS**. It does not start the worker itself. Cloud Linux cannot run this file.
 
 ## What Glenn needs on Desktop6
 
@@ -53,7 +46,7 @@ That one file clones from Alienware-18 if the repo is missing, checks out `curso
 - Git (LAN clone from Alienware-18) or network share access (robocopy)
 - .NET 8 desktop runtime (SDK only if this PC must publish)
 - Google Chrome
-- Cursor CLI (`agent`) signed in (`agent login`) — install the CLI; do not start the worker yet
+- Cursor CLI (`agent`) signed in (`agent login`) — worker may already be running from `%USERPROFILE%`
 
 The steps below are what `INSTALL-COS.cmd` does. Use them only if you are not running the one-shot.
 
@@ -120,9 +113,9 @@ cd /d "%USERPROFILE%\Titan-autonomous-"
 scripts\publish-win-x64.cmd
 ```
 
-Confirm `Titan.ChiefOfStaff.exe` is present. `INSTALL.cmd` sits beside that exe. Do not run `CHECKIN.cmd` yet.
+Confirm `Titan.ChiefOfStaff.exe` is present. `INSTALL.cmd` sits beside that exe.
 
-## 3. Install (not Verify, not a send)
+## 3. Install (not a send)
 
 ```bat
 cd /d "%USERPROFILE%\Titan-autonomous-\dist\titan-chief-win-x64"
@@ -138,7 +131,7 @@ cd /d "%USERPROFILE%\Titan-autonomous-\deploy\cluster-node"
 ENROLL-NODE.cmd Desktop6
 ```
 
-`ENROLL-NODE.cmd Node6` is the same **provisional** overflow lane: it writes `nodeId=Desktop6` and rooftop 28546. It does not start Eleads. It does not start the worker. It does not turn on scale-out.
+`ENROLL-NODE.cmd Node6` is the same **provisional** covering lane: it writes `nodeId=Desktop6` and rooftop 28546. It does not start Eleads. It does not start the worker. It does not turn on scale-out.
 
 Point this PC at the Alienware-18 lease folder when Glenn shares it (do not host leases on Desktop6):
 
@@ -146,20 +139,15 @@ Point this PC at the Alienware-18 lease folder when Glenn shares it (do not host
 setx TITAN_LEASE_DIR "\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases"
 ```
 
-## Stop here
+## Next on this PC (Desktop6 is released)
 
-Install on Desktop6 is done. **Do not** run `START-WORKER.cmd`. **Do not** CHECKIN-to-send. **Do not** run `SCALE-OUT-8.cmd`. Wait until Glenn says the cluster is complete and all PCs are ready and online.
+Install on Desktop6 is done. **Now** start COS:
 
-## Held until Glenn releases the cluster
+1. If no Cursor worker window is open, double-click `deploy\desktop6\START-WORKER.cmd` from `%USERPROFILE%` (never `C:\Windows\system32`). Leave that window open. If worker `3b6886be-8df5-5399-a9f8-0b8c65e254b4` is already online from `%USERPROFILE%`, skip this.
+2. Double-click `%LOCALAPPDATA%\TitanChief\app\TICK.cmd` (or `deploy\alienware-local-program\TICK.cmd`). That starts Titan COS on this PC. Do not run `C:\Windows\system32\Titan.cmd`.
 
-These steps stay filed. Do not run them now. `START-WORKER.cmd` fail-closes while hold is on.
-
-1. Double-click `deploy\cluster-node\START-WORKER.cmd` from `%USERPROFILE%` (never `C:\Windows\system32`).
-2. Close every Chrome window and the tray icon.
-3. `CHECKIN.cmd` beside `Titan.ChiefOfStaff.exe`, sign in as Bordine, Glenn on **28546**, `CHECKIN.cmd` again. Leave Chrome on CDP 9222.
-
-Provisional job after release **and** 8-PC scale-out: Mitsubishi 28546 P1 overdue call reschedule. Never mark a call complete if no call occurred. Final COS tasks wait for Glenn’s per-PC study.
+Provisional jobs: Mitsubishi 28546 P1 overdue emails, then overdue call reschedule, then organizer remainder, SMS 08:00–21:00 ET, appointment-commit fast path. Never mark a call complete if no call occurred. Do not take Nissan 28206. Desktop5 stays install-only. Do not run `SCALE-OUT-8.cmd`.
 
 ## Cloud attach
 
-This cloud agent inventories workers and records ready or blocked. It will not open Eleads. Launch is held (`clusterHoldLaunch=true`). WiFi connected is not `status=online`. A missing Desktop6 worker stays `status=missing`. `sends=[]`. Cloud Linux cannot copy files onto Desktop6 itself.
+This cloud agent inventories workers and records ready or blocked. It will not open Eleads. `clusterHoldLaunch` stays true for unreleased nodes; Desktop6 is in `releasedNodes`. A missing Desktop6 worker stays `status=missing`. Cloud Linux cannot CreateAgent/PLACE a COS subagent onto the worker. `sends=[]` unless a host-side COS tick actually sent and CRM history proves it.

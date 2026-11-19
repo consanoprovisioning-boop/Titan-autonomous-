@@ -40,7 +40,8 @@ echo Enrolled %NODE% rooftop %ROOF%
 echo File: %ROOT%\node.json
 echo Cluster MAIN is Alienware-18. Lease host is Alienware-18, not this PC.
 echo This is not Verify and not send authorization.
-echo If this is Desktop4, next is START-WORKER.cmd from %%USERPROFILE%%. Desktop4 is released to join.
-echo If this is Desktop5/Desktop6 or Node7-Node8, STOP: install-only until Glenn says so. Do not SCALE-OUT-8.cmd yet.
+echo If this is Desktop4 or Desktop6, next is START-WORKER.cmd from %%USERPROFILE%%. Those nodes are released to join.
+echo If this is Desktop6, jobs are Mitsubishi 28546 P1: overdue emails, overdue calls, organizer remainder, SMS, appt-commit.
+echo If this is Desktop5 or Node7-Node8, STOP: install-only until Glenn says so. Do not SCALE-OUT-8.cmd yet.
 echo Never 6220. Never start the worker from C:\Windows\system32.
 endlocal

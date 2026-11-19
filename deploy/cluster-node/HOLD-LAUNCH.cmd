@@ -41,7 +41,7 @@ goto :held
 echo.
 echo RELEASE: %NODE% may START-WORKER and join the cluster.
 echo clusterHoldLaunch remains true for nodes Glenn has not released.
-echo Desktop5 and Desktop6 stay install-only until he says so.
+echo Desktop4 and Desktop6 are released. Desktop5 stays install-only until he says so.
 echo Alienware-18 is MAIN. Rooftops 28206 and 28546 only. Never 6220.
 echo Identity Bordine, Glenn. Directory must be %%USERPROFILE%%, never C:\Windows\system32.
 echo This is not Verify and not a send.
@@ -53,7 +53,7 @@ echo.
 echo HOLD: Cluster launch is held for this PC. Glenn has not released this node.
 echo Alienware-18 is the MAIN computer (coordinator, clone source, lease host).
 echo Install and enroll only on unreleased nodes. Do NOT start the Cursor worker here.
-echo Desktop4 is released separately. Desktop5 and Desktop6 stay install-only.
+echo Desktop4 and Desktop6 are released separately. Desktop5 stays install-only.
 echo Do NOT CHECKIN-to-send. Do NOT place COS on a held node.
 echo.
 exit /b 2
