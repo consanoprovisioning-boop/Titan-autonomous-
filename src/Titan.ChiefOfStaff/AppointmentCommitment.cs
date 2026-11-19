@@ -223,7 +223,11 @@ public static class AppointmentCommitment
             return true;
         }
 
-        if (text.Contains('?'))
+        // Only dealer-facing questions (Can/Is/What...) skip commitment matching.
+        // A confirming yes that also asks something — "Yes, Saturday at 10am?" or
+        // "Yes, that works. Where should I park?" — must still book.
+        if (text.Contains('?') &&
+            Regex.IsMatch(text, @"^\s*(?:can|could|would|will|is|are|do|does|what|when|where|who|how|should)\b", RegexOptions.IgnoreCase))
         {
             reason = "Question without commitment language. Answer normally; no scheduling trigger.";
             return false;

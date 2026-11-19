@@ -79,6 +79,19 @@ public class AppointmentCommitmentTests
     }
 
     [Theory]
+    [InlineData("Yes, Saturday at 10am?")]
+    [InlineData("Yes, that works. Where should I park?")]
+    [InlineData("Sure, I'll be there. Do you have parking?")]
+    public void Commitment_with_follow_up_question_still_books(string text)
+    {
+        var d = Eval(text, proposed: Sat10);
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, d.Action);
+        Assert.True(d.ShouldBook);
+        Assert.Equal(Sat10, d.SlotEt);
+        Assert.Equal(LeadStatus.AppointmentSet, d.NewStatus);
+    }
+
+    [Theory]
     [InlineData("STOP")]
     [InlineData("Please unsubscribe me")]
     [InlineData("Do not text me again")]
