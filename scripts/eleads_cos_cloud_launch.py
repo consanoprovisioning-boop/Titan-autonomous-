@@ -9,13 +9,76 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import socket
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-ALIENWARE_WORKER_ID = "1a1f1f15-72c4-4334-ad8b-f87d54efe73a"
+ALIENWARE_WORKER_ID = "e630caf9-875d-4439-ab1a-3e6c386f6c0f"
+WRONG_DIRECTORY_WORKER_IDS = frozenset({"1a1f1f15-72c4-4334-ad8b-f87d54efe73a"})
 RETIRED_ALIENWARE_WORKER_IDS = frozenset({"2bd89263-dc03-4936-9b04-6bc709799f66"})
+VERIFIED_USERPROFILE_WORKER_ID = ALIENWARE_WORKER_ID
+CLUSTER_NODES = (
+    {
+        "nodeId": "Alienware-18",
+        "rooftop": "28206",
+        "lane": "P1Organizer",
+        "hostnameHints": ("Alienware-18", "Alienware18"),
+    },
+    {
+        "nodeId": "Desktop3",
+        "rooftop": "28546",
+        "lane": "P1Organizer",
+        "hostnameHints": ("Desktop3", "DESKTOP3"),
+    },
+    {
+        "nodeId": "Node3",
+        "rooftop": "28206",
+        "lane": "P2P3DatabaseUpgrade",
+        "hostnameHints": ("Node3",),
+    },
+    {
+        "nodeId": "Desktop4",
+        "rooftop": "28546",
+        "lane": "P2P3DatabaseUpgrade",
+        "hostnameHints": ("Desktop4", "DESKTOP4", "DeskTop4", "Node4"),
+        "provisional": True,
+    },
+    {
+        "nodeId": "Desktop5",
+        "rooftop": "28206",
+        "lane": "P1Call",
+        "hostnameHints": ("Desktop5", "DESKTOP5", "DeskTop5", "Node5"),
+        "provisional": True,
+    },
+    {
+        "nodeId": "Desktop6",
+        "rooftop": "28546",
+        "lane": "P1Organizer",
+        "hostnameHints": ("Desktop6", "DESKTOP6", "DeskTop6", "DeskTop6ACER", "Node6"),
+        "provisional": True,
+        "jobs": (
+            "OverdueEmailClearance",
+            "OverdueCallReschedule",
+            "DailyOrganizerRemainder",
+            "SmsInWindow",
+            "AppointmentCommitFastPath",
+        ),
+    },
+    {
+        "nodeId": "Node7",
+        "rooftop": "28206+28546",
+        "lane": "SmsInWindow",
+        "hostnameHints": ("Node7",),
+    },
+    {
+        "nodeId": "Node8",
+        "rooftop": "28206+28546",
+        "lane": "AppointmentCommit",
+        "hostnameHints": ("Node8",),
+    },
+)
 OWNERSHIP_SCREEN_DAYS = 180
 NY = ZoneInfo("America/New_York")
 IDENTITY = "Bordine, Glenn"
@@ -33,6 +96,70 @@ SPECIALISTS = (
 DEFAULT_STATE = Path("/cursor/stores/self/eleads-valdosta-state.json")
 DEFAULT_TICKLOG = Path("/cursor/stores/self/TICKLOG.md")
 ELEADS_SESSION_NONE = "none-and-must-not-open-from-cloud"
+CLUSTER_HOLD_FILE = Path(__file__).resolve().parent.parent / "deploy" / "cluster-node" / "cluster-hold.json"
+CLUSTER_MAIN = "Alienware-18"
+HOLD_BLOCKER = (
+    "Cluster launch is held. Glenn has not said all PCs are ready and online. "
+    "Alienware-18 is the MAIN computer (coordinator, clone source, lease host). "
+    "Desktop4, Desktop5, and Desktop6 may install and enroll only. WiFi on the LAN is not a Cursor worker. "
+    "Do not START-WORKER, place COS, or CHECKIN-to-send. "
+    "Provisional lanes: Desktop4 Mitsubishi 28546 P2/P3; Desktop5 Nissan 28206 P1 calls; "
+    "Desktop6 Mitsubishi 28546 P1 calls. This cloud host will not open Eleads."
+)
+DESKTOP4_JOIN_BLOCKER = (
+    "Desktop4 is released to join the cluster. clusterHoldLaunch remains held for unreleased nodes. "
+    "Desktop5 stays install-only until Glenn says so. Desktop6 (DeskTop6ACER) is also released. "
+    "Alienware-18 is MAIN. "
+    "workers=[] so COS is not live on this PC. This cloud host will not open Eleads. "
+    "On Desktop4 from %USERPROFILE% (never C:\\Windows\\system32): "
+    "run deploy\\desktop4\\INSTALL-COS.cmd if Titan is not installed, then "
+    "deploy\\desktop4\\START-WORKER.cmd and leave that window open, then CHECKIN.cmd twice "
+    "as Bordine, Glenn on 28546, leave Chrome on CDP 9222. Do not type verify. "
+    "Do not run C:\\Windows\\system32\\Titan.cmd."
+)
+DESKTOP6_JOIN_BLOCKER = (
+    "Desktop6 (DeskTop6ACER) is released to join the cluster with Mitsubishi 28546 P1 jobs. "
+    "clusterHoldLaunch remains held for unreleased nodes. Desktop5 stays install-only. "
+    "Alienware-18 is MAIN Nissan 28206 — Desktop6 must not steal it. "
+    "workers=[] so COS is not live on this PC. This cloud host will not open Eleads. "
+    "On DeskTop6ACER from %USERPROFILE% (never C:\\Windows\\system32): "
+    "run deploy\\desktop6\\INSTALL-COS.cmd if Titan is not installed, then "
+    "deploy\\desktop6\\START-WORKER.cmd and leave that window open, then "
+    "%LOCALAPPDATA%\\TitanChief\\app\\TICK.cmd. "
+    "Do not run C:\\Windows\\system32\\Titan.cmd."
+)
+DESKTOP4_ONLINE_CHECKIN_BLOCKER = (
+    "Desktop4 worker is online from %USERPROFILE%. No fresh Verify on this PC. "
+    "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+    "sign in as Bordine, Glenn on 28546, double-click CHECKIN.cmd again, and leave Chrome on CDP 9222. "
+    "clusterHoldLaunch remains for Desktop5/Desktop6. This cloud host will not open Eleads."
+)
+DESKTOP4_SYSTEM32_BLOCKER = (
+    "Desktop4 worker is online in C:\\Windows\\system32. No agent will be placed there. "
+    "Close that worker. From %USERPROFILE% run deploy\\desktop4\\START-WORKER.cmd. "
+    "This cloud host will not open Eleads."
+)
+DESKTOP6_ONLINE_CHECKIN_BLOCKER = (
+    "Desktop6 (DeskTop6ACER) is in the cluster with Mitsubishi 28546 P1 jobs. "
+    "Cursor worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
+    "Cloud Linux has no CreateAgent/place-worker API, so Titan COS is not running on that worker. "
+    "On DeskTop6ACER from %USERPROFILE% (never C:\\Windows\\system32): "
+    "double-click %LOCALAPPDATA%\\TitanChief\\app\\TICK.cmd "
+    "(or %USERPROFILE%\\Titan-autonomous-\\deploy\\alienware-local-program\\TICK.cmd). "
+    "The Cursor worker is already running — do not start a second worker. "
+    "Do not run C:\\Windows\\system32\\Titan.cmd. "
+    "Assigned jobs: overdue emails first, then reschedule overdue calls, then organizer remainder; "
+    "SMS 08:00-21:00 ET; appointment-commit fast path if replies. P2/P3 only after 28546 P1 is clear. "
+    "Do not take Nissan 28206. This cloud host will not open Eleads."
+)
+DESKTOP5_ONLINE_CHECKIN_BLOCKER = (
+    "Desktop5 worker is online from %USERPROFILE% (not C:\\Windows\\system32). "
+    "No fresh Verify on this PC. "
+    "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+    "sign in as Bordine, Glenn on 28206, double-click CHECKIN.cmd again, and leave Chrome on CDP 9222. "
+    "This cloud Linux host cannot CreateAgent/PLACE COS and cannot START-WORKER.cmd. "
+    "This cloud host will not open Eleads."
+)
 
 
 class EleadsOpenRefused(RuntimeError):
@@ -71,7 +198,7 @@ def passes_ownership_screen(
 def sms_open(instant: datetime) -> bool:
     local = instant.astimezone(NY)
     minutes = local.hour * 60 + local.minute
-    return 9 * 60 <= minutes < 19 * 60
+    return 8 * 60 <= minutes < 21 * 60
 
 
 def appointment_set_allowed(correspondence: str | None) -> bool:
@@ -97,6 +224,60 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
+def _worker_blob(row: dict) -> str:
+    return " ".join(
+        str(row.get(key) or "")
+        for key in ("machineDisplayName", "displayName", "hostname", "workerName")
+    )
+
+
+def match_cluster_node(row: dict) -> dict | None:
+    blob = _worker_blob(row).casefold()
+    for node in CLUSTER_NODES:
+        if any(hint.casefold() in blob for hint in node["hostnameHints"]):
+            return node
+    return None
+
+
+def inventory_cluster(snapshot: dict) -> list[dict]:
+    workers = snapshot.get("workers") or []
+    if not isinstance(workers, list):
+        workers = []
+    found: dict[str, dict] = {}
+    for row in workers:
+        if not isinstance(row, dict):
+            continue
+        node = match_cluster_node(row)
+        if node is None:
+            continue
+        found[node["nodeId"]] = {
+            "nodeId": node["nodeId"],
+            "rooftop": node["rooftop"],
+            "lane": node["lane"],
+            "status": "online",
+            "workerId": str(row.get("workerId") or ""),
+            "directoryLooksSystem32": worker_directory_is_system32(row),
+            "fabricated": False,
+            "jobs": list(node.get("jobs") or []),
+        }
+    inventory = []
+    for node in CLUSTER_NODES:
+        if node["nodeId"] in found:
+            inventory.append(found[node["nodeId"]])
+            continue
+        inventory.append({
+            "nodeId": node["nodeId"],
+            "rooftop": node["rooftop"],
+            "lane": node["lane"],
+            "status": "missing",
+            "workerId": None,
+            "directoryLooksSystem32": False,
+            "fabricated": False,
+            "jobs": list(node.get("jobs") or []),
+        })
+    return inventory
+
+
 def alienware_worker(snapshot: dict) -> dict | None:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
@@ -107,11 +288,12 @@ def alienware_worker(snapshot: dict) -> dict | None:
         worker_id = str(row.get("workerId") or "")
         if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
             return row
-        labels = " ".join(
-            str(row.get(key) or "")
-            for key in ("machineDisplayName", "displayName", "hostname")
-        )
+        if worker_id in WRONG_DIRECTORY_WORKER_IDS:
+            return row
+        labels = _worker_blob(row)
         if labels.startswith("Alienware-18") or "Alienware-18" in labels:
+            return row
+        if worker_id == VERIFIED_USERPROFILE_WORKER_ID:
             return row
     return None
 
@@ -150,6 +332,105 @@ def load_json(path: Path | None) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_cluster_hold(path: Path | None = None) -> dict:
+    env = (os.environ.get("TITAN_CLUSTER_HOLD_LAUNCH") or "").strip().casefold()
+    data = load_json(path or CLUSTER_HOLD_FILE) or {}
+    if not isinstance(data, dict):
+        data = {}
+    if env == "off":
+        data = dict(data)
+        data["holdLaunch"] = False
+    elif env == "on":
+        data = dict(data)
+        data["holdLaunch"] = True
+    elif "holdLaunch" not in data:
+        data = dict(data)
+        data["holdLaunch"] = True
+    data.setdefault("clusterMain", CLUSTER_MAIN)
+    data.setdefault("wifiConnected", ["Desktop4", "Desktop5", "Desktop6"])
+    data.setdefault("releasedNodes", [])
+    data.setdefault("desktop4", {"status": "installing", "lane": "provisional-28546-P2P3"})
+    data.setdefault("desktop5", {"status": "installing", "lane": "provisional-28206-P1Call"})
+    data.setdefault("desktop6", {"status": "released-for-launch", "lane": "provisional-28546-P1Organizer"})
+    return data
+
+
+def canonical_node_id(node_id: str | None) -> str:
+    if not node_id:
+        return ""
+    folded = node_id.strip().casefold().replace(" ", "").replace("-", "")
+    aliases = {
+        "desktop4": "Desktop4",
+        "node4": "Desktop4",
+        "desktop5": "Desktop5",
+        "node5": "Desktop5",
+        "desktop6": "Desktop6",
+        "node6": "Desktop6",
+        "alienware18": "Alienware-18",
+        "desktop3": "Desktop3",
+        "node3": "Node3",
+        "node7": "Node7",
+        "node8": "Node8",
+    }
+    return aliases.get(folded, node_id.strip())
+
+
+def released_node_ids(hold: dict) -> list[str]:
+    raw = hold.get("releasedNodes") or []
+    if not isinstance(raw, list):
+        return []
+    seen: list[str] = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            continue
+        name = canonical_node_id(item)
+        if name and name not in seen:
+            seen.append(name)
+    return seen
+
+
+def node_is_released(hold: dict, node_id: str | None) -> bool:
+    want = canonical_node_id(node_id)
+    return bool(want) and want in released_node_ids(hold)
+
+
+def cluster_node_row(cluster: list[dict], node_id: str) -> dict | None:
+    want = canonical_node_id(node_id)
+    for row in cluster:
+        if canonical_node_id(str(row.get("nodeId") or "")) == want:
+            return row
+    return None
+
+
+def first_online_userprofile_node(cluster: list[dict]) -> dict | None:
+    for row in cluster:
+        if row.get("status") == "online" and not row.get("directoryLooksSystem32"):
+            return row
+    return None
+
+
+def checkin_blocker_for_online_node(node: dict) -> str:
+    node_id = canonical_node_id(str(node.get("nodeId") or ""))
+    if node_id == "Desktop4":
+        return DESKTOP4_ONLINE_CHECKIN_BLOCKER
+    if node_id == "Desktop6":
+        return DESKTOP6_ONLINE_CHECKIN_BLOCKER
+    if node_id == "Desktop5":
+        return DESKTOP5_ONLINE_CHECKIN_BLOCKER
+    rooftop = str(node.get("rooftop") or "28206").split("+", 1)[0]
+    worker_id = str(node.get("workerId") or "")
+    label = node_id or "cluster-node"
+    return (
+        f"{label} worker {worker_id} is online from %USERPROFILE% (not C:\\Windows\\system32). "
+        "No fresh Verify on this PC. "
+        "Glenn must double-click CHECKIN.cmd (not verify, not C:\\Windows\\system32\\Titan.cmd), "
+        f"sign in as Bordine, Glenn on {rooftop}, double-click CHECKIN.cmd again, "
+        "and leave Chrome on CDP 9222. "
+        "This cloud Linux host cannot CreateAgent/PLACE COS and cannot START-WORKER.cmd. "
+        "This cloud host will not open Eleads."
+    )
+
+
 def specialist_results() -> list[dict]:
     return [
         {
@@ -165,11 +446,13 @@ def specialist_results() -> list[dict]:
 
 
 def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
+    hold = load_cluster_hold()
+    hold_on = bool(hold.get("holdLaunch"))
     row = alienware_worker(snapshot)
     online = row is not None
     seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
     system32 = worker_directory_is_system32(row)
-    verified = online and verify_receipt_ok(receipt) and not system32
+    verified = (not hold_on) and online and verify_receipt_ok(receipt) and not system32
     workers = snapshot.get("workers") or []
     worker_count = len(workers) if isinstance(workers, list) else 0
     if verified:
@@ -201,8 +484,12 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     else:
         shown = "workers=[]" if worker_count == 0 else f"workers={worker_count}"
         blockers = [
-            f"Alienware-18 worker {ALIENWARE_WORKER_ID} is offline ({shown}). "
-            "Start it on the Alienware with agent worker start --verbose and leave that window open. "
+            f"Alienware-18 worker {ALIENWARE_WORKER_ID} (%USERPROFILE%) is offline ({shown}). "
+            "On Alienware-18, double-click START-WORKER.cmd from %USERPROFILE% "
+            "(deploy\\alienware-local-program or dist\\titan-chief-win-x64) and leave that window open. "
+            "Directory must show %USERPROFILE%, never C:\\Windows\\system32. "
+            "Then CHECKIN.cmd, sign in as Bordine, Glenn on 28206, CHECKIN.cmd again, leave Chrome on 9222. "
+            "Desktop3 still needs the local clone in docs/deploy/desktop3.md. "
             "This cloud host will not open Eleads."
         ]
         host = "cloud-linux"
@@ -210,6 +497,31 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         session = ELEADS_SESSION_NONE
 
     stamp = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    cluster = inventory_cluster(snapshot)
+    released = released_node_ids(hold)
+    live_node = first_online_userprofile_node(cluster)
+    any_cluster_online = any(n.get("status") == "online" for n in cluster)
+    if live_node and live_node.get("workerId"):
+        seen_id = str(live_node.get("workerId") or seen_id)
+    if hold_on:
+        host = "cloud-linux"
+        mode = "draft-blocked-local"
+        session = ELEADS_SESSION_NONE
+        verified = False
+        if node_is_released(hold, "Desktop4"):
+            desktop4 = cluster_node_row(cluster, "Desktop4")
+            if desktop4 and desktop4.get("status") == "online" and desktop4.get("directoryLooksSystem32"):
+                blockers = [DESKTOP4_SYSTEM32_BLOCKER]
+            elif desktop4 and desktop4.get("status") == "online":
+                blockers = [DESKTOP4_ONLINE_CHECKIN_BLOCKER]
+            elif live_node:
+                blockers = [checkin_blocker_for_online_node(live_node)]
+            else:
+                blockers = [DESKTOP4_JOIN_BLOCKER]
+        elif live_node:
+            blockers = [checkin_blocker_for_online_node(live_node)]
+        else:
+            blockers = [HOLD_BLOCKER]
     return {
         "cycleId": f"{'ready' if verified else 'blocked'}-{stamp}",
         "openedAtUtc": stamp,
@@ -234,9 +546,22 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "ownershipScreenDays": OWNERSHIP_SCREEN_DAYS,
         "eleadsSession": session,
         "workerId": seen_id,
-        "workerOnline": online,
+        "workerOnline": any_cluster_online,
         "timerTick": None,
         "openedFromThisProcess": False,
+        "cluster": cluster,
+        "clusterOnlineCount": sum(1 for n in cluster if n["status"] == "online"),
+        "clusterHoldLaunch": hold_on,
+        "releasedNodes": released,
+        "clusterMain": hold.get("clusterMain") or CLUSTER_MAIN,
+        "wifiConnected": hold.get("wifiConnected") or ["Desktop4", "Desktop5", "Desktop6"],
+        "desktop4": hold.get("desktop4") or {"status": "released-for-launch", "lane": "provisional-28546-P2P3"},
+        "desktop5": hold.get("desktop5") or {"status": "installing", "lane": "provisional-28206-P1Call"},
+        "desktop6": hold.get("desktop6") or {"status": "released-for-launch", "lane": "provisional-28546-P1Organizer"},
+        "loggedIn": bool((hold.get("desktop6") or {}).get("loggedIn") or (hold.get("desktop6") or {}).get("loginClaim")),
+        "loginClaim": bool((hold.get("desktop6") or {}).get("loginClaim")),
+        "cosStartedOnWorker": False,
+        "assignedJobs": list((hold.get("desktop6") or {}).get("jobs") or []),
     }
 
 

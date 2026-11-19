@@ -1,0 +1,17 @@
+Titan Chief of Staff — Desktop3 (PC2, Valdosta Mitsubishi 28546)
+
+Cloud did not copy these files onto Desktop3. You (Glenn) clone and run this on Desktop3.
+
+Command Prompt owns the word verify. Typing verify by itself does not start Titan.
+
+Alienware-18 is the MAIN computer. Clone from Alienware-18. Launch is held until Glenn says all PCs are ready.
+
+1. Clone the repo under %USERPROFILE% from Alienware-18 (see docs\deploy\desktop3.md).
+2. Copy dist\titan-chief-win-x64 from Alienware-18, then double-click INSTALL.cmd once.
+   INSTALL.cmd does not start the program and does not open Eleads.
+3. Run deploy\cluster-node\ENROLL-NODE.cmd Desktop3
+4. STOP. Do not double-click START-WORKER.cmd. Do not CHECKIN-to-send until Glenn releases the cluster.
+
+Desktop3 job: P1 overdue emails + reschedule overdue calls on Mitsubishi.
+Needs the .NET 8 desktop runtime and Google Chrome.
+INSTALL.cmd is not send authorization. Titan never types the password.

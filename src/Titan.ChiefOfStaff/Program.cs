@@ -213,7 +213,8 @@ async Task<int> TickAsync()
     }
 
     var et = EasternClock.Now();
-    var result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
+    var progress = DailyUpgradeQueue.Load(paths);
+    var result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et, paths, progress);
     store.WriteHeartbeat(new Heartbeat(
         HostState.VerifiedIdle.ToString(),
         eleads.DetectedRooftop,
