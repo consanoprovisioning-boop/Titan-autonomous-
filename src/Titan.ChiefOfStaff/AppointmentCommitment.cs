@@ -223,11 +223,17 @@ public static class AppointmentCommitment
             return true;
         }
 
-        // Only dealer-facing questions (Can/Is/What...) skip commitment matching.
-        // A confirming yes that also asks something — "Yes, Saturday at 10am?" or
-        // "Yes, that works. Where should I park?" — must still book.
+        // Questions skip unless they also carry a confirming yes. Weak words
+        // (ok/okay/sure/confirmed) commonly appear in questions themselves
+        // ("Saturday at 10am ok?", "has it been confirmed?") and must not
+        // count here. A confirming yes that also asks something —
+        // "Yes, Saturday at 10am?" or "Yes, that works. Where should I park?"
+        // — must still book. Proposal questions were accepted above.
         if (text.Contains('?') &&
-            Regex.IsMatch(text, @"^\s*(?:can|could|would|will|is|are|do|does|what|when|where|who|how|should)\b", RegexOptions.IgnoreCase))
+            !Regex.IsMatch(
+                text,
+                @"\b(yes|yeah|yep|yup|sounds good|that works|works for me|perfect|i'?ll be there|i will be there|see you|book it|schedule it|i can (come|make it)|i'?ll come|come in|be there|count me in)\b",
+                RegexOptions.IgnoreCase))
         {
             reason = "Question without commitment language. Answer normally; no scheduling trigger.";
             return false;
