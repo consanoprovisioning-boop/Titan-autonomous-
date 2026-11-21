@@ -178,6 +178,87 @@ class LaunchGuardTests(unittest.TestCase):
             "hostId": "enrolled-host-a",
         }))
 
+    def test_live_worker_is_not_hidden_by_an_earlier_retired_row(self) -> None:
+        retired = "2bd89263-dc03-4936-9b04-6bc709799f66"
+        snapshot = {
+            "workers": [
+                {
+                    "workerId": retired,
+                    "displayName": "Alienware-18",
+                    "machineDisplayName": "Alienware-18",
+                },
+                {
+                    "workerId": launch.ALIENWARE_WORKER_ID,
+                    "displayName": "Alienware-18",
+                    "machineDisplayName": "Alienware-18",
+                    "directory": r"C:\Users\Glenn\AppData\Local\TitanChief\app",
+                },
+            ]
+        }
+        receipt = {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "enrolled-host-a",
+        }
+        state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, state["workerId"])
+        self.assertTrue(state["workerOnline"])
+        self.assertTrue(state["verify"])
+        self.assertTrue(state["glennVerified"])
+        self.assertEqual("v1.1-execute", state["mode"])
+        self.assertEqual([], state["sends"])
+
+    def test_live_system32_worker_stays_blocked_when_a_retired_row_looks_clean(self) -> None:
+        snapshot = {
+            "workers": [
+                {
+                    "workerId": "2bd89263-dc03-4936-9b04-6bc709799f66",
+                    "displayName": "Alienware-18",
+                    "directory": r"C:\Users\Glenn\safe",
+                },
+                {
+                    "workerId": launch.ALIENWARE_WORKER_ID,
+                    "machineDisplayName": "Alienware-18",
+                    "directory": r"C:\Windows\system32",
+                },
+            ]
+        }
+        receipt = {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "enrolled-host-a",
+        }
+        state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, state["workerId"])
+        self.assertFalse(state["verify"])
+        self.assertFalse(state["glennVerified"])
+        self.assertEqual("draft-blocked-local", state["mode"])
+        self.assertIn("system32", state["blockers"][0].casefold())
+        self.assertEqual([], state["sends"])
+
+    def test_retired_worker_still_counts_when_it_is_the_only_row(self) -> None:
+        retired = "2bd89263-dc03-4936-9b04-6bc709799f66"
+        snapshot = {
+            "workers": [
+                {
+                    "workerId": retired,
+                    "displayName": "Alienware-18",
+                    "directory": r"C:\Windows\system32",
+                }
+            ]
+        }
+        self.assertEqual(retired, launch.alienware_worker(snapshot)["workerId"])
+        state = launch.build_state(snapshot, None, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertTrue(state["workerOnline"])
+        self.assertFalse(state["verify"])
+        self.assertIn("system32", state["blockers"][0].casefold())
+
     def test_login_claim_is_not_verify(self) -> None:
         self.assertFalse(launch.verify_receipt_ok({
             "loginClaim": True,

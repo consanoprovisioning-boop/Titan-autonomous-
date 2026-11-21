@@ -32,9 +32,9 @@ int Install()
     var state = HostStateMachine.AfterInstall(kill);
     using var store = new HostStore(paths);
     var et = EasternClock.Now();
-    store.WriteHeartbeat(new Heartbeat(state.ToString(), null, null, null, null, Policy.SmsOpen(et)));
+    var installed = new Heartbeat(state.ToString(), null, null, null, null, Policy.SmsOpen(et));
+    HostJournal.Record(paths, store, installed, glennVerified: false, host);
     store.Log("host", "install", "kill.switch armed — not Verify, not send authorization");
-    WriteHeartbeatFile(paths, store.ReadHeartbeat());
     Console.WriteLine($"Installed data root: {paths.DataRoot}");
     Console.WriteLine($"hostId={host.HostId}");
     Console.WriteLine($"machine={host.MachineName}");
@@ -137,11 +137,16 @@ async Task<int> VerifyAsync()
     catch (Exception ex)
     {
         using var storeErr = new HostStore(paths);
-        var failed = new Heartbeat(HostState.AwaitingVerify.ToString(), null, null, null, ex.Message, Policy.SmsOpen(EasternClock.Now()));
-        storeErr.WriteHeartbeat(failed);
+        var previous = storeErr.ReadHeartbeat();
+        var failed = new Heartbeat(
+            HostState.AwaitingVerify.ToString(),
+            null,
+            null,
+            previous.LastTickAt,
+            ex.Message,
+            Policy.SmsOpen(EasternClock.Now()));
+        HostJournal.Record(paths, storeErr, failed, glennVerified: false, host);
         storeErr.Log("host", "verify", "browser attach failed: " + ex.Message);
-        WriteHeartbeatFile(paths, failed);
-        VerifyMarker.Write(paths, failed.State, null, null, null, false, host);
         Console.Error.WriteLine("Chrome attach failed. Install Google Chrome on this PC. Titan did not type a password.");
         Console.Error.WriteLine(ex.Message);
         return 5;
@@ -161,10 +166,8 @@ async Task<int> VerifyAsync()
         store.ReadHeartbeat().LastTickAt,
         error,
         Policy.SmsOpen(et));
-    store.WriteHeartbeat(beat);
+    HostJournal.Record(paths, store, beat, verified, host);
     store.Log("host", "verify", report, eleads.DetectedRooftop);
-    WriteHeartbeatFile(paths, beat);
-    VerifyMarker.Write(paths, beat.State, beat.Rooftop, verified ? Policy.Identity : null, verified ? beat.VerifiedAt : null, verified, host);
     Console.WriteLine(report);
     if (verified)
     {
@@ -182,13 +185,21 @@ async Task<int> TickAsync()
 
     if (!kill.IsArmed())
     {
+        using var disarmed = new HostStore(paths);
+        var prior = disarmed.ReadHeartbeat();
+        HostJournal.Record(
+            paths,
+            disarmed,
+            HostJournal.Reject(prior, HostState.KillTripped.ToString(), "kill switch is not armed"),
+            glennVerified: false);
         Console.Error.WriteLine("kill.switch is not armed.");
         return 3;
     }
 
+    HostIdentity liveHost;
     try
     {
-        HostIdentity.RequireThisMachine(paths, machine);
+        liveHost = HostIdentity.RequireThisMachine(paths, machine);
     }
     catch (InvalidOperationException ex)
     {
@@ -233,36 +244,84 @@ async Task<int> TickAsync()
     }
     catch (Exception ex)
     {
-        store.WriteHeartbeat(beat with { LastError = ex.Message, State = HostState.AwaitingVerify.ToString() });
+        HostJournal.Record(
+            paths,
+            store,
+            HostJournal.Reject(beat, HostState.AwaitingVerify.ToString(), ex.Message),
+            glennVerified: false);
         Console.Error.WriteLine("Lost Eleads session. Glenn must verify again. " + ex.Message);
         return 5;
     }
 
+    if (eleads.DetectedRooftop == Policy.ForbiddenTkoId || Policy.IsForbiddenRooftop(eleads.DetectedRooftop))
+    {
+        HostJournal.Record(
+            paths,
+            store,
+            HostJournal.Reject(beat, HostState.BlockedForbiddenRooftop.ToString(), "forbidden rooftop", eleads.DetectedRooftop),
+            glennVerified: false);
+        Console.Error.WriteLine("Forbidden rooftop. TKO 6220 is blocked.");
+        return 7;
+    }
+
     if (!eleads.LoggedIn || eleads.Page is null)
     {
-        store.WriteHeartbeat(beat with { State = HostState.AwaitingVerify.ToString(), LastError = "session not logged in" });
+        HostJournal.Record(
+            paths,
+            store,
+            HostJournal.Reject(beat, HostState.AwaitingVerify.ToString(), "session not logged in", eleads.DetectedRooftop),
+            glennVerified: false);
         Console.Error.WriteLine("Eleads session is not verified. Titan will not type the password.");
         return 6;
     }
 
-    if (eleads.DetectedRooftop == Policy.ForbiddenTkoId || !Policy.IsAllowedRooftop(eleads.DetectedRooftop))
+    if (!Policy.IsAllowedRooftop(eleads.DetectedRooftop))
     {
-        store.WriteHeartbeat(beat with { State = HostState.BlockedForbiddenRooftop.ToString(), LastError = "forbidden rooftop" });
+        HostJournal.Record(
+            paths,
+            store,
+            HostJournal.Reject(beat, HostState.BlockedForbiddenRooftop.ToString(), "forbidden rooftop", eleads.DetectedRooftop),
+            glennVerified: false);
         Console.Error.WriteLine("Forbidden rooftop. TKO 6220 is blocked.");
         return 7;
     }
 
     var et = EasternClock.Now();
-    var result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
-    store.WriteHeartbeat(new Heartbeat(
+    TickResult result;
+    try
+    {
+        result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
+    }
+    catch (Exception ex)
+    {
+        HostJournal.Record(
+            paths,
+            store,
+            HostJournal.Reject(beat, HostState.AwaitingVerify.ToString(), ex.Message),
+            glennVerified: false);
+        Console.Error.WriteLine("Tick failed. Glenn must verify again. " + ex.Message);
+        return 5;
+    }
+
+    if (result.Blocked)
+    {
+        HostJournal.Record(
+            paths,
+            store,
+            HostJournal.Reject(beat, HostState.BlockedForbiddenRooftop.ToString(), result.Message, eleads.DetectedRooftop),
+            glennVerified: false);
+        Console.Error.WriteLine(result.Message);
+        return 7;
+    }
+
+    HostJournal.Record(paths, store, new Heartbeat(
         HostState.VerifiedIdle.ToString(),
         eleads.DetectedRooftop,
         beat.VerifiedAt,
         et.ToString("o"),
         null,
-        Policy.SmsOpen(et)));
-    WriteHeartbeatFile(paths, store.ReadHeartbeat());
-    Console.WriteLine(result);
+        Policy.SmsOpen(et)), glennVerified: true, liveHost);
+    Console.WriteLine(result.Message);
     return 0;
 }
 
@@ -284,7 +343,11 @@ int Stop()
 {
     using var store = new HostStore(paths);
     var beat = store.ReadHeartbeat();
-    store.WriteHeartbeat(beat with { State = HostState.AwaitingVerify.ToString(), LastError = "stopped" });
+    HostJournal.Record(
+        paths,
+        store,
+        HostJournal.Reject(beat, HostState.AwaitingVerify.ToString(), "stopped"),
+        glennVerified: false);
     store.Log("host", "stop", "host stopped; session not closed by typing credentials");
     Console.WriteLine("Stopped. kill.switch unchanged.");
     return 0;
@@ -312,9 +375,4 @@ static string? ReadOverride(string[] args, string name)
     }
 
     return null;
-}
-
-static void WriteHeartbeatFile(HostPaths paths, Heartbeat beat)
-{
-    ProtectedFile.WriteUtf8(paths.Heartbeat, System.Text.Json.JsonSerializer.Serialize(beat));
 }

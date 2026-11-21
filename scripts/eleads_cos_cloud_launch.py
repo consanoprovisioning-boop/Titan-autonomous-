@@ -98,11 +98,19 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
+def _worker_id(row: dict) -> str:
+    return str(row.get("workerId") or "")
+
+
 def _worker_label_blob(row: dict) -> str:
     return " ".join(
         str(row.get(key) or "")
         for key in ("machineDisplayName", "displayName", "hostname", "machineId")
     )
+
+
+def _alienware_name(row: dict) -> bool:
+    return "Alienware-18" in _worker_label_blob(row)
 
 
 def worker_looks_like_linux_cloud(row: dict) -> bool:
@@ -119,7 +127,7 @@ def worker_looks_like_linux_cloud(row: dict) -> bool:
 def is_enrolled_windows_worker(row: dict | None) -> bool:
     if not isinstance(row, dict):
         return False
-    worker_id = str(row.get("workerId") or "")
+    worker_id = _worker_id(row)
     labels = _worker_label_blob(row)
     known = worker_id in KNOWN_WINDOWS_WORKER_IDS or "Alienware-18" in labels
     if known:
@@ -144,17 +152,22 @@ def live_windows_worker(snapshot: dict, receipt: dict | None = None) -> dict | N
         want_id = str(receipt.get("workerId") or receipt.get("hostId") or "")
         want_machine = str(receipt.get("machineName") or "").casefold()
         for row in rows:
-            worker_id = str(row.get("workerId") or "")
+            worker_id = _worker_id(row)
             machine_id = str(row.get("machineId") or "")
             labels = _worker_label_blob(row)
             if want_id and want_id in {worker_id, machine_id}:
                 return row
             if want_machine and want_machine in labels.casefold():
                 return row
+    # A still-listed retired process must not hide the live Alienware worker.
     for row in rows:
-        worker_id = str(row.get("workerId") or "")
-        labels = _worker_label_blob(row)
-        if worker_id == ALIENWARE_WORKER_ID or "Alienware-18" in labels:
+        if _worker_id(row) == ALIENWARE_WORKER_ID:
+            return row
+    for row in rows:
+        if _alienware_name(row) and _worker_id(row) not in RETIRED_ALIENWARE_WORKER_IDS:
+            return row
+    for row in rows:
+        if _worker_id(row) in RETIRED_ALIENWARE_WORKER_IDS or _alienware_name(row):
             return row
     return rows[0]
 

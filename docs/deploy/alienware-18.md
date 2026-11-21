@@ -57,7 +57,9 @@ Expected: a line that is `armed`.
 certutil -hashfile "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" SHA256
 ```
 
-Hash the launch exe against the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt` after a fresh publish. Do not compare the launch exe to the archived incomplete-drop hash.
+Expected launch exe SHA-256: `24f9efad371748028f6016694ff032e0b068d582df3c12131584aba8f24e2950`
+
+That value is the first line of `dist/titan-chief-win-x64/SHA256SUMS.txt` after a fresh publish. Do not compare the launch exe to the archived incomplete-drop hash.
 
 ## STOP
 

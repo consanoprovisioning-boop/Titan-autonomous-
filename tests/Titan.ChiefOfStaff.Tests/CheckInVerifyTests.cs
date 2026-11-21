@@ -83,6 +83,21 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Opportunity_id_containing_6220_does_not_reject_a_valdosta_session()
+    {
+        var desk = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\nBordine, Glenn\nOpportunity 162203")]);
+        var verdict = EleadsInspection.Choose([desk]);
+        Assert.True(verdict.LoggedIn);
+        Assert.False(verdict.Forbidden);
+        Assert.Equal("28206", verdict.DetectedRooftop);
+        Assert.Equal("Verified rooftop 28206 as Bordine, Glenn.", EleadsInspection.Describe(verdict));
+    }
+
+    [Fact]
     public void Open_6220_session_rejects_even_when_another_page_shows_valdosta()
     {
         var valdosta = new PageSnapshot(
@@ -193,6 +208,46 @@ public class CheckInVerifyTests
             Assert.False(rejected.RootElement.GetProperty("glennVerified").GetBoolean());
             Assert.Equal("6220", rejected.RootElement.GetProperty("rooftop").GetString());
             Assert.DoesNotContain("password", json, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Fact]
+    public void Rejected_session_revokes_the_glenn_verify_receipt()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-journal-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            var stamp = new FakeMachineStamp("ALIENWARE-18", "Glenn", "machine-a");
+            var host = HostIdentity.Enroll(paths, stamp);
+            var verified = new Heartbeat("VerifiedIdle", "28206", "2026-10-16T12:00:00-04:00", "2026-10-16T12:05:00-04:00", null, true);
+            HostJournal.Record(paths, store, verified, glennVerified: true, host);
+
+            var rejected = HostJournal.Reject(verified, "BlockedForbiddenRooftop", "forbidden rooftop", "6220");
+            HostJournal.Record(paths, store, rejected, glennVerified: false);
+
+            using var marker = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            Assert.False(marker.RootElement.GetProperty("glennVerified").GetBoolean());
+            Assert.Equal("BlockedForbiddenRooftop", marker.RootElement.GetProperty("state").GetString());
+            Assert.Equal("6220", marker.RootElement.GetProperty("rooftop").GetString());
+            Assert.Equal(JsonValueKind.Null, marker.RootElement.GetProperty("verifiedAt").ValueKind);
+
+            var saved = store.ReadHeartbeat();
+            Assert.Equal("BlockedForbiddenRooftop", saved.State);
+            Assert.Null(saved.VerifiedAt);
+            Assert.Equal("6220", saved.Rooftop);
+
+            using var file = JsonDocument.Parse(File.ReadAllText(paths.Heartbeat));
+            Assert.Equal("BlockedForbiddenRooftop", file.RootElement.GetProperty("State").GetString());
+            Assert.Equal(JsonValueKind.Null, file.RootElement.GetProperty("VerifiedAt").ValueKind);
         }
         finally
         {
