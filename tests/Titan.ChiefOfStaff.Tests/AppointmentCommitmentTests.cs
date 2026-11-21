@@ -109,6 +109,28 @@ public class AppointmentCommitmentTests
     }
 
     [Fact]
+    public void Clock_time_without_meridiem_uses_daytime_hours()
+    {
+        // Bare "at 2" is 2 PM. "at 2:30" must not be read as 02:30 and then
+        // replaced with Saturday 9:00 AM.
+        var afternoon = Eval("Yes, Saturday at 2:30");
+        var booked = new DateTimeOffset(2026, 9, 26, 14, 30, 0, TimeSpan.FromHours(-4));
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, afternoon.Action);
+        Assert.True(afternoon.ShouldBook);
+        Assert.Equal(booked, afternoon.SlotEt);
+        Assert.Equal(booked, Eval("Yes, Saturday at 2:30pm").SlotEt);
+        Assert.Equal(booked, Eval("Yes, Saturday at 14:30").SlotEt);
+
+        var morning = Eval("Yes, Saturday at 10:30");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, morning.Action);
+        Assert.Equal(new DateTimeOffset(2026, 9, 26, 10, 30, 0, TimeSpan.FromHours(-4)), morning.SlotEt);
+
+        var bareHour = Eval("Yes, Saturday at 2");
+        Assert.Equal(AppointmentCommitmentAction.ConfirmAndBook, bareHour.Action);
+        Assert.Equal(new DateTimeOffset(2026, 9, 26, 14, 0, 0, TimeSpan.FromHours(-4)), bareHour.SlotEt);
+    }
+
+    [Fact]
     public void Sms_outside_window_queues_reply_but_still_decides_booking()
     {
         var satNight = new DateTimeOffset(2026, 9, 26, 22, 0, 0, TimeSpan.FromHours(-4));
