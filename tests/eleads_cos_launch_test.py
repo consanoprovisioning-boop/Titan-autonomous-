@@ -125,14 +125,28 @@ class LaunchGuardTests(unittest.TestCase):
     def test_checkin_cmd_does_not_type_verify(self) -> None:
         checkin = (ROOT / "deploy/alienware-local-program/CHECKIN.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
         install = (ROOT / "deploy/alienware-local-program/INSTALL.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
-        for line in checkin.splitlines():
-            stripped = line.strip().lower()
-            self.assertNotEqual("verify", stripped)
-            self.assertFalse(stripped.startswith("verify "))
+        launch = (ROOT / "deploy/alienware-local-program/LAUNCH-COS-LIVE.cmd").read_bytes().replace(b"\r\n", b"\n").decode("ascii")
+        for name, text in (("checkin", checkin), ("launch", launch)):
+            del name
+            for line in text.splitlines():
+                stripped = line.strip().lower()
+                self.assertNotEqual("verify", stripped)
+                self.assertFalse(stripped.startswith("verify "))
         self.assertIn("checkin", checkin.lower())
         self.assertNotIn(".exe verify", checkin.lower())
-        self.assertNotIn(".exe install", install.lower())
+        self.assertIn('titan.chiefofstaff.exe" install', install.lower())
         self.assertNotIn(".exe checkin", install.lower())
+        self.assertNotIn(".exe tick", install.lower())
+        self.assertNotIn(".exe verify", install.lower())
+        self.assertIn("agent worker start --verbose", launch.lower())
+        self.assertIn("not enrolled", launch.lower())
+        self.assertNotIn("eleadcrm.com", launch.lower())
+        self.assertNotIn("powershell.exe", launch.lower())
+        self.assertNotIn("pwsh", launch.lower())
+        self.assertNotIn("set-executionpolicy", launch.lower())
+        self.assertIn("do not run", launch.lower())
+        self.assertIn("system32", launch.lower())
+        self.assertIn("host.json", launch.lower())
 
     def test_verify_receipt_matches_local_marker(self) -> None:
         self.assertTrue(launch.verify_receipt_ok({
@@ -142,12 +156,21 @@ class LaunchGuardTests(unittest.TestCase):
             "rooftop": "28206",
             "verifiedAt": "2026-10-16T12:00:00-04:00",
             "loginClaim": False,
+            "hostId": "enrolled-host-a",
         }))
         self.assertTrue(launch.verify_receipt_ok({
             "glennVerified": True,
             "state": "VerifiedIdle",
             "identity": "Bordine, Glenn",
             "rooftop": "28546",
+            "loginClaim": False,
+            "hostId": "enrolled-host-b",
+        }))
+        self.assertFalse(launch.verify_receipt_ok({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
             "loginClaim": False,
         }))
         self.assertFalse(launch.verify_receipt_ok({
@@ -156,6 +179,7 @@ class LaunchGuardTests(unittest.TestCase):
             "identity": None,
             "rooftop": "28206",
             "loginClaim": False,
+            "hostId": "enrolled-host-a",
         }))
 
     def test_live_worker_is_not_hidden_by_an_earlier_retired_row(self) -> None:
@@ -181,6 +205,7 @@ class LaunchGuardTests(unittest.TestCase):
             "identity": "Bordine, Glenn",
             "rooftop": "28206",
             "loginClaim": False,
+            "hostId": "enrolled-host-a",
         }
         state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
         self.assertEqual(launch.ALIENWARE_WORKER_ID, state["workerId"])
@@ -211,6 +236,7 @@ class LaunchGuardTests(unittest.TestCase):
             "identity": "Bordine, Glenn",
             "rooftop": "28206",
             "loginClaim": False,
+            "hostId": "enrolled-host-a",
         }
         state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
         self.assertEqual(launch.ALIENWARE_WORKER_ID, state["workerId"])
@@ -251,7 +277,136 @@ class LaunchGuardTests(unittest.TestCase):
             "state": "VerifiedIdle",
             "rooftop": "6220",
             "identity": "Bordine, Glenn",
+            "hostId": "enrolled-host-a",
         }))
+
+    def test_second_windows_pc_can_be_the_live_session(self) -> None:
+        tmp = Path("/tmp/eleads-cos-launch-laptop")
+        tmp.mkdir(exist_ok=True)
+        for child in tmp.iterdir():
+            child.unlink()
+        workers = tmp / "workers.json"
+        receipt = tmp / "verify.json"
+        state_path = tmp / "state.json"
+        ticklog = tmp / "TICKLOG.md"
+        workers.write_text(json.dumps({
+            "workers": [{
+                "workerId": "laptop-worker-1",
+                "machineDisplayName": "GLENN-LAPTOP",
+                "displayName": "office-pc",
+            }]
+        }), encoding="utf-8")
+        receipt.write_text(json.dumps({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "laptop-host-id",
+            "machineName": "GLENN-LAPTOP",
+        }), encoding="utf-8")
+        code = launch.main([
+            "--workers-file", str(workers),
+            "--verify-receipt", str(receipt),
+            "--state-file", str(state_path),
+            "--ticklog-file", str(ticklog),
+        ])
+        self.assertEqual(0, code)
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertTrue(data["verify"])
+        self.assertEqual("windows-verified", data["host"])
+        self.assertEqual("windows-cdp-9222-loopback", data["eleadsSession"])
+        self.assertEqual("laptop-worker-1", data["liveWorkerId"])
+        self.assertTrue(data["oneLiveSession"])
+        self.assertEqual([], data["sends"])
+
+    def test_one_live_session_when_two_pcs_are_online(self) -> None:
+        snapshot = {
+            "workers": [
+                {"workerId": "laptop-worker-1", "machineDisplayName": "GLENN-LAPTOP"},
+                {
+                    "workerId": launch.ALIENWARE_WORKER_ID,
+                    "machineDisplayName": "Alienware-18",
+                },
+            ]
+        }
+        preferred = launch.live_windows_worker(snapshot)
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, preferred["workerId"])
+        receipt = {"hostId": "x", "machineName": "GLENN-LAPTOP", "workerId": "laptop-worker-1"}
+        chosen = launch.live_windows_worker(snapshot, receipt)
+        self.assertEqual("laptop-worker-1", chosen["workerId"])
+        self.assertEqual(2, len(launch.windows_workers(snapshot)))
+        missing = launch.live_windows_worker(
+            {"workers": [snapshot["workers"][1]]},
+            {"hostId": "laptop-host-id", "machineName": "GLENN-LAPTOP", "workerId": "laptop-worker-1"},
+        )
+        self.assertIsNone(missing)
+        fallback = launch.live_windows_worker(
+            {"workers": [snapshot["workers"][1]]},
+            {"hostId": "alienware-host-id", "machineName": "DESKTOP-ALIENWARE"},
+        )
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, fallback["workerId"])
+
+    def test_verify_does_not_use_a_different_online_pc(self) -> None:
+        tmp = Path("/tmp/eleads-cos-launch-named-host")
+        tmp.mkdir(exist_ok=True)
+        for child in tmp.iterdir():
+            child.unlink()
+        workers = tmp / "workers.json"
+        receipt = tmp / "verify.json"
+        state_path = tmp / "state.json"
+        ticklog = tmp / "TICKLOG.md"
+        workers.write_text(json.dumps({
+            "workers": [{
+                "workerId": launch.ALIENWARE_WORKER_ID,
+                "machineDisplayName": "Alienware-18",
+            }]
+        }), encoding="utf-8")
+        receipt.write_text(json.dumps({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "laptop-host-id",
+            "machineName": "GLENN-LAPTOP",
+            "workerId": "laptop-worker-1",
+        }), encoding="utf-8")
+        code = launch.main([
+            "--workers-file", str(workers),
+            "--verify-receipt", str(receipt),
+            "--state-file", str(state_path),
+            "--ticklog-file", str(ticklog),
+        ])
+        self.assertEqual(3, code)
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertFalse(data["verify"])
+        self.assertNotEqual("windows-verified", data["host"])
+        self.assertNotEqual("v1.1-execute", data["mode"])
+
+    def test_windows_machine_name_still_uses_the_known_alienware_worker(self) -> None:
+        snapshot = {
+            "workers": [{
+                "workerId": launch.ALIENWARE_WORKER_ID,
+                "machineDisplayName": "Alienware-18",
+                "displayName": "Alienware-18",
+            }]
+        }
+        receipt = {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "enrolled-host-a",
+            "machineName": "DESKTOP-ALIENWARE",
+        }
+        chosen = launch.live_windows_worker(snapshot, receipt)
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, chosen["workerId"])
+        state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertTrue(state["workerOnline"])
+        self.assertTrue(state["verify"])
+        self.assertEqual("v1.1-execute", state["mode"])
 
 
 if __name__ == "__main__":

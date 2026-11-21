@@ -58,6 +58,7 @@ public sealed class HostStore : IDisposable
 
     public void WriteHeartbeat(Heartbeat beat)
     {
+        RefusePassword(beat.State, beat.Rooftop, beat.VerifiedAt, beat.LastTickAt, beat.LastError);
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
             UPDATE heartbeat
@@ -75,6 +76,8 @@ public sealed class HostStore : IDisposable
 
     public void Log(string queue, string action, string result, string? rooftop = null, string? customerKey = null)
     {
+        RefusePassword(queue, action, result, rooftop, customerKey);
+        var sealedCustomer = string.IsNullOrWhiteSpace(customerKey) ? null : CustomerSeal.FromVisibleText(customerKey);
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
             INSERT INTO work_log (at_et, rooftop, customer_key, queue, action, result)
@@ -82,11 +85,22 @@ public sealed class HostStore : IDisposable
             """;
         cmd.Parameters.AddWithValue("$at", EasternClock.Now().ToString("o"));
         cmd.Parameters.AddWithValue("$rooftop", (object?)rooftop ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("$customer", (object?)customerKey ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$customer", (object?)sealedCustomer ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$queue", queue);
         cmd.Parameters.AddWithValue("$action", action);
         cmd.Parameters.AddWithValue("$result", result);
         cmd.ExecuteNonQuery();
+    }
+
+    private static void RefusePassword(params string?[] fields)
+    {
+        foreach (var field in fields)
+        {
+            if (field is not null && field.Contains("password", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Host store must not record a password.");
+            }
+        }
     }
 
     public IReadOnlyList<string> RecentLogs(int take)

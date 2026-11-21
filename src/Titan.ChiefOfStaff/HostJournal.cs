@@ -4,18 +4,19 @@ namespace Titan.ChiefOfStaff;
 
 public static class HostJournal
 {
-    public static void Record(HostPaths paths, HostStore store, Heartbeat beat, bool glennVerified)
+    public static void Record(HostPaths paths, HostStore store, Heartbeat beat, bool glennVerified, HostIdentity? host = null)
     {
         store.WriteHeartbeat(beat);
         Directory.CreateDirectory(paths.DataRoot);
-        File.WriteAllText(paths.Heartbeat, JsonSerializer.Serialize(beat));
+        ProtectedFile.WriteUtf8(paths.Heartbeat, JsonSerializer.Serialize(beat));
         VerifyMarker.Write(
             paths,
             beat.State,
             beat.Rooftop,
             glennVerified ? Policy.Identity : null,
             glennVerified ? beat.VerifiedAt : null,
-            glennVerified);
+            glennVerified,
+            host);
     }
 
     public static Heartbeat Reject(Heartbeat beat, string state, string error, string? rooftop = null)

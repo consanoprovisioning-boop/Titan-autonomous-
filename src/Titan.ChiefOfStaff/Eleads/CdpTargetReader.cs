@@ -8,7 +8,8 @@ public static class CdpTargetReader
 {
     public static async Task<PageSnapshot?> TryReadAsync(CdpPageTarget target)
     {
-        if (string.IsNullOrWhiteSpace(target.WebSocketDebuggerUrl))
+        if (string.IsNullOrWhiteSpace(target.WebSocketDebuggerUrl)
+            || !CdpEndpoint.IsTrusted(target.WebSocketDebuggerUrl))
         {
             return null;
         }

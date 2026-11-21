@@ -138,7 +138,7 @@ public static class EleadsInspection
 
         if (!verdict.LoggedIn)
         {
-            return "Eleads is not verified. Sign in as Bordine, Glenn on 28206 or 28546. Titan will not type the password. Leave Chrome open.";
+            return "Eleads is not verified. Sign in as Bordine, Glenn on 28206 or 28546. Titan will not type credentials. Leave Chrome open.";
         }
 
         return $"Verified rooftop {verdict.DetectedRooftop} as {verdict.IdentityHint}.";

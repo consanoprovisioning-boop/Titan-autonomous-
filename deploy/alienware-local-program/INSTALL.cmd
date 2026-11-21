@@ -1,8 +1,8 @@
 @echo off
 setlocal
-REM Alienware 18 local install. cmd.exe only. No PowerShell. No execution-policy Bypass.
-REM Copies files and arms the kill switch. Does not start Titan.ChiefOfStaff.exe.
-REM Does not open Eleads. Does not type a password.
+REM Windows local install. cmd.exe only. No PowerShell. No execution-policy Bypass.
+REM Copies files, enrolls this PC with Titan.ChiefOfStaff.exe install, and arms the kill switch.
+REM Does not run checkin or tick. Does not open Eleads. Does not type a password. Do not copy TitanChief between PCs.
 
 set "SRC=%~1"
 if "%SRC%"=="" set "SRC=%~dp0"
@@ -20,11 +20,19 @@ mkdir "%ROOT%" 2>nul
 xcopy /E /I /Y "%SRC%\*" "%APP%\"
 echo armed>"%ROOT%\kill.switch"
 type "%ROOT%\kill.switch"
+"%APP%\Titan.ChiefOfStaff.exe" install
+if errorlevel 1 (
+  echo Enrollment failed. This PC is not enrolled.
+  pause
+  exit /b 1
+)
 certutil -hashfile "%APP%\Titan.ChiefOfStaff.exe" SHA256
 echo.
 echo Installed to %APP%
+echo This PC is enrolled. Other PCs need their own INSTALL. Verify one live session at a time.
 echo kill.switch is armed. This is not Verify and not send authorization.
 echo Next: double-click CHECKIN.cmd
 echo Do not type verify by itself. Command Prompt owns that word.
+echo Do not copy %ROOT% onto another PC.
 endlocal
 pause

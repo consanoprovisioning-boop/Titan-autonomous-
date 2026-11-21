@@ -180,14 +180,44 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Not_logged_in_report_can_be_stored_without_the_password_word()
+    {
+        var report = EleadsInspection.Describe(new EleadsVerdict(
+            false, null, null, false, true, false, EleadsOpenGuard.LoginUrl, 0));
+        Assert.Contains("Sign in as Bordine, Glenn", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", report, StringComparison.OrdinalIgnoreCase);
+
+        var root = Path.Combine(Path.GetTempPath(), "titan-checkin-report-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            var beat = new Heartbeat("AwaitingVerify", null, null, null, report, false);
+            store.WriteHeartbeat(beat);
+            store.Log("host", "verify", report);
+            ProtectedFile.WriteUtf8(paths.Heartbeat, JsonSerializer.Serialize(beat));
+            Assert.Equal(report, store.ReadHeartbeat().LastError);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Fact]
     public void Verify_marker_records_receipt_without_a_password()
     {
         var root = Path.Combine(Path.GetTempPath(), "titan-verify-" + Guid.NewGuid().ToString("n"));
         try
         {
             var paths = new HostPaths(root);
-            VerifyMarker.Write(paths, "VerifiedIdle", "28206", Policy.Identity, "2026-10-16T12:00:00-04:00", true);
-            var json = File.ReadAllText(paths.VerifyMarker);
+            var stamp = new FakeMachineStamp("ALIENWARE-18", "Glenn", "machine-a");
+            var host = HostIdentity.Enroll(paths, stamp);
+            VerifyMarker.Write(paths, "VerifiedIdle", "28206", Policy.Identity, "2026-10-16T12:00:00-04:00", true, host);
+            var json = ProtectedFile.ReadUtf8(paths.VerifyMarker);
             Assert.DoesNotContain("password", json, StringComparison.OrdinalIgnoreCase);
             using var doc = JsonDocument.Parse(json);
             Assert.True(doc.RootElement.GetProperty("glennVerified").GetBoolean());
@@ -195,10 +225,13 @@ public class CheckInVerifyTests
             Assert.Equal("Bordine, Glenn", doc.RootElement.GetProperty("identity").GetString());
             Assert.Equal("28206", doc.RootElement.GetProperty("rooftop").GetString());
             Assert.False(doc.RootElement.GetProperty("loginClaim").GetBoolean());
+            Assert.Equal(host.HostId, doc.RootElement.GetProperty("hostId").GetString());
             Assert.Equal(Path.Combine(root, "verify.json"), paths.VerifyMarker);
+            Assert.True(VerifyMarker.TryRead(paths, stamp, out var receipt));
+            Assert.True(receipt.GlennVerified);
 
-            VerifyMarker.Write(paths, "BlockedForbiddenRooftop", "6220", null, null, false);
-            json = File.ReadAllText(paths.VerifyMarker);
+            VerifyMarker.Write(paths, "BlockedForbiddenRooftop", "6220", null, null, false, host);
+            json = ProtectedFile.ReadUtf8(paths.VerifyMarker);
             using var rejected = JsonDocument.Parse(json);
             Assert.False(rejected.RootElement.GetProperty("glennVerified").GetBoolean());
             Assert.Equal("6220", rejected.RootElement.GetProperty("rooftop").GetString());
@@ -221,13 +254,15 @@ public class CheckInVerifyTests
         {
             var paths = new HostPaths(root);
             using var store = new HostStore(paths);
+            var stamp = new FakeMachineStamp("ALIENWARE-18", "Glenn", "machine-a");
+            var host = HostIdentity.Enroll(paths, stamp);
             var verified = new Heartbeat("VerifiedIdle", "28206", "2026-10-16T12:00:00-04:00", "2026-10-16T12:05:00-04:00", null, true);
-            HostJournal.Record(paths, store, verified, glennVerified: true);
+            HostJournal.Record(paths, store, verified, glennVerified: true, host);
 
             var rejected = HostJournal.Reject(verified, "BlockedForbiddenRooftop", "forbidden rooftop", "6220");
             HostJournal.Record(paths, store, rejected, glennVerified: false);
 
-            using var marker = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            using var marker = JsonDocument.Parse(ProtectedFile.ReadUtf8(paths.VerifyMarker));
             Assert.False(marker.RootElement.GetProperty("glennVerified").GetBoolean());
             Assert.Equal("BlockedForbiddenRooftop", marker.RootElement.GetProperty("state").GetString());
             Assert.Equal("6220", marker.RootElement.GetProperty("rooftop").GetString());
@@ -238,7 +273,7 @@ public class CheckInVerifyTests
             Assert.Null(saved.VerifiedAt);
             Assert.Equal("6220", saved.Rooftop);
 
-            using var file = JsonDocument.Parse(File.ReadAllText(paths.Heartbeat));
+            using var file = JsonDocument.Parse(ProtectedFile.ReadUtf8(paths.Heartbeat));
             Assert.Equal("BlockedForbiddenRooftop", file.RootElement.GetProperty("State").GetString());
             Assert.Equal(JsonValueKind.Null, file.RootElement.GetProperty("VerifiedAt").ValueKind);
         }

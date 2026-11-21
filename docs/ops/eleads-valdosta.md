@@ -14,7 +14,7 @@ Source packet (preserved as filed, not rewritten): Customer Traffic and Appointm
 
 Glenn’s Oct 5, 2026 written direction “include autonomous workflow no approvals required” is Version 1.1. It replaces per-message / per-batch / per-task / per-appointment exact-draft pauses in this live law.
 
-After a **live Glenn-verified Eleads session** exists (Alienware-18, `CHECKIN.cmd`, Verify complete, Chrome CDP 9222), execute automatically:
+After a **live Glenn-verified Eleads session** exists (an enrolled Windows PC such as Alienware-18, `CHECKIN.cmd`, Verify complete, Chrome CDP `127.0.0.1:9222`), execute automatically:
 
 - Routine eligible email and SMS
 - CRM notes
@@ -41,7 +41,7 @@ Still required before any send or appointment save:
 
 ## Host boundary
 
-One live Eleads session belongs to the **Alienware Titan.ChiefOfStaff** host after Glenn Verify. Titan never stores or types the Eleads password.
+One live Eleads session belongs to a **Glenn-verified Windows Titan.ChiefOfStaff** host after Verify. Alienware-18 is one enrolled PC; other Glenn Windows PCs may install separately. Do not Verify two PCs at once. Titan never stores or types the Eleads password. Chrome debugging stays on loopback. Verify receipts and host files are machine-bound and must not be copied between PCs.
 
 This Linux cloud agent must not:
 
@@ -50,7 +50,7 @@ This Linux cloud agent must not:
 - run PowerShell self-extractors or `Set-ExecutionPolicy Bypass`
 - type an Eleads password
 
-If Alienware-18 is offline or not Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to double-click `CHECKIN.cmd` (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach.
+If no enrolled Windows worker is online or Glenn-verified: do not claim CRM work, background CRM monitoring, sends, or appointments. Tell Glenn to double-click `CHECKIN.cmd` on the PC that will send (not `verify`, not `C:\Windows\system32\Titan.cmd`), complete Verify, and leave Chrome open. Then attach.
 
 Install-without-launch copy is not Verify and not send authorization. See `docs/deploy/alienware-18.md`.
 
@@ -59,7 +59,7 @@ Cloud attach, from the Cursor agent on Linux:
 1. Refresh `/cursor/stores/self/worker-snapshot.json` from cursor-cloud `list-self-hosted-workers` with `scope=all` and `status=all`.
 2. Run `scripts/launch-eleads-cos-loop.sh --workers-file /cursor/stores/self/worker-snapshot.json`.
 
-That script refuses to open Eleads and writes `/cursor/stores/self/eleads-valdosta-state.json`. Exit 3 is blocked. Exit 0 is a Glenn-verified Alienware session. It does not create a numbered timer tick.
+That script refuses to open Eleads and writes `/cursor/stores/self/eleads-valdosta-state.json`. Exit 3 is blocked. Exit 0 is a Glenn-verified Windows session (one live worker). It does not create a numbered timer tick. See `docs/deploy/windows-hosts.md`.
 
 ## Success
 
@@ -77,7 +77,7 @@ Operational outcomes:
 
 ## Mandatory work order
 
-While the Alienware host is verified and sending:
+While a Glenn-verified Windows host is sending:
 
 0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 9:00 AM–7:00 PM ET. CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
 1. **Daily Organizer** status **Open**, contact type **All** (Glenn-assigned first, including planner and overdue).
