@@ -79,7 +79,7 @@ Operational outcomes:
 
 While the Alienware host is verified and sending:
 
-0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 9:00 AM–7:00 PM ET. CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
+0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 8:00 AM–9:00 PM ET. CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
 1. **Daily Organizer** status **Open**, contact type **All** (Glenn-assigned first, including planner and overdue).
 2. **Appraisal / trade / lease maturity / missed appointment / recent inquiry.**
 3. **Qualified dormant** new/used vehicle leads.
@@ -130,7 +130,7 @@ Glenn-owned profiles: prepare follow-up only after the latest email/SMS timing a
 | Channel | When | Proof |
 | --- | --- | --- |
 | Email | Valid permitted email; no opt-out / hard bounce. Any hour after a live verified session. | Sent activity + separate completed email task/note: `Manual email completed via system.` |
-| SMS | Valid SMS-permitted phone; no DNT / Stop. **9:00 AM–7:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
+| SMS | Valid SMS-permitted phone; no DNT / Stop. **8:00 AM–9:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
 | Phone | Valid callable number; no DNC. Autonomous calls require telephony integration. | Actual call outcome. Never mark a call completed if no call occurred. |
 
 A draft, blank composer, preview, or processing screen is not delivery. CRM history under Bordine, Glenn or Glenn Bordine is the evidence. Click Send once. Recheck history before any retry. Do not resend automatically when the result is uncertain.

@@ -2,7 +2,8 @@ Titan Chief of Staff — Alienware 18
 
 Command Prompt owns the word verify. Typing verify by itself does not start Titan.
 
-1. On this PC, start the Cursor worker and leave it running: cursor worker start
+1. On this PC, double-click START-WORKER.cmd and leave that worker window open.
+   It must show %USERPROFILE% (not C:\Windows\system32). Do not rerun CHECKIN.cmd for the worker.
 2. Double-click INSTALL.cmd once if TitanChief is not installed yet.
    INSTALL.cmd does not start the program and does not open Eleads.
 3. Close every Chrome window and the tray icon.
