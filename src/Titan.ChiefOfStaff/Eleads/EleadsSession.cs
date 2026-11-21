@@ -94,7 +94,7 @@ public sealed class EleadsSession : IAsyncDisposable
     {
         foreach (var id in Policy.AllowedRooftops)
         {
-            if (text.Contains(id, StringComparison.Ordinal) || url.Contains(id, StringComparison.Ordinal))
+            if (Policy.ContainsBoundedId(text, id) || Policy.ContainsBoundedId(url, id))
             {
                 return id;
             }

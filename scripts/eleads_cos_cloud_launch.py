@@ -97,21 +97,35 @@ def appointment_set_allowed(correspondence: str | None) -> bool:
     return has_day is not None and has_time is not None
 
 
+def _worker_id(row: dict) -> str:
+    return str(row.get("workerId") or "")
+
+
+def _alienware_name(row: dict) -> bool:
+    labels = " ".join(
+        str(row.get(key) or "")
+        for key in ("machineDisplayName", "displayName", "hostname")
+    )
+    return "Alienware-18" in labels
+
+
 def alienware_worker(snapshot: dict) -> dict | None:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
         return None
-    for row in workers:
-        if not isinstance(row, dict):
-            continue
-        worker_id = str(row.get("workerId") or "")
-        if worker_id == ALIENWARE_WORKER_ID or worker_id in RETIRED_ALIENWARE_WORKER_IDS:
+    rows = [row for row in workers if isinstance(row, dict)]
+
+    for row in rows:
+        if _worker_id(row) == ALIENWARE_WORKER_ID:
             return row
-        labels = " ".join(
-            str(row.get(key) or "")
-            for key in ("machineDisplayName", "displayName", "hostname")
-        )
-        if labels.startswith("Alienware-18") or "Alienware-18" in labels:
+
+    # A still-listed retired process must not hide the machine that replaced it.
+    for row in rows:
+        if _alienware_name(row) and _worker_id(row) not in RETIRED_ALIENWARE_WORKER_IDS:
+            return row
+
+    for row in rows:
+        if _worker_id(row) in RETIRED_ALIENWARE_WORKER_IDS or _alienware_name(row):
             return row
     return None
 
