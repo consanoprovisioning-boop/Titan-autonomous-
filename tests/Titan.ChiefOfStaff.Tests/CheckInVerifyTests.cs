@@ -180,6 +180,34 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Not_logged_in_report_can_be_stored_without_the_password_word()
+    {
+        var report = EleadsInspection.Describe(new EleadsVerdict(
+            false, null, null, false, true, false, EleadsOpenGuard.LoginUrl, 0));
+        Assert.Contains("Sign in as Bordine, Glenn", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", report, StringComparison.OrdinalIgnoreCase);
+
+        var root = Path.Combine(Path.GetTempPath(), "titan-checkin-report-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var store = new HostStore(paths);
+            var beat = new Heartbeat("AwaitingVerify", null, null, null, report, false);
+            store.WriteHeartbeat(beat);
+            store.Log("host", "verify", report);
+            ProtectedFile.WriteUtf8(paths.Heartbeat, JsonSerializer.Serialize(beat));
+            Assert.Equal(report, store.ReadHeartbeat().LastError);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Fact]
     public void Verify_marker_records_receipt_without_a_password()
     {
         var root = Path.Combine(Path.GetTempPath(), "titan-verify-" + Guid.NewGuid().ToString("n"));

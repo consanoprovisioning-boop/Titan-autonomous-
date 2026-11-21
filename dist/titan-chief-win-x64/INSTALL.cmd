@@ -1,8 +1,8 @@
 @echo off
 setlocal
 REM Windows local install. cmd.exe only. No PowerShell. No execution-policy Bypass.
-REM Copies files, enrolls this PC, and arms the kill switch. Does not start Titan.ChiefOfStaff.exe.
-REM Does not open Eleads. Does not type a password. Do not copy TitanChief between PCs.
+REM Copies files, enrolls this PC with Titan.ChiefOfStaff.exe install, and arms the kill switch.
+REM Does not run checkin or tick. Does not open Eleads. Does not type a password. Do not copy TitanChief between PCs.
 
 set "SRC=%~1"
 if "%SRC%"=="" set "SRC=%~dp0"
@@ -20,6 +20,12 @@ mkdir "%ROOT%" 2>nul
 xcopy /E /I /Y "%SRC%\*" "%APP%\"
 echo armed>"%ROOT%\kill.switch"
 type "%ROOT%\kill.switch"
+"%APP%\Titan.ChiefOfStaff.exe" install
+if errorlevel 1 (
+  echo Enrollment failed. This PC is not enrolled.
+  pause
+  exit /b 1
+)
 certutil -hashfile "%APP%\Titan.ChiefOfStaff.exe" SHA256
 echo.
 echo Installed to %APP%

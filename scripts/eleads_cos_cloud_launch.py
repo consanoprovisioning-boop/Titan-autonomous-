@@ -137,6 +137,29 @@ def is_enrolled_windows_worker(row: dict | None) -> bool:
     return bool(worker_id)
 
 
+def receipt_names_live_worker(receipt: dict | None) -> bool:
+    if not isinstance(receipt, dict):
+        return False
+    return bool(str(receipt.get("workerId") or "").strip() or str(receipt.get("machineName") or "").strip())
+
+
+def worker_matches_receipt(row: dict | None, receipt: dict | None) -> bool:
+    if not isinstance(row, dict) or not isinstance(receipt, dict):
+        return False
+    want_worker = str(receipt.get("workerId") or "").strip()
+    want_machine = str(receipt.get("machineName") or "").strip().casefold()
+    if not want_worker and not want_machine:
+        return False
+    worker_id = _worker_id(row)
+    machine_id = str(row.get("machineId") or "")
+    labels = _worker_label_blob(row).casefold()
+    if want_worker and want_worker in {worker_id, machine_id}:
+        return True
+    if want_machine and want_machine in labels:
+        return True
+    return False
+
+
 def windows_workers(snapshot: dict) -> list[dict]:
     workers = snapshot.get("workers") or []
     if not isinstance(workers, list):
@@ -149,16 +172,11 @@ def live_windows_worker(snapshot: dict, receipt: dict | None = None) -> dict | N
     if not rows:
         return None
     if isinstance(receipt, dict):
-        want_id = str(receipt.get("workerId") or receipt.get("hostId") or "")
-        want_machine = str(receipt.get("machineName") or "").casefold()
         for row in rows:
-            worker_id = _worker_id(row)
-            machine_id = str(row.get("machineId") or "")
-            labels = _worker_label_blob(row)
-            if want_id and want_id in {worker_id, machine_id}:
+            if worker_matches_receipt(row, receipt):
                 return row
-            if want_machine and want_machine in labels.casefold():
-                return row
+        if receipt_names_live_worker(receipt):
+            return None
     # A still-listed retired process must not hide the live Alienware worker.
     for row in rows:
         if _worker_id(row) == ALIENWARE_WORKER_ID:
@@ -234,7 +252,13 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
     machine_name = str((row or {}).get("machineDisplayName") or (row or {}).get("displayName") or "windows-pc")
     system32 = worker_directory_is_system32(row)
-    verified = online and verify_receipt_ok(receipt) and not system32
+    named = receipt_names_live_worker(receipt)
+    verified = (
+        online
+        and verify_receipt_ok(receipt)
+        and not system32
+        and (worker_matches_receipt(row, receipt) if named else True)
+    )
     workers = snapshot.get("workers") or []
     worker_count = len(workers) if isinstance(workers, list) else 0
     extra_hosts = max(0, len(candidates) - 1)

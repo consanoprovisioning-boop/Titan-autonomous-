@@ -134,8 +134,10 @@ class LaunchGuardTests(unittest.TestCase):
                 self.assertFalse(stripped.startswith("verify "))
         self.assertIn("checkin", checkin.lower())
         self.assertNotIn(".exe verify", checkin.lower())
-        self.assertNotIn(".exe install", install.lower())
+        self.assertIn('titan.chiefofstaff.exe" install', install.lower())
         self.assertNotIn(".exe checkin", install.lower())
+        self.assertNotIn(".exe tick", install.lower())
+        self.assertNotIn(".exe verify", install.lower())
         self.assertIn("agent worker start --verbose", launch.lower())
         self.assertNotIn("eleadcrm.com", launch.lower())
         self.assertNotIn("powershell.exe", launch.lower())
@@ -332,6 +334,47 @@ class LaunchGuardTests(unittest.TestCase):
         chosen = launch.live_windows_worker(snapshot, receipt)
         self.assertEqual("laptop-worker-1", chosen["workerId"])
         self.assertEqual(2, len(launch.windows_workers(snapshot)))
+        missing = launch.live_windows_worker(
+            {"workers": [snapshot["workers"][1]]},
+            {"hostId": "laptop-host-id", "machineName": "GLENN-LAPTOP"},
+        )
+        self.assertIsNone(missing)
+
+    def test_verify_does_not_use_a_different_online_pc(self) -> None:
+        tmp = Path("/tmp/eleads-cos-launch-named-host")
+        tmp.mkdir(exist_ok=True)
+        for child in tmp.iterdir():
+            child.unlink()
+        workers = tmp / "workers.json"
+        receipt = tmp / "verify.json"
+        state_path = tmp / "state.json"
+        ticklog = tmp / "TICKLOG.md"
+        workers.write_text(json.dumps({
+            "workers": [{
+                "workerId": launch.ALIENWARE_WORKER_ID,
+                "machineDisplayName": "Alienware-18",
+            }]
+        }), encoding="utf-8")
+        receipt.write_text(json.dumps({
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "laptop-host-id",
+            "machineName": "GLENN-LAPTOP",
+        }), encoding="utf-8")
+        code = launch.main([
+            "--workers-file", str(workers),
+            "--verify-receipt", str(receipt),
+            "--state-file", str(state_path),
+            "--ticklog-file", str(ticklog),
+        ])
+        self.assertEqual(3, code)
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertFalse(data["verify"])
+        self.assertNotEqual("windows-verified", data["host"])
+        self.assertNotEqual("v1.1-execute", data["mode"])
 
 
 if __name__ == "__main__":
