@@ -75,6 +75,13 @@ public class HostSecurityTests
             Assert.True(hostA.Matches(pcA, HostIdentity.LoadOrCreateSecret(paths)));
             Assert.False(hostA.Matches(pcB, HostIdentity.LoadOrCreateSecret(paths)));
             Assert.Throws<InvalidOperationException>(() => HostIdentity.RequireThisMachine(paths, pcB));
+            Assert.Equal(hostA.HostId, HostIdentity.EnsureThisMachine(paths, pcA).HostId);
+            Assert.Throws<InvalidOperationException>(() => HostIdentity.EnsureThisMachine(paths, pcB));
+
+            var freshPaths = new HostPaths(Path.Combine(root, "fresh"));
+            var created = HostIdentity.EnsureThisMachine(freshPaths, pcA);
+            Assert.False(string.IsNullOrWhiteSpace(created.HostId));
+            Assert.Equal(created.HostId, HostIdentity.EnsureThisMachine(freshPaths, pcA).HostId);
 
             VerifyMarker.Write(paths, "VerifiedIdle", "28206", Policy.Identity, "2026-10-18T12:00:00-04:00", true, hostA);
             Assert.True(VerifyMarker.TryRead(paths, pcA, out var receipt));

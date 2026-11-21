@@ -217,7 +217,7 @@ public class CheckInVerifyTests
             var stamp = new FakeMachineStamp("ALIENWARE-18", "Glenn", "machine-a");
             var host = HostIdentity.Enroll(paths, stamp);
             VerifyMarker.Write(paths, "VerifiedIdle", "28206", Policy.Identity, "2026-10-16T12:00:00-04:00", true, host);
-            var json = File.ReadAllText(paths.VerifyMarker);
+            var json = ProtectedFile.ReadUtf8(paths.VerifyMarker);
             Assert.DoesNotContain("password", json, StringComparison.OrdinalIgnoreCase);
             using var doc = JsonDocument.Parse(json);
             Assert.True(doc.RootElement.GetProperty("glennVerified").GetBoolean());
@@ -231,7 +231,7 @@ public class CheckInVerifyTests
             Assert.True(receipt.GlennVerified);
 
             VerifyMarker.Write(paths, "BlockedForbiddenRooftop", "6220", null, null, false, host);
-            json = File.ReadAllText(paths.VerifyMarker);
+            json = ProtectedFile.ReadUtf8(paths.VerifyMarker);
             using var rejected = JsonDocument.Parse(json);
             Assert.False(rejected.RootElement.GetProperty("glennVerified").GetBoolean());
             Assert.Equal("6220", rejected.RootElement.GetProperty("rooftop").GetString());
@@ -262,7 +262,7 @@ public class CheckInVerifyTests
             var rejected = HostJournal.Reject(verified, "BlockedForbiddenRooftop", "forbidden rooftop", "6220");
             HostJournal.Record(paths, store, rejected, glennVerified: false);
 
-            using var marker = JsonDocument.Parse(File.ReadAllText(paths.VerifyMarker));
+            using var marker = JsonDocument.Parse(ProtectedFile.ReadUtf8(paths.VerifyMarker));
             Assert.False(marker.RootElement.GetProperty("glennVerified").GetBoolean());
             Assert.Equal("BlockedForbiddenRooftop", marker.RootElement.GetProperty("state").GetString());
             Assert.Equal("6220", marker.RootElement.GetProperty("rooftop").GetString());
@@ -273,7 +273,7 @@ public class CheckInVerifyTests
             Assert.Null(saved.VerifiedAt);
             Assert.Equal("6220", saved.Rooftop);
 
-            using var file = JsonDocument.Parse(File.ReadAllText(paths.Heartbeat));
+            using var file = JsonDocument.Parse(ProtectedFile.ReadUtf8(paths.Heartbeat));
             Assert.Equal("BlockedForbiddenRooftop", file.RootElement.GetProperty("State").GetString());
             Assert.Equal(JsonValueKind.Null, file.RootElement.GetProperty("VerifiedAt").ValueKind);
         }

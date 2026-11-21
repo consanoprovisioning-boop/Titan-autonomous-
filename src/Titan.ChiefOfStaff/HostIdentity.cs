@@ -42,6 +42,9 @@ public sealed class HostIdentity
         return host;
     }
 
+    public static HostIdentity EnsureThisMachine(HostPaths paths, IMachineStamp stamp)
+        => TryLoad(paths) is null ? Enroll(paths, stamp) : RequireThisMachine(paths, stamp);
+
     public static HostIdentity? TryLoad(HostPaths paths)
     {
         if (!File.Exists(paths.HostIdentity))

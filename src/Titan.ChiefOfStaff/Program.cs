@@ -106,7 +106,7 @@ async Task<int> VerifyAsync()
     HostIdentity host;
     try
     {
-        host = HostIdentity.RequireThisMachine(paths, machine);
+        host = HostIdentity.EnsureThisMachine(paths, machine);
     }
     catch (InvalidOperationException ex)
     {
@@ -199,7 +199,7 @@ async Task<int> TickAsync()
     HostIdentity liveHost;
     try
     {
-        liveHost = HostIdentity.RequireThisMachine(paths, machine);
+        liveHost = HostIdentity.EnsureThisMachine(paths, machine);
     }
     catch (InvalidOperationException ex)
     {

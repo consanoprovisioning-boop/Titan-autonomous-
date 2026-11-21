@@ -139,12 +139,14 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertNotIn(".exe tick", install.lower())
         self.assertNotIn(".exe verify", install.lower())
         self.assertIn("agent worker start --verbose", launch.lower())
+        self.assertIn("not enrolled", launch.lower())
         self.assertNotIn("eleadcrm.com", launch.lower())
         self.assertNotIn("powershell.exe", launch.lower())
         self.assertNotIn("pwsh", launch.lower())
         self.assertNotIn("set-executionpolicy", launch.lower())
         self.assertIn("do not run", launch.lower())
         self.assertIn("system32", launch.lower())
+        self.assertIn("host.json", launch.lower())
 
     def test_verify_receipt_matches_local_marker(self) -> None:
         self.assertTrue(launch.verify_receipt_ok({
@@ -336,9 +338,14 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertEqual(2, len(launch.windows_workers(snapshot)))
         missing = launch.live_windows_worker(
             {"workers": [snapshot["workers"][1]]},
-            {"hostId": "laptop-host-id", "machineName": "GLENN-LAPTOP"},
+            {"hostId": "laptop-host-id", "machineName": "GLENN-LAPTOP", "workerId": "laptop-worker-1"},
         )
         self.assertIsNone(missing)
+        fallback = launch.live_windows_worker(
+            {"workers": [snapshot["workers"][1]]},
+            {"hostId": "alienware-host-id", "machineName": "DESKTOP-ALIENWARE"},
+        )
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, fallback["workerId"])
 
     def test_verify_does_not_use_a_different_online_pc(self) -> None:
         tmp = Path("/tmp/eleads-cos-launch-named-host")
@@ -363,6 +370,7 @@ class LaunchGuardTests(unittest.TestCase):
             "loginClaim": False,
             "hostId": "laptop-host-id",
             "machineName": "GLENN-LAPTOP",
+            "workerId": "laptop-worker-1",
         }), encoding="utf-8")
         code = launch.main([
             "--workers-file", str(workers),
@@ -375,6 +383,30 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertFalse(data["verify"])
         self.assertNotEqual("windows-verified", data["host"])
         self.assertNotEqual("v1.1-execute", data["mode"])
+
+    def test_windows_machine_name_still_uses_the_known_alienware_worker(self) -> None:
+        snapshot = {
+            "workers": [{
+                "workerId": launch.ALIENWARE_WORKER_ID,
+                "machineDisplayName": "Alienware-18",
+                "displayName": "Alienware-18",
+            }]
+        }
+        receipt = {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "enrolled-host-a",
+            "machineName": "DESKTOP-ALIENWARE",
+        }
+        chosen = launch.live_windows_worker(snapshot, receipt)
+        self.assertEqual(launch.ALIENWARE_WORKER_ID, chosen["workerId"])
+        state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertTrue(state["workerOnline"])
+        self.assertTrue(state["verify"])
+        self.assertEqual("v1.1-execute", state["mode"])
 
 
 if __name__ == "__main__":

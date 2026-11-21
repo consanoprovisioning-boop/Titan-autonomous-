@@ -25,9 +25,12 @@ if errorlevel 1 (
 echo Starting Cursor worker in a new window. Leave that window open.
 start "Titan Cursor worker" cmd /k "cd /d "%~dp0" && agent worker start --verbose"
 
-if not exist "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" (
+set "NEED_INSTALL="
+if not exist "%LOCALAPPDATA%\TitanChief\app\Titan.ChiefOfStaff.exe" set "NEED_INSTALL=1"
+if not exist "%LOCALAPPDATA%\TitanChief\host.json" set "NEED_INSTALL=1"
+if defined NEED_INSTALL (
   if exist "%~dp0Titan.ChiefOfStaff.exe" (
-    echo Titan is not installed yet. Running INSTALL.cmd once. This is not Verify.
+    echo Titan is not installed or this PC is not enrolled. Running INSTALL.cmd once. This is not Verify.
     call "%~dp0INSTALL.cmd"
   ) else (
     echo Missing Titan.ChiefOfStaff.exe next to this launcher.

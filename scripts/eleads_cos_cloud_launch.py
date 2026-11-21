@@ -140,7 +140,9 @@ def is_enrolled_windows_worker(row: dict | None) -> bool:
 def receipt_names_live_worker(receipt: dict | None) -> bool:
     if not isinstance(receipt, dict):
         return False
-    return bool(str(receipt.get("workerId") or "").strip() or str(receipt.get("machineName") or "").strip())
+    # Titan Verify always writes Environment.MachineName and never workerId.
+    # Cursor labels are often a display name, so machineName alone must not pin.
+    return bool(str(receipt.get("workerId") or "").strip())
 
 
 def worker_matches_receipt(row: dict | None, receipt: dict | None) -> bool:
