@@ -79,7 +79,7 @@ Operational outcomes:
 
 While the Alienware host is verified and sending:
 
-0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 9:00 AM–7:00 PM ET. CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
+0. **Inbound replies and Bordine-assigned new leads first.** Eligible email any hour after Verify; eligible SMS 8:00 AM–9:00 PM ET. **Appointment-commitment fast path (see below) preempts the rest of this order for that lead.** CRM note, 24h CALL+EMAIL, alert Glenn after a real send. New-lead target while the session is live: **60 seconds (RTF) / under 4 minutes (PDF)**; record actual timing. If blocked, record the reason. Do not claim the target was met.
 1. **Daily Organizer** status **Open**, contact type **All** (Glenn-assigned first, including planner and overdue).
 2. **Appraisal / trade / lease maturity / missed appointment / recent inquiry.**
 3. **Qualified dormant** new/used vehicle leads.
@@ -130,7 +130,7 @@ Glenn-owned profiles: prepare follow-up only after the latest email/SMS timing a
 | Channel | When | Proof |
 | --- | --- | --- |
 | Email | Valid permitted email; no opt-out / hard bounce. Any hour after a live verified session. | Sent activity + separate completed email task/note: `Manual email completed via system.` |
-| SMS | Valid SMS-permitted phone; no DNT / Stop. **9:00 AM–7:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
+| SMS | Valid SMS-permitted phone; no DNT / Stop. **8:00 AM–9:00 PM America/New_York only.** | Sent activity + separate completed SMS task/note: `SMS text completed via system.` |
 | Phone | Valid callable number; no DNC. Autonomous calls require telephony integration. | Actual call outcome. Never mark a call completed if no call occurred. |
 
 A draft, blank composer, preview, or processing screen is not delivery. CRM history under Bordine, Glenn or Glenn Bordine is the evidence. Click Send once. Recheck history before any retry. Do not resend automatically when the result is uncertain.
@@ -174,6 +174,17 @@ A solid appointment is a customer commitment to a **day and time**. Interest wit
 4. Check for an existing confirmation task before creating another.
 5. Confirmation call normally 24 hours before, or earlier the same day for a later appointment. Same-day commitments: confirm before arrival.
 6. Print page 1 only after appointment and confirmation task are verified.
+
+## Appointment-commitment fast path (Glenn 2026-10-18)
+
+Directive: “when a customer responds with appointment commitment reply immediately and schedule appointment day and time and change customer status to appointment set.”
+
+Decision logic lives in `src/Titan.ChiefOfStaff/AppointmentCommitment.cs` (`AppointmentCommitment.Evaluate`; host entry point `WorkTick.HandleInboundReply`, which logs the decision). It decides only — Eleads execution is on the Glenn-verified Alienware-18 host session, and a send/booking counts only with CRM history proof under Bordine, Glenn. This cloud agent never books or sends.
+
+- **Trigger:** an inbound SMS or email reply that commits — accepts a proposed day/time, proposes a specific day/time, or confirms attendance (“yes”, “that works”, “I'll be there”, “see you Saturday at 10”). Same channel back.
+- **Actions, in order, no approval (V1.1):** (1) reply immediately confirming day/date/time and rooftop, (2) book the Sales Appointment in Eleads for the committed slot, (3) change status to **Appointment Set** (`Policy.AppointmentSetStatusLabel`), (4) write the CRM note / log proof.
+- **Immediacy:** preempts the mandatory work order and normal tick pacing for that lead when detected on the verified host session. Email replies are immediate any hour after Verify. SMS replies follow `Policy.SmsOpen` (live 08:00–21:00 ET): immediate inside the window; outside it the SMS queues to the next 08:00 ET open, while the booking/status decision is still made on detection for the host session to execute. SMS hours are not expanded.
+- **Guards:** opt-out/Stop/DNT, questions, and soft interest (including “maybe Saturday”) never trigger. Commitment without a concrete day/time (and none proposed) → immediate clarification ask only, no booking, no Appointment Set. Committed time outside the appointment windows or on Sunday → reply proposing the nearest valid slot; never book the invalid time. Duplicate commitment for an already-booked slot → idempotent: no double-book, no duplicate reply.
 
 Arrival notes: vehicles of interest; trade year/make/model; mileage and payoff if given; appraisal request; co-signer attendance; documents they will bring; open questions without unsupported promises; who to ask for; arrival instructions.
 

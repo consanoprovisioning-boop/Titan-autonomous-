@@ -34,7 +34,9 @@ Launch path: `docs/deploy/alienware-18.md` and `.cursor/skills/running-eleads-co
 
 ## Work order (while session live)
 
-0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.
+0. Inbound replies + Bordine-assigned **new leads**. Eligible email any hour after Verify; eligible SMS 08:00–21:00 ET (live Glenn 2026-10-17 window in `Policy.SmsOpen`; older 9:00–19:00 text is stale). **Appointment-commitment fast path (Glenn 2026-10-18) preempts ranks 0–5 for that lead:** a customer reply (SMS or email, same channel back) committing to a day/time — accepts a proposed slot, proposes a specific slot, or confirms attendance — gets (a) an immediate confirming reply, (b) the Eleads appointment booked for that slot, (c) status changed to **Appointment Set**, and (d) a CRM note, all without approval under V1.1. Then note, 24h CALL+EMAIL, alert Glenn in Slack `C0BQALCFVP0` after a real send. New-lead target while connected: **60s RTF / under 4 min PDF**; record actual timing. Do not claim the target was met.
+
+Fast-path guards: opt-out/Stop/DNT, questions, and soft interest (e.g. “maybe Saturday”) never trigger it. A commitment with no concrete day/time and none proposed gets an immediate clarification ask only — no booking, no Appointment Set. A committed time outside the appointment windows (or Sunday) gets a reply proposing the nearest valid slot — never book the invalid time. A duplicate commitment for an already-booked slot is idempotent: no double-book, no duplicate reply. SMS replies obey `Policy.SmsOpen`: immediate inside 08:00–21:00 ET; outside it, the reply queues to the next 08:00 ET open while the booking/status decision is still made on detection for the verified host session to execute. Code: `src/Titan.ChiefOfStaff/AppointmentCommitment.cs` (`AppointmentCommitment.Evaluate`, `WorkTick.HandleInboundReply`).
 1. Daily Organizer status **Open**, contact type **All** (planner / overdue / Glenn-assigned first).
 2. Appraisal / trade / lease maturity / missed appointment / recent inquiry.
 3. Qualified dormant new/used.
@@ -51,7 +53,7 @@ Cadence: prefer the verified customer-requested next action or existing dealersh
 
 ## Windows (America/New_York)
 
-- SMS: 9:00 AM–7:00 PM only (narrower than PDF).
+- SMS: 8:00 AM–9:00 PM only (live Glenn 2026-10-17 window; 9:00–19:00 text is stale).
 - Email: any hour after a live verified session.
 - Customer appointment offers: Mon/Wed/Thu/Fri 9:00–6:30; Sat 9:00–5:30; never Sunday; Tuesday only if the customer asks. Dealership closed Sunday.
 - Follow-up task scheduling hours: Mon–Fri 9:00 AM–7:00 PM; Sat 9:00 AM–6:00 PM.

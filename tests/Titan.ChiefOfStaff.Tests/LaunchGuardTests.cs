@@ -49,26 +49,25 @@ public class LaunchGuardTests
     }
 
     [Fact]
-    public void Sms_window_is_9_to_19_america_new_york()
+    public void Sms_window_is_8_to_21_america_new_york()
     {
         var zone = EasternClock.Zone();
         Assert.Equal("America/New_York", zone.Id);
 
-        var open = EasternClock.AtLocal(2026, 10, 16, 9, 0);
-        var lastOpen = EasternClock.AtLocal(2026, 10, 16, 18, 59);
-        var closes = EasternClock.AtLocal(2026, 10, 16, 19, 0);
-        var eightPm = EasternClock.AtLocal(2026, 10, 16, 20, 0);
+        var beforeOpen = EasternClock.AtLocal(2026, 10, 16, 7, 59);
+        var open = EasternClock.AtLocal(2026, 10, 16, 8, 0);
+        var evening = EasternClock.AtLocal(2026, 10, 16, 19, 0);
+        var lastOpen = EasternClock.AtLocal(2026, 10, 16, 20, 59);
+        var closes = EasternClock.AtLocal(2026, 10, 16, 21, 0);
+        Assert.False(Policy.SmsOpenEastern(beforeOpen));
         Assert.True(Policy.SmsOpenEastern(open));
+        Assert.True(Policy.SmsOpenEastern(evening));
         Assert.True(Policy.SmsOpenEastern(lastOpen));
         Assert.False(Policy.SmsOpenEastern(closes));
-        Assert.False(Policy.SmsOpenEastern(eightPm));
 
-        var nineUtc = DateTimeOffset.Parse("2026-10-16T13:00:00Z");
-        var nineteenUtc = DateTimeOffset.Parse("2026-10-16T23:00:00Z");
-        var eightPmUtc = DateTimeOffset.Parse("2026-10-17T00:00:00Z");
-        Assert.True(Policy.SmsOpenEastern(nineUtc));
-        Assert.False(Policy.SmsOpenEastern(nineteenUtc));
-        Assert.False(Policy.SmsOpenEastern(eightPmUtc));
+        // 2026-10-16 is EDT (UTC-4): 08:00 ET = 12:00Z, 21:00 ET = 01:00Z next day.
+        Assert.True(Policy.SmsOpenEastern(DateTimeOffset.Parse("2026-10-16T12:00:00Z")));
+        Assert.False(Policy.SmsOpenEastern(DateTimeOffset.Parse("2026-10-17T01:00:00Z")));
     }
 
     [Fact]

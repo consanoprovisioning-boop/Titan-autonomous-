@@ -130,7 +130,7 @@ Dealership knowledge uses only facts fresh on this rooftop in this session. If r
 
 While the Alienware session is verified:
 
-0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 9:00–19:00 ET. Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
+0. Inbound replies and Bordine-assigned new leads. Eligible email any hour after Verify. Eligible SMS 08:00–21:00 ET. **Appointment-commitment fast path (Glenn 2026-10-18) preempts this order for that lead:** on a commitment reply, Core (via the appointment specialist decision in `AppointmentCommitment.Evaluate`) replies immediately on the same channel, books the committed slot, sets **Appointment Set**, and writes the CRM note — no approval pause. Ambiguous commitment → clarification only; invalid/Sunday slot → propose nearest valid; duplicate → idempotent; opt-out/question/soft interest → no trigger. SMS outside 08:00–21:00 ET queues the reply to next 08:00 ET open (booking decision still made on detection). Then note, 24h CALL+EMAIL. New-lead target while connected: 60s RTF / under 4 min PDF. Record actual timing. Do not claim the target was met.
 1. Daily Organizer status Open, contact type All (planner, overdue, Glenn-assigned first).
 2. Appraisal, trade, lease maturity, missed appointment, recent inquiry.
 3. Qualified dormant new/used.
@@ -145,7 +145,7 @@ Past-customer review: 48 hours.
 
 ## Windows (America/New_York)
 
-- SMS: 9:00–19:00 only. 8:00 PM is closed.
+- SMS: 08:00–21:00 only (live Glenn 2026-10-17 window). 9:00 PM is closed.
 - Email: any hour after Verify.
 - Customer appointments: Mon/Wed/Thu/Fri 9:00–6:30; Sat 9:00–5:30; never Sunday; Tuesday only if the customer asks.
 - Follow-up task scheduling: Mon–Fri 9:00 AM–7:00 PM; Sat 9:00 AM–6:00 PM.
@@ -203,7 +203,7 @@ Stop. Do not ship the action. Correct the cycle.
 | Open Eleads from this cloud Linux agent | Close nothing in CRM because you never opened it. Record the blocker. Empty arrays. |
 | TKO, 6220, later rooftop, store-wide volume | Drop it. 28206 and 28546 only. |
 | 12-month or 14-month ownership screen | Live screen is 180 days. Recent inquiry overrides. Leave the source packet as filed. |
-| SMS at 8:00 PM or “until 8” | SMS ends 19:00 ET. |
+| SMS before 08:00 or at/after 21:00 ET | SMS window is 08:00–21:00 ET; queue to next 08:00 ET open. |
 | Exact-draft pause after Verify on an eligible send | V1.1 does not pause. Preserved checks still apply. |
 | 51-agent swarm or 51 model calls | Logical catalog only. Seven specialists max. Core persists. |
 | Maybe-Saturday, or Saturday without a clock time, saved as Appointment Set | Follow-up only. Need day and time in correspondence. |

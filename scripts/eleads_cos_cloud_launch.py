@@ -69,9 +69,10 @@ def passes_ownership_screen(
 
 
 def sms_open(instant: datetime) -> bool:
+    # Live Glenn 2026-10-17 window: 08:00-21:00 America/New_York (mirrors Policy.SmsOpen).
     local = instant.astimezone(NY)
     minutes = local.hour * 60 + local.minute
-    return 9 * 60 <= minutes < 19 * 60
+    return 8 * 60 <= minutes < 21 * 60
 
 
 def appointment_set_allowed(correspondence: str | None) -> bool:
