@@ -5,3 +5,11 @@ obj/
 .dotnet/
 __pycache__/
 *.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
+*.db
+*.db-wal
+*.db-shm
+config.toml
+selectors.eleads.toml

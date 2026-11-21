@@ -1,0 +1,109 @@
+# CSS/text selectors for the live Eleads UI. Every value MUST be calibrated against the
+# dealership's Eleads build before the Playwright adapter is enabled (crm.adapter = "playwright").
+# The adapter refuses to run any action whose selector is empty.
+
+[login]
+url_path = "/evo2/fresh/login.asp"
+username = ""
+password = ""
+submit = ""
+logged_in_marker = ""
+
+[identity]
+user_name = ""
+rooftop_selector = ""
+rooftop_option = ""          # format string, receives {rooftop_id}
+active_rooftop = ""          # element whose text/value is the current rooftop id
+
+[organizer]
+url_path = ""
+status_open = ""
+contact_type_all = ""
+row = ""
+row_customer_id_attr = "data-customer-id"
+row_opportunity_id_attr = "data-opportunity-id"
+row_name = ""
+row_type = ""
+row_assigned = ""
+row_due = ""
+
+[leads]
+url_path = ""
+row = ""
+
+[past_customers]
+url_path = ""                # receives {offset} and {limit}
+row = ""
+
+[profile]
+url_path = ""                # receives {customer_id} and {opportunity_id}
+loaded_marker = ""           # appears only after the full activity feed has loaded
+first_name = ""
+full_name = ""
+email = ""
+phone = ""
+assigned = ""
+vehicle_of_interest = ""
+owned_vehicle = ""
+purchase_date = ""
+flag_do_not_call = ""
+flag_do_not_text = ""
+flag_email_opt_out = ""
+flag_email_bounce = ""
+flag_sms_opt_in = ""
+flag_do_not_contact = ""
+activity_row = ""
+activity_kind_attr = "data-kind"
+activity_time_attr = "data-time"
+activity_by = ""
+activity_text = ""
+notes = ""
+
+[compose]
+email_open = ""
+email_to = ""
+email_subject = ""
+email_body = ""
+email_send = ""
+sms_open = ""
+sms_to = ""
+sms_body = ""
+sms_send = ""
+result_banner = ""
+
+[tasks]
+open_rows = ""
+row_kind_attr = "data-kind"
+row_id_attr = "data-task-id"
+row_status = ""
+row_assigned = ""
+create_open = ""
+create_type = ""
+create_due = ""
+create_note = ""
+create_save = ""
+duplicate_warning = ""
+duplicate_cancel = ""
+complete_open = ""           # receives {task_id}
+complete_outcome = ""
+complete_note = ""
+complete_save = ""
+note_open = ""
+note_text = ""
+note_save = ""
+
+[appointment]
+open = ""
+type_sales = ""
+datetime = ""
+assigned = ""
+notes = ""
+save = ""
+progress_select = ""
+progress_value = ""
+print_open = ""
+print_page1 = ""
+
+[dashboard]
+url_path = ""                # receives {date} and {rooftop_id}
+row = ""
