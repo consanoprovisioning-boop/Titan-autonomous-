@@ -67,8 +67,12 @@ public class AppointmentCommitmentTests
     [InlineData("Is Saturday at 10am ok?")]
     [InlineData("Saturday at 10am ok?")]
     [InlineData("Has Saturday at 10am been confirmed?")]
-    [InlineData("Ok if I come Saturday at 10am?")]
-    [InlineData("I'm interested, just looking for now")]
+        [InlineData("Ok if I come Saturday at 10am?")]
+        [InlineData("Should I be there Saturday at 10am?")]
+        [InlineData("Where should I come in?")]
+        [InlineData("Will I see you Saturday at 10am?")]
+        [InlineData("I hope I see you Saturday at 10am?")]
+        [InlineData("I'm interested, just looking for now")]
     [InlineData("Maybe Saturday at 10")]
     [InlineData("I can't come in Saturday at 10am")]
     [InlineData("I cannot make it Saturday at 10am")]
@@ -82,9 +86,13 @@ public class AppointmentCommitmentTests
     }
 
     [Theory]
-    [InlineData("Yes, Saturday at 10am?")]
-    [InlineData("Yes, that works. Where should I park?")]
-    [InlineData("Sure, I'll be there. Do you have parking?")]
+        [InlineData("Yes, Saturday at 10am?")]
+        [InlineData("Yes, that works. Where should I park?")]
+        [InlineData("Sure, I'll be there. Do you have parking?")]
+        [InlineData("See you Saturday at 10am?")]
+        [InlineData("I'll see you Saturday at 10am?")]
+        [InlineData("I'll be there Saturday at 10am?")]
+        [InlineData("I can come in Saturday at 10?")]
     public void Commitment_with_follow_up_question_still_books(string text)
     {
         var d = Eval(text, proposed: Sat10);
