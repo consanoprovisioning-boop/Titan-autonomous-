@@ -6,6 +6,7 @@ public static class HostJournal
 {
     public static void Record(HostPaths paths, HostStore store, Heartbeat beat, bool glennVerified, HostIdentity? host = null)
     {
+        beat = beat with { LastError = HostStore.SafeDetail(beat.LastError) };
         store.WriteHeartbeat(beat);
         Directory.CreateDirectory(paths.DataRoot);
         ProtectedFile.WriteUtf8(paths.Heartbeat, JsonSerializer.Serialize(beat));

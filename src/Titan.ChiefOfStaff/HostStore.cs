@@ -76,8 +76,10 @@ public sealed class HostStore : IDisposable
 
     public void Log(string queue, string action, string result, string? rooftop = null, string? customerKey = null)
     {
-        RefusePassword(queue, action, result, rooftop, customerKey);
+        // Hash the CRM line first. The raw text is not stored, and a lead that
+        // merely says "password" must not abort the tick.
         var sealedCustomer = string.IsNullOrWhiteSpace(customerKey) ? null : CustomerSeal.FromVisibleText(customerKey);
+        RefusePassword(queue, action, result, rooftop, sealedCustomer);
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
             INSERT INTO work_log (at_et, rooftop, customer_key, queue, action, result)
@@ -90,6 +92,18 @@ public sealed class HostStore : IDisposable
         cmd.Parameters.AddWithValue("$action", action);
         cmd.Parameters.AddWithValue("$result", result);
         cmd.ExecuteNonQuery();
+    }
+
+    public static string? SafeDetail(string? text)
+    {
+        if (text is null)
+        {
+            return null;
+        }
+
+        return text.Contains("password", StringComparison.OrdinalIgnoreCase)
+            ? "Error text omitted because it contained a credential word."
+            : text;
     }
 
     private static void RefusePassword(params string?[] fields)
