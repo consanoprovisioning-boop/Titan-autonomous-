@@ -34,10 +34,22 @@ if "%ROOF%"=="" (
   exit /b 1
 )
 
-> "%ROOT%\node.json" echo {"nodeId":"%NODE%","rooftop":"%ROOF%","identity":"Bordine, Glenn","forbiddenRooftop":"6220","clusterMain":"Alienware-18"}
+set "HOSTHINT=%NODE%"
+if /i "%NODE%"=="Desktop6" set "HOSTHINT=DeskTop6ACER"
+set "LEASEHINT=\\\\Alienware-18\\Users\\Glenn R Bordine\\TitanChief-leases"
+> "%ROOT%\node.json" echo {"nodeId":"%NODE%","rooftop":"%ROOF%","identity":"Bordine, Glenn","forbiddenRooftop":"6220","clusterMain":"Alienware-18","hostnameHint":"%HOSTHINT%","smsWindowEt":"08:00-21:00","ownershipScreenDays":180,"leaseHost":"Alienware-18","leaseDirHint":"%LEASEHINT%","cdpPort":9222}
 if exist "%~dp0cluster-hold.json" copy /Y "%~dp0cluster-hold.json" "%ROOT%\cluster-hold.json" >nul
+reg query "HKCU\Environment" /v TITAN_LEASE_DIR >nul 2>nul
+if errorlevel 1 (
+  setx TITAN_LEASE_DIR "\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases" >nul
+  echo setx TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases
+) else (
+  echo TITAN_LEASE_DIR already set. Lease host stays Alienware-18.
+)
+set "TITAN_LEASE_DIR=\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases"
 echo Enrolled %NODE% rooftop %ROOF%
 echo File: %ROOT%\node.json
+echo SMS 08:00-21:00 ET. Ownership 180 days. CDP 9222. Never 6220.
 echo Cluster MAIN is Alienware-18. Lease host is Alienware-18, not this PC.
 echo This is not Verify and not send authorization.
 echo If this is Desktop4 or Desktop6, next is START-WORKER.cmd from %%USERPROFILE%%. Those nodes are released to join.

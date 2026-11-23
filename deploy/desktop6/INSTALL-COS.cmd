@@ -101,8 +101,11 @@ where git >nul 2>nul
 if errorlevel 1 goto :have_branch
 if exist "%REPO%\.git" (
   echo Checking out %BRANCH% ...
+  git fetch origin %BRANCH%
   git checkout %BRANCH%
   if errorlevel 1 echo WARNING: git checkout %BRANCH% failed. Continuing with this working copy.
+  git pull --ff-only origin %BRANCH%
+  if errorlevel 1 echo WARNING: git pull %BRANCH% failed. Continuing with this working copy.
 )
 
 :have_branch
@@ -166,7 +169,7 @@ echo Do not run C:\Windows\system32\Titan.cmd.
 echo Cloud Linux did not run this installer and cannot start the worker or COS.
 echo ============================================================
 echo.
-pause
+if /i not "%TITAN_COS_NOPAUSE%"=="1" pause
 endlocal
 exit /b 0
 
@@ -175,7 +178,7 @@ echo.
 echo REFUSED: INSTALL-COS.cmd does not start the worker. Run START-WORKER.cmd next if it is not already running.
 echo Desktop6 is released. Cluster MAIN is Alienware-18. Never 6220.
 echo.
-pause
+if /i not "%TITAN_COS_NOPAUSE%"=="1" pause
 endlocal
 exit /b 2
 
@@ -186,7 +189,7 @@ echo Close this window. On Desktop6 open Command Prompt in %%USERPROFILE%%,
 echo then run deploy\desktop6\INSTALL-COS.cmd. Never start from system32.
 echo Launch remains held. Did not start the worker.
 echo.
-pause
+if /i not "%TITAN_COS_NOPAUSE%"=="1" pause
 endlocal
 exit /b 1
 
@@ -196,6 +199,6 @@ echo INSTALL-COS failed. Launch remains held. Did not start the worker.
 echo Did not open Eleads. Did not start Titan.ChiefOfStaff.exe.
 echo holdLaunch=true. Cluster MAIN is Alienware-18. Never 6220.
 echo.
-pause
+if /i not "%TITAN_COS_NOPAUSE%"=="1" pause
 endlocal
 exit /b 1

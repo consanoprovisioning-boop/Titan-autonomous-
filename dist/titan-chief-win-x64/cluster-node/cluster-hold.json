@@ -20,7 +20,7 @@
     "workerId": "3b6886be-8df5-5399-a9f8-0b8c65e254b4",
     "loggedIn": true,
     "loginClaim": true,
-    "loginClaimSource": "Glenn 2026-11-19 CHECKIN.cmd claimed logged in on DeskTop6ACER. Login claim is not Verify.",
+    "loginClaimSource": "Glenn 2026-11-23 ~1:18 ET: this Cluster PC is logged in. Login claim is not Verify. Missing-tools pass: INSTALL-MISSING.cmd.",
     "jobs": [
       "OverdueEmailClearance",
       "OverdueCallReschedule",
@@ -29,5 +29,5 @@
       "AppointmentCommitFastPath"
     ]
   },
-  "reason": "Glenn released Desktop6 (DeskTop6ACER / this PC) to start Titan COS and take Mitsubishi 28546 P1 jobs now. Desktop4 stays released. Desktop5 stays install-only. Alienware-18 remains MAIN Nissan 28206 P1 (offline; Desktop6 must not steal it). holdLaunch stays true for unreleased nodes. Do not SCALE-OUT-8. Cloud Linux must not open Eleads or fabricate sends."
+  "reason": "Glenn 2026-11-23: DeskTop6ACER is logged in; install missing Titan COS tools/programs/settings now. Desktop6 stays released with Mitsubishi 28546 P1 jobs. Desktop4 stays released. Desktop5 stays install-only. Alienware-18 remains MAIN Nissan 28206 P1. holdLaunch stays true for unreleased nodes. Do not SCALE-OUT-8. Cloud Linux must not open Eleads, winget onto this PC, or fabricate sends. One-shot on this PC: deploy\\desktop6\\INSTALL-MISSING.cmd."
 }

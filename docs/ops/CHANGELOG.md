@@ -1,5 +1,13 @@
 # Eleads Valdosta — decision / change log
 
+## 2026-11-23 — Desktop6 missing-tools one-shot TITAN-CHANGE-MULTIAGENT-001 v0.5.7
+
+**Decision (Glenn, this PC = Desktop6 / DeskTop6ACER):** “this Cluster PC is logged in install any tools/ programs/settings missing related to the operation of Titan COS.” Bootstrap/prereq install on an already-released node. Not a request to fabricate a live CRM send. Do not require a second CHECKIN. Leave Chrome on CDP 9222.
+
+**Filed:** `docs/ops/sources/TITAN-CHANGE-MULTIAGENT-001-v0.5.7.md`. One-shot: `deploy/desktop6/INSTALL-MISSING.cmd` (winget Git / .NET 8 desktop runtime / Chrome if absent, pull cluster branch, `INSTALL.cmd`, `ENROLL-NODE.cmd Desktop6`, `TITAN_LEASE_DIR` on Alienware-18, nodeId=Desktop6, rooftop 28546, SMS 08:00–21:00 ET, 180-day ownership, never 6220). Does not run `TICK.cmd`. START-WORKER only if no worker is listed on this PC. v0.5.0–v0.5.6 are not rewritten.
+
+**This cloud inventory:** `list-self-hosted-workers scope=all status=all` → Alienware-18 worker `6977f3d2-96d7-55b8-94b2-3895027199e0` ONLINE (idle, shared). DeskTop6ACER worker `3b6886be-8df5-5399-a9f8-0b8c65e254b4` is **not** in the live list. Cloud Linux cannot winget onto his Windows box and cannot start COS. `sends=[]`.
+
 ## 2026-11-19 — Desktop6 (DeskTop6ACER) per-node release + Mitsubishi 28546 P1 jobs TITAN-CHANGE-MULTIAGENT-001 v0.5.6
 
 **Decision (Glenn, this PC = Desktop6 / DeskTop6ACER):** “logged in start Titan COS on this PC put into cluster and give jobs.” Overrides the previous install-only hold **for Desktop6 only**. Desktop4 stays released. Desktop5 stays install-only. Alienware-18 stays MAIN Nissan 28206 P1 — Desktop6 must not steal it.

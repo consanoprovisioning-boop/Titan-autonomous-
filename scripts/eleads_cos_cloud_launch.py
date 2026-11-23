@@ -123,8 +123,9 @@ DESKTOP6_JOIN_BLOCKER = (
     "Alienware-18 is MAIN Nissan 28206 — Desktop6 must not steal it. "
     "workers=[] so COS is not live on this PC. This cloud host will not open Eleads. "
     "On DeskTop6ACER from %USERPROFILE% (never C:\\Windows\\system32): "
-    "run deploy\\desktop6\\INSTALL-COS.cmd if Titan is not installed, then "
-    "deploy\\desktop6\\START-WORKER.cmd and leave that window open, then "
+    "run deploy\\desktop6\\INSTALL-MISSING.cmd for Git/.NET/Chrome, enroll, "
+    "and lease settings (INSTALL-COS.cmd if that file is what you have), then "
+    "deploy\\desktop6\\START-WORKER.cmd only if no worker is already running, then "
     "%LOCALAPPDATA%\\TitanChief\\app\\TICK.cmd. "
     "Do not run C:\\Windows\\system32\\Titan.cmd."
 )

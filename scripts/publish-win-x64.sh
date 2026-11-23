@@ -14,10 +14,12 @@ cp -f "$ROOT/deploy/alienware-local-program/CHECKIN.cmd" "$ROOT/dist/titan-chief
 cp -f "$ROOT/deploy/alienware-local-program/TICK.cmd" "$ROOT/dist/titan-chief-win-x64/TICK.cmd"
 cp -f "$ROOT/deploy/alienware-local-program/START-HERE.txt" "$ROOT/dist/titan-chief-win-x64/START-HERE.txt"
 cp -f "$ROOT/deploy/alienware-local-program/START-WORKER.cmd" "$ROOT/dist/titan-chief-win-x64/START-WORKER.cmd"
-mkdir -p "$ROOT/dist/titan-chief-win-x64/cluster-node" "$ROOT/dist/titan-chief-win-x64/desktop3" "$ROOT/dist/titan-chief-win-x64/desktop4"
+mkdir -p "$ROOT/dist/titan-chief-win-x64/cluster-node" "$ROOT/dist/titan-chief-win-x64/desktop3" "$ROOT/dist/titan-chief-win-x64/desktop4" "$ROOT/dist/titan-chief-win-x64/desktop5" "$ROOT/dist/titan-chief-win-x64/desktop6"
 cp -f "$ROOT/deploy/cluster-node/"* "$ROOT/dist/titan-chief-win-x64/cluster-node/"
 cp -f "$ROOT/deploy/desktop3/"* "$ROOT/dist/titan-chief-win-x64/desktop3/"
 cp -f "$ROOT/deploy/desktop4/"* "$ROOT/dist/titan-chief-win-x64/desktop4/"
+cp -f "$ROOT/deploy/desktop5/"* "$ROOT/dist/titan-chief-win-x64/desktop5/"
+cp -f "$ROOT/deploy/desktop6/"* "$ROOT/dist/titan-chief-win-x64/desktop6/"
 (
   cd "$ROOT/dist/titan-chief-win-x64"
   sha256sum Titan.ChiefOfStaff.exe Titan.ChiefOfStaff.dll Titan.ChiefOfStaff.deps.json Titan.ChiefOfStaff.runtimeconfig.json > SHA256SUMS.txt

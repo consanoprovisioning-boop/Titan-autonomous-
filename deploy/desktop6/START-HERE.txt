@@ -7,18 +7,23 @@ Desktop5 stays install-only. Do not take Nissan 28206.
 Command Prompt owns the word verify. Typing verify by itself does not start Titan.
 Never start from C:\Windows\system32. This installer requires %USERPROFILE%.
 
-ONE-SHOT (install, then Glenn starts COS):
+ONE-SHOT (missing tools + install/enroll, no TICK, no second CHECKIN):
 
-  \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
+  \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-MISSING.cmd
 
 If the repo is already under %USERPROFILE%\Titan-autonomous- :
 
-  %USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
+  %USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-MISSING.cmd
 
-INSTALL-COS.cmd clones from Alienware-18 if missing, checks out
-cursor/eleads-cluster-4pc-7dfe, copies or publishes dist\titan-chief-win-x64,
-runs INSTALL.cmd, runs ENROLL-NODE.cmd Desktop6, prints
-INSTALLED. DESKTOP6 RELEASED TO JOIN, and STOPS. It does not start the worker.
+INSTALL-MISSING.cmd installs Git / .NET 8 desktop runtime / Chrome if absent
+(winget), pulls cursor/eleads-cluster-4pc-7dfe, runs INSTALL.cmd, enrolls
+Desktop6, setx TITAN_LEASE_DIR on Alienware-18, leaves Chrome on 9222, and
+starts the Cursor worker only if none is listed on this PC. It prints
+already-present vs installed. It does not run TICK.cmd.
+
+Install without the prereq pass:
+
+  \\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
 
 CURSOR WORKER: already online on DeskTop6ACER from %USERPROFILE%
 (C:\Users\glenn\OneDrive\Desktop, not system32). Do not start a second worker.
@@ -40,11 +45,12 @@ Assigned jobs (provisional, Mitsubishi 28546 P1): overdue emails first,
 then reschedule overdue calls, then organizer remainder. SMS 08:00-21:00 ET.
 Appointment-commit fast path if replies. P2/P3 only after this rooftop P1 is clear.
 
-If the Alienware share does not have INSTALL-COS.cmd yet:
+If the Alienware share does not have INSTALL-MISSING.cmd yet:
 
   cd /d "%USERPROFILE%"
+  winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
   git clone --branch cursor/eleads-cluster-4pc-7dfe https://github.com/consanoprovisioning-boop/Titan-autonomous-.git Titan-autonomous-
-  "%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd"
+  "%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-MISSING.cmd"
 
 Manual steps: docs\deploy\desktop6.md
 Alienware-18 is coordinator, clone source, and lease host. Desktop6 is not the coordinator.

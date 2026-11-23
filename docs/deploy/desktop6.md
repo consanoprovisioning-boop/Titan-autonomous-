@@ -14,39 +14,54 @@ Glenn released **this PC** (DeskTop6ACER) to start Titan COS and take Mitsubishi
 
 A Cursor worker already online from `%USERPROFILE%` (including `C:\Users\glenn\OneDrive\Desktop`) is the cluster worker. Do not start a second worker. That worker process is **not** Titan COS.
 
-## One-shot on Desktop6 (install, then START COS)
+## One-shot on Desktop6 (missing tools, then install/enroll)
 
-Command Prompt on Desktop6, from `%USERPROFILE%`. Never `C:\Windows\system32`.
+Command Prompt on Desktop6, from `%USERPROFILE%`. Never `C:\Windows\system32`. Cloud Linux cannot winget onto this Windows box.
+
+**This is the file Glenn runs on DeskTop6ACER now** (logged-in missing-tools pass). It does **not** run `TICK.cmd` and does **not** open Eleads.
 
 Preferred (clone source is Alienware-18):
 
 ```bat
-\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-MISSING.cmd
 ```
 
-If that share does not yet have `INSTALL-COS.cmd`, GitHub fallback then the same file:
+If that share does not yet have `INSTALL-MISSING.cmd`, GitHub fallback then the same file (install Git first if `git` is missing):
 
 ```bat
 cd /d "%USERPROFILE%"
+winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
 git clone --branch cursor/eleads-cluster-4pc-7dfe https://github.com/consanoprovisioning-boop/Titan-autonomous-.git Titan-autonomous-
-"%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd"
+"%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-MISSING.cmd"
 ```
 
 If the repo is already under `%USERPROFILE%\Titan-autonomous-`:
 
 ```bat
-"%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd"
+cd /d "%USERPROFILE%\Titan-autonomous-"
+git fetch origin cursor/eleads-cluster-4pc-7dfe
+git checkout cursor/eleads-cluster-4pc-7dfe
+git pull --ff-only origin cursor/eleads-cluster-4pc-7dfe
+"%USERPROFILE%\Titan-autonomous-\deploy\desktop6\INSTALL-MISSING.cmd"
 ```
 
-That one file clones from Alienware-18 if the repo is missing, checks out `cursor/eleads-cluster-4pc-7dfe`, copies or publishes `dist\titan-chief-win-x64`, runs `INSTALL.cmd`, runs `ENROLL-NODE.cmd Desktop6`, prints **INSTALLED. DESKTOP6 RELEASED TO JOIN.**, and **STOPS**. It does not start the worker itself. Cloud Linux cannot run this file.
+`INSTALL-MISSING.cmd` checks Git, .NET 8 desktop runtime, and Google Chrome and installs only what is absent (winget). Then it pulls `cursor/eleads-cluster-4pc-7dfe` from Alienware-18 or GitHub, copies or publishes `dist\titan-chief-win-x64`, runs `INSTALL.cmd`, runs `ENROLL-NODE.cmd Desktop6`, writes `%LOCALAPPDATA%\TitanChief\node.json` (nodeId=Desktop6, rooftop 28546, identity Bordine, Glenn, SMS 08:00–21:00 ET, 180-day ownership, CDP 9222, never 6220), `setx TITAN_LEASE_DIR` to `\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases`, leaves Chrome on 9222 (no second CHECKIN), and START-WORKER **only if no worker process is listed on this PC**. It prints **Already present** vs **Installed this run**. Cloud Linux cannot run this file.
+
+Install-only without the prereq pass remains:
+
+```bat
+\\Alienware-18\Users\Glenn R Bordine\Titan-autonomous-\deploy\desktop6\INSTALL-COS.cmd
+```
 
 ## What Glenn needs on Desktop6
+
+`INSTALL-MISSING.cmd` installs Git, .NET 8 desktop runtime, and Google Chrome if winget is present and they are absent:
 
 - Windows 10/11
 - Git (LAN clone from Alienware-18) or network share access (robocopy)
 - .NET 8 desktop runtime (SDK only if this PC must publish)
-- Google Chrome
-- Cursor CLI (`agent`) signed in (`agent login`) — worker may already be running from `%USERPROFILE%`
+- Google Chrome with CDP **9222** left open (CHECKIN.cmd starts that port; do not require a second CHECKIN after a login claim)
+- Cursor CLI (`agent`) signed in (`agent login`) — worker may already be running from `%USERPROFILE%`. Do not start a second worker.
 
 The steps below are what `INSTALL-COS.cmd` does. Use them only if you are not running the one-shot.
 
@@ -133,7 +148,7 @@ ENROLL-NODE.cmd Desktop6
 
 `ENROLL-NODE.cmd Node6` is the same **provisional** covering lane: it writes `nodeId=Desktop6` and rooftop 28546. It does not start Eleads. It does not start the worker. It does not turn on scale-out.
 
-Point this PC at the Alienware-18 lease folder when Glenn shares it (do not host leases on Desktop6):
+`INSTALL-MISSING.cmd` and `ENROLL-NODE.cmd Desktop6` already `setx TITAN_LEASE_DIR` to the Alienware-18 share (do not host leases on Desktop6):
 
 ```bat
 setx TITAN_LEASE_DIR "\\Alienware-18\Users\Glenn R Bordine\TitanChief-leases"
