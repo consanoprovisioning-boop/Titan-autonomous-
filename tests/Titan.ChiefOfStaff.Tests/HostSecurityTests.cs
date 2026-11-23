@@ -119,4 +119,54 @@ public class HostSecurityTests
             }
         }
     }
+
+    [Fact]
+    public void Organizer_row_mentioning_password_does_not_crash_or_keep_the_session_verified()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-pwd-row-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            var stamp = new FakeMachineStamp("ALIENWARE-18", "Glenn", "machine-a");
+            var host = HostIdentity.Enroll(paths, stamp);
+            using var store = new HostStore(paths);
+            var verified = new Heartbeat("VerifiedIdle", "28206", "2026-11-23T12:00:00-05:00", null, null, true);
+            HostJournal.Record(paths, store, verified, glennVerified: true, host);
+
+            var line = "Internet new lead — customer forgot password for the portal";
+            var row = Assert.Single(WorkTick.ParseVisibleRows(line, WorkQueue.NewLeads));
+            var logged = Record.Exception(() => store.Log(
+                "NewLeads",
+                "qualified",
+                "email-only window; no send from a list row. Eligible work still needs consent, identity, and CRM history under Bordine, Glenn.",
+                "28206",
+                row.CustomerKey));
+            Assert.Null(logged);
+
+            var saved = Assert.Single(store.RecentLogs(1));
+            Assert.DoesNotContain("password", saved, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("portal", saved, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(CustomerSeal.FromVisibleText(line), saved, StringComparison.Ordinal);
+
+            var refusal = new InvalidOperationException("Host store must not record a password.");
+            var journaled = Record.Exception(() => HostJournal.Record(
+                paths,
+                store,
+                HostJournal.Reject(store.ReadHeartbeat(), "AwaitingVerify", refusal.Message),
+                glennVerified: false));
+            Assert.Null(journaled);
+            Assert.True(VerifyMarker.TryRead(paths, stamp, out var receipt));
+            Assert.False(receipt.GlennVerified);
+            var beat = store.ReadHeartbeat();
+            Assert.Equal("AwaitingVerify", beat.State);
+            Assert.DoesNotContain("password", beat.LastError ?? "", StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
 }

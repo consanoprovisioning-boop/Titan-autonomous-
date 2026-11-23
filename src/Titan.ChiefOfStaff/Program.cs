@@ -146,7 +146,7 @@ async Task<int> VerifyAsync()
             ex.Message,
             Policy.SmsOpen(EasternClock.Now()));
         HostJournal.Record(paths, storeErr, failed, glennVerified: false, host);
-        storeErr.Log("host", "verify", "browser attach failed: " + ex.Message);
+        storeErr.Log("host", "verify", "browser attach failed: " + HostStore.SafeDetail(ex.Message));
         Console.Error.WriteLine("Chrome attach failed. Install Google Chrome on this PC. Titan did not type a password.");
         Console.Error.WriteLine(ex.Message);
         return 5;
