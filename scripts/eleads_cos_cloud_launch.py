@@ -137,6 +137,15 @@ def is_enrolled_windows_worker(row: dict | None) -> bool:
     return bool(worker_id)
 
 
+def _receipt_machine_conflicts(candidates: list[dict], receipt: dict | None) -> bool:
+    if not isinstance(receipt, dict) or receipt_names_live_worker(receipt):
+        return False
+    machine = str(receipt.get("machineName") or "").strip()
+    if not machine or len(candidates) < 2:
+        return False
+    return not any(worker_matches_receipt(row, receipt) for row in candidates)
+
+
 def receipt_names_live_worker(receipt: dict | None) -> bool:
     if not isinstance(receipt, dict):
         return False
@@ -178,6 +187,12 @@ def live_windows_worker(snapshot: dict, receipt: dict | None = None) -> dict | N
             if worker_matches_receipt(row, receipt):
                 return row
         if receipt_names_live_worker(receipt):
+            return None
+        # Verify writes machineName and never workerId. One online PC can still
+        # be that machine when Cursor's label omits Environment.MachineName.
+        # Two online PCs and no label match must not borrow the other machine.
+        machine = str(receipt.get("machineName") or "").strip()
+        if machine and len(rows) > 1:
             return None
     # A still-listed retired process must not hide the live Alienware worker.
     for row in rows:
@@ -251,6 +266,7 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
     candidates = windows_workers(snapshot)
     row = live_windows_worker(snapshot, receipt)
     online = row is not None
+    machine_conflict = _receipt_machine_conflicts(candidates, receipt)
     seen_id = str(row.get("workerId") or ALIENWARE_WORKER_ID) if row else ALIENWARE_WORKER_ID
     machine_name = str((row or {}).get("machineDisplayName") or (row or {}).get("displayName") or "windows-pc")
     system32 = worker_directory_is_system32(row)
@@ -297,6 +313,17 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         host = "cloud-linux"
         mode = "draft-blocked-local"
         session = ELEADS_SESSION_NONE
+    elif machine_conflict:
+        machine = str((receipt or {}).get("machineName") or "").strip()
+        blockers = [
+            f"Verify receipt is for {machine}, and {len(candidates)} Windows workers are online. "
+            "None of their Cursor labels match that PC. "
+            "Titan will not treat a different PC as the live Eleads session. "
+            "This cloud host will not open Eleads."
+        ]
+        host = "cloud-linux"
+        mode = "draft-blocked-local"
+        session = ELEADS_SESSION_NONE
     else:
         shown = "workers=[]" if worker_count == 0 else f"workers={worker_count}"
         blockers = [
@@ -333,13 +360,13 @@ def build_state(snapshot: dict, receipt: dict | None, now: datetime) -> dict:
         "persistedBy": "core",
         "ownershipScreenDays": OWNERSHIP_SCREEN_DAYS,
         "eleadsSession": session,
-        "workerId": seen_id,
+        "workerId": None if machine_conflict else seen_id,
         "liveWorkerId": seen_id if online else None,
         "onlineWorkerCount": len(candidates),
+        "workerOnline": online or machine_conflict,
         "oneLiveSession": True,
         "fleetNote": fleet_note,
         "hostId": receipt.get("hostId") if isinstance(receipt, dict) else None,
-        "workerOnline": online,
         "timerTick": None,
         "openedFromThisProcess": False,
     }
