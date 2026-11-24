@@ -384,6 +384,55 @@ class LaunchGuardTests(unittest.TestCase):
         self.assertNotEqual("windows-verified", data["host"])
         self.assertNotEqual("v1.1-execute", data["mode"])
 
+    def test_two_pcs_do_not_borrow_a_verify_receipt_from_another_machine(self) -> None:
+        snapshot = {
+            "workers": [
+                {"workerId": "laptop-worker-1", "machineDisplayName": "Office"},
+                {
+                    "workerId": launch.ALIENWARE_WORKER_ID,
+                    "machineDisplayName": "Alienware-18",
+                },
+            ]
+        }
+        receipt = {
+            "glennVerified": True,
+            "state": "VerifiedIdle",
+            "identity": "Bordine, Glenn",
+            "rooftop": "28206",
+            "loginClaim": False,
+            "hostId": "laptop-host-id",
+            "machineName": "GLENN-LAPTOP",
+        }
+        self.assertIsNone(launch.live_windows_worker(snapshot, receipt))
+        state = launch.build_state(snapshot, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertFalse(state["verify"])
+        self.assertFalse(state["glennVerified"])
+        self.assertNotEqual("v1.1-execute", state["mode"])
+        self.assertNotEqual("windows-verified", state["host"])
+        self.assertIsNone(state["liveWorkerId"])
+        self.assertIsNone(state["workerId"])
+        self.assertTrue(state["workerOnline"])
+        self.assertEqual(2, state["onlineWorkerCount"])
+        self.assertIn("GLENN-LAPTOP", state["blockers"][0])
+        self.assertIn("different PC", state["blockers"][0])
+        self.assertEqual([], state["sends"])
+
+        matched = {
+            "workers": [
+                {"workerId": "laptop-worker-1", "machineDisplayName": "GLENN-LAPTOP"},
+                {
+                    "workerId": launch.ALIENWARE_WORKER_ID,
+                    "machineDisplayName": "Alienware-18",
+                },
+            ]
+        }
+        chosen = launch.live_windows_worker(matched, receipt)
+        self.assertEqual("laptop-worker-1", chosen["workerId"])
+        ready = launch.build_state(matched, receipt, datetime(2026, 10, 16, 16, 0, tzinfo=timezone.utc))
+        self.assertTrue(ready["verify"])
+        self.assertEqual("laptop-worker-1", ready["liveWorkerId"])
+        self.assertEqual("v1.1-execute", ready["mode"])
+
     def test_windows_machine_name_still_uses_the_known_alienware_worker(self) -> None:
         snapshot = {
             "workers": [{
