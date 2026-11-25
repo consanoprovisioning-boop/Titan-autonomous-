@@ -149,6 +149,24 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Verified_cdp_target_without_a_page_handle_does_not_clear_verify()
+    {
+        var missingPage = EleadsSession.DecideTickLogin(loggedIn: true, hasPage: false);
+        Assert.False(missingPage.RevokeVerification);
+        Assert.Equal(5, missingPage.ExitCode);
+        Assert.DoesNotContain("password", missingPage.Message, StringComparison.OrdinalIgnoreCase);
+
+        var loggedOut = EleadsSession.DecideTickLogin(loggedIn: false, hasPage: false);
+        Assert.True(loggedOut.RevokeVerification);
+        Assert.Equal(6, loggedOut.ExitCode);
+
+        var ready = EleadsSession.DecideTickLogin(loggedIn: true, hasPage: true);
+        Assert.False(ready.RevokeVerification);
+        Assert.Equal(0, ready.ExitCode);
+        Assert.Null(ready.Message);
+    }
+
+    [Fact]
     public void Login_url_opens_only_when_no_eleads_page_exists()
     {
         Assert.Equal(
