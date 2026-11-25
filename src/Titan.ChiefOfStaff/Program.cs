@@ -264,15 +264,22 @@ async Task<int> TickAsync()
         return 7;
     }
 
-    if (!eleads.LoggedIn || eleads.Page is null)
+    var loginGate = EleadsSession.DecideTickLogin(eleads.LoggedIn, eleads.Page is not null);
+    if (loginGate.RevokeVerification)
     {
         HostJournal.Record(
             paths,
             store,
             HostJournal.Reject(beat, HostState.AwaitingVerify.ToString(), "session not logged in", eleads.DetectedRooftop),
             glennVerified: false);
-        Console.Error.WriteLine("Eleads session is not verified. Titan will not type the password.");
-        return 6;
+        Console.Error.WriteLine(loginGate.Message);
+        return loginGate.ExitCode;
+    }
+
+    if (eleads.Page is not { } page)
+    {
+        Console.Error.WriteLine(loginGate.Message);
+        return loginGate.ExitCode;
     }
 
     if (!Policy.IsAllowedRooftop(eleads.DetectedRooftop))
@@ -290,7 +297,7 @@ async Task<int> TickAsync()
     TickResult result;
     try
     {
-        result = await new WorkTick().RunAsync(eleads.Page, store, eleads.DetectedRooftop!, et);
+        result = await new WorkTick().RunAsync(page, store, eleads.DetectedRooftop!, et);
     }
     catch (Exception ex)
     {

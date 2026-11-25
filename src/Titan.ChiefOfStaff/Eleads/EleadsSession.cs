@@ -2,6 +2,8 @@ using Microsoft.Playwright;
 
 namespace Titan.ChiefOfStaff.Eleads;
 
+public readonly record struct TickLoginGate(bool RevokeVerification, int ExitCode, string? Message);
+
 public sealed class EleadsSession : IAsyncDisposable
 {
     private IPlaywright? _playwright;
@@ -114,6 +116,32 @@ public sealed class EleadsSession : IAsyncDisposable
     }
 
     public static bool IsEleadsUrl(string? url) => EleadsOpenGuard.IsEleadsUrl(url);
+
+    /// <summary>
+    /// CHECKIN can verify from a CDP target that Playwright did not attach as an
+    /// <see cref="IPage"/>. That session is still logged in. Tick must not clear
+    /// verify.json or the same Chrome state fails every later tick.
+    /// </summary>
+    public static TickLoginGate DecideTickLogin(bool loggedIn, bool hasPage)
+    {
+        if (!loggedIn)
+        {
+            return new TickLoginGate(
+                RevokeVerification: true,
+                ExitCode: 6,
+                Message: "Eleads session is not verified. Titan will not type the password.");
+        }
+
+        if (!hasPage)
+        {
+            return new TickLoginGate(
+                RevokeVerification: false,
+                ExitCode: 5,
+                Message: "Eleads is verified, but this tick has no page handle. Verify stays. Leave Chrome open and tick again.");
+        }
+
+        return new TickLoginGate(RevokeVerification: false, ExitCode: 0, Message: null);
+    }
 
     public string Describe()
     {
