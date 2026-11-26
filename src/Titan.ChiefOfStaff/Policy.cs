@@ -55,10 +55,7 @@ public static class Policy
                 return false;
             }
 
-            var beforeIsDigit = found > 0 && text[found - 1] is >= '0' and <= '9';
-            var after = found + id.Length;
-            var afterIsDigit = after < text.Length && text[after] is >= '0' and <= '9';
-            if (!beforeIsDigit && !afterIsDigit)
+            if (IsIdBoundary(text, found - 1, -1) && IsIdBoundary(text, found + id.Length, 1))
             {
                 return true;
             }
@@ -67,6 +64,34 @@ public static class Policy
         }
 
         return false;
+    }
+
+    // A rooftop id is its own token. Letters and digits extend the token, and so
+    // does a hyphen. A dot extends it only when another digit continues the
+    // number. "555-6220" and "162203" are not rooftop 6220. "(6220)" and "store=6220" are.
+    private static bool IsIdBoundary(string text, int index, int stepAway)
+    {
+        if (index < 0 || index >= text.Length)
+        {
+            return true;
+        }
+
+        var c = text[index];
+        if (c is >= '0' and <= '9' or >= 'A' and <= 'Z' or >= 'a' and <= 'z' or '-')
+        {
+            return false;
+        }
+
+        if (c == '.')
+        {
+            var further = index + stepAway;
+            if ((uint)further < (uint)text.Length && text[further] is >= '0' and <= '9')
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static bool SmsOpen(DateTimeOffset nowEt)

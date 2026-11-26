@@ -23,6 +23,14 @@ public class PolicyTests
         Assert.False(Policy.IsForbiddenRooftop("Valdosta Nissan 28206"));
         Assert.False(Policy.IsForbiddenRooftop("Opportunity 162203"));
         Assert.False(Policy.IsForbiddenRooftop("62201"));
+        Assert.False(Policy.IsForbiddenRooftop("Valdosta Nissan 28206 Jane Doe 229-555-6220"));
+        Assert.False(Policy.IsForbiddenRooftop("Call (229) 555-6220"));
+        Assert.False(Policy.IsForbiddenRooftop("229.555.6220"));
+        Assert.False(Policy.IsForbiddenRooftop("VIN 1N4AL3AP6FC6220AB"));
+        Assert.False(Policy.IsForbiddenRooftop("stock-6220"));
+        Assert.True(Policy.IsForbiddenRooftop("Rooftop 6220."));
+        Assert.True(Policy.ContainsBoundedId("store 28206", Policy.NissanId));
+        Assert.True(Policy.ContainsBoundedId("https://www.eleadcrm.com/evo2/fresh/elead.aspx?store=28546", Policy.MitsubishiId));
     }
 
     [Fact]

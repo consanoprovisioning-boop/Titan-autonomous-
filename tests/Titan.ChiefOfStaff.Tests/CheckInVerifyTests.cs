@@ -98,6 +98,20 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Phone_suffix_6220_does_not_reject_a_valdosta_session()
+    {
+        var desk = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Valdosta Nissan 28206\nBordine, Glenn\nJane Doe 229-555-6220 Internet new lead")]);
+        var verdict = EleadsInspection.Choose([desk]);
+        Assert.True(verdict.LoggedIn);
+        Assert.False(verdict.Forbidden);
+        Assert.Equal("28206", verdict.DetectedRooftop);
+    }
+
+    [Fact]
     public void Open_6220_session_rejects_even_when_another_page_shows_valdosta()
     {
         var valdosta = new PageSnapshot(
