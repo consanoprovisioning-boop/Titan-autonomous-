@@ -27,6 +27,13 @@ return verb switch
 
 int Install()
 {
+    using var sessionLock = SessionLock.Acquire(paths, TimeSpan.FromMinutes(3));
+    if (!sessionLock.Acquired)
+    {
+        Console.Error.WriteLine("Another Titan session lock is still held. Install did not reset this PC.");
+        return 4;
+    }
+
     paths.EnsureDataTree();
     var host = HostIdentity.Enroll(paths, machine);
     var state = HostStateMachine.AfterInstall(kill);
@@ -207,17 +214,19 @@ async Task<int> TickAsync()
         return 3;
     }
 
-    if (!VerifyMarker.TryRead(paths, machine, out var receipt) || !receipt.GlennVerified)
-    {
-        Console.Error.WriteLine("Eleads session is not verified on this PC. Double-click CHECKIN.cmd after you sign in.");
-        return 6;
-    }
-
     using var sessionLock = new SessionLock(paths);
     if (!sessionLock.Acquired)
     {
         Console.Error.WriteLine("Another Titan session lock is held. One live Eleads session only.");
         return 4;
+    }
+
+    // The receipt check stays inside the lock. stop and install wait for it, then
+    // clear verify.json. Checking earlier let this tick write glennVerified again.
+    if (!VerifyMarker.TryRead(paths, machine, out var receipt) || !receipt.GlennVerified)
+    {
+        Console.Error.WriteLine("Eleads session is not verified on this PC. Double-click CHECKIN.cmd after you sign in.");
+        return 6;
     }
 
     using var store = new HostStore(paths);
@@ -341,14 +350,13 @@ int Report()
 
 int Stop()
 {
-    using var store = new HostStore(paths);
-    var beat = store.ReadHeartbeat();
-    HostJournal.Record(
-        paths,
-        store,
-        HostJournal.Reject(beat, HostState.AwaitingVerify.ToString(), "stopped"),
-        glennVerified: false);
-    store.Log("host", "stop", "host stopped; session not closed by typing credentials");
+    var code = HostSession.Stop(paths, TimeSpan.FromMinutes(3));
+    if (code != 0)
+    {
+        Console.Error.WriteLine("Another Titan session lock is still held. Stop did not clear the live receipt.");
+        return code;
+    }
+
     Console.WriteLine("Stopped. kill.switch unchanged.");
     return 0;
 }
