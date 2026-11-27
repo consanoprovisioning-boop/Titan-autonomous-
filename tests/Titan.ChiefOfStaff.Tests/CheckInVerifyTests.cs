@@ -285,4 +285,87 @@ public class CheckInVerifyTests
             }
         }
     }
+
+    [Fact]
+    public async Task Second_session_lock_is_refused_until_the_holder_releases_it()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-lock-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            using var held = new SessionLock(paths);
+            Assert.True(held.Acquired);
+            using var blocked = new SessionLock(paths);
+            Assert.False(blocked.Acquired);
+
+            var waiter = Task.Run(() => SessionLock.Acquire(paths, TimeSpan.FromSeconds(5)));
+            var until = DateTime.UtcNow.AddSeconds(2);
+            while (!waiter.IsCompleted && DateTime.UtcNow < until)
+            {
+                await Task.Delay(20);
+            }
+
+            Assert.False(waiter.IsCompleted);
+            held.Dispose();
+            using var acquired = await waiter;
+            Assert.True(acquired.Acquired);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Stop_waits_out_an_in_flight_tick_and_leaves_verify_cleared()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "titan-stop-race-" + Guid.NewGuid().ToString("n"));
+        try
+        {
+            var paths = new HostPaths(root);
+            var stamp = new FakeMachineStamp("ALIENWARE-18", "Glenn", "machine-a");
+            var host = HostIdentity.Enroll(paths, stamp);
+            var verified = new Heartbeat("VerifiedIdle", "28206", "2026-10-16T12:00:00-04:00", null, null, true);
+            using (var store = new HostStore(paths))
+            {
+                HostJournal.Record(paths, store, verified, glennVerified: true, host);
+            }
+
+            using var tick = new SessionLock(paths);
+            Assert.True(tick.Acquired);
+            var stop = Task.Run(() => HostSession.Stop(paths, TimeSpan.FromSeconds(5)));
+            var until = DateTime.UtcNow.AddSeconds(2);
+            while (!stop.IsCompleted && DateTime.UtcNow < until)
+            {
+                await Task.Delay(20);
+            }
+
+            Assert.False(stop.IsCompleted);
+            using (var store = new HostStore(paths))
+            {
+                HostJournal.Record(paths, store, verified, glennVerified: true, host);
+            }
+
+            Assert.True(VerifyMarker.TryRead(paths, stamp, out var during));
+            Assert.True(during.GlennVerified);
+            tick.Dispose();
+
+            Assert.Equal(0, await stop);
+            Assert.True(VerifyMarker.TryRead(paths, stamp, out var after));
+            Assert.False(after.GlennVerified);
+            Assert.Equal(HostState.AwaitingVerify.ToString(), after.State);
+            using var marker = JsonDocument.Parse(ProtectedFile.ReadUtf8(paths.VerifyMarker));
+            Assert.False(marker.RootElement.GetProperty("glennVerified").GetBoolean());
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
 }
