@@ -68,7 +68,7 @@ public static class EleadsInspection
     {
         var text = CombinedText(page);
         var urls = CombinedUrls(page);
-        var loginVisible = ShowsLoginForm(text);
+        var loginVisible = ShowsLoginForm(page);
         var forbidden = Policy.IsForbiddenRooftop(text) || Policy.IsForbiddenRooftop(urls);
         if (forbidden)
         {
@@ -119,9 +119,61 @@ public static class EleadsInspection
         return false;
     }
 
-    public static bool ShowsLoginForm(string text)
+    public static bool ShowsLoginForm(PageSnapshot page)
+    {
+        var text = CombinedText(page);
+        if (!HasCredentialLabels(text))
+        {
+            return false;
+        }
+
+        // login.asp is the sign-in form even when it also names the store.
+        if (HasLoginUrl(page))
+        {
+            return true;
+        }
+
+        // A lead note that says "username and password" is not that form.
+        // An opportunity or the Daily Organizer is the signed-in shell.
+        return !LooksLikeSignedInShell(text);
+    }
+
+    private static bool HasCredentialLabels(string text)
         => text.Contains("Username", StringComparison.OrdinalIgnoreCase)
            && text.Contains("Password", StringComparison.OrdinalIgnoreCase);
+
+    private static bool LooksLikeSignedInShell(string text)
+        => text.Contains("opportunity", StringComparison.OrdinalIgnoreCase)
+           || text.Contains("daily organizer", StringComparison.OrdinalIgnoreCase);
+
+    private static bool HasLoginUrl(PageSnapshot page)
+    {
+        if (UrlIsLogin(page.Url))
+        {
+            return true;
+        }
+
+        foreach (var frame in page.Frames)
+        {
+            if (UrlIsLogin(frame.Url))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool UrlIsLogin(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url) || !EleadsOpenGuard.IsEleadsUrl(url))
+        {
+            return false;
+        }
+
+        return Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri)
+               && uri.AbsolutePath.Contains("login", StringComparison.OrdinalIgnoreCase);
+    }
 
     public static bool SameUrl(string? left, string? right)
     {

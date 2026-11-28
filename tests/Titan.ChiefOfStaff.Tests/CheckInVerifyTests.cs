@@ -83,6 +83,38 @@ public class CheckInVerifyTests
     }
 
     [Fact]
+    public void Portal_note_that_mentions_username_and_password_stays_a_verified_session()
+    {
+        var desk = new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Daily Organizer\nValdosta Nissan 28206\nBordine, Glenn\nOpportunity 1001 Internet new lead Jane Doe\nActivity: portal username and password expired")]);
+
+        var verdict = EleadsInspection.Evaluate(desk);
+        Assert.False(verdict.LoginFormVisible);
+        Assert.True(verdict.LoggedIn);
+        Assert.Equal("28206", verdict.DetectedRooftop);
+        Assert.Equal("Verified rooftop 28206 as Bordine, Glenn.", EleadsInspection.Describe(verdict));
+
+        var bareCredentialPage = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/elead.aspx",
+                "Username\nPassword\nValdosta Nissan 28206\nGlenn")]));
+        Assert.True(bareCredentialPage.LoginFormVisible);
+        Assert.False(bareCredentialPage.LoggedIn);
+
+        var loginStillWins = EleadsInspection.Evaluate(new PageSnapshot(
+            "https://www.eleadcrm.com/evo2/fresh/login.asp",
+            [new FrameSnapshot(
+                "https://www.eleadcrm.com/evo2/fresh/login.asp",
+                "Username\nPassword\nOpportunity\nValdosta Nissan 28206\nGlenn")]));
+        Assert.True(loginStillWins.LoginFormVisible);
+        Assert.False(loginStillWins.LoggedIn);
+    }
+
+    [Fact]
     public void Opportunity_id_containing_6220_does_not_reject_a_valdosta_session()
     {
         var desk = new PageSnapshot(
